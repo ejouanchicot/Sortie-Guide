@@ -8,8 +8,21 @@ Guide de stratégie **Sortie** pour **FINAL FANTASY XI**, en 4 phases linéaires
 
 🔗 **En ligne :** https://ejouanchicot.github.io/Sortie-Guide/
 
-Une seule page HTML : aucune installation, aucun compte, aucun serveur — tout tourne
-dans le navigateur.
+Site **statique** (HTML / CSS / JS séparés) : aucune installation, aucun compte, aucun
+serveur — tout tourne dans le navigateur.
+
+## Structure du projet
+
+```
+index.html        page principale (structure)
+css/style.css     tout le style
+js/app.js         données de la strat + rendu + interactions
+img/              carte + portraits des mobs et boss
+og.png            aperçu Discord / réseaux sociaux
+```
+
+Les chemins sont **relatifs** : tant que tu gardes cette arborescence, ça marche à la
+racine du dépôt comme en local.
 
 ## Ce que contient le guide
 
@@ -18,6 +31,9 @@ dans le navigateur.
 - **Timeline par phase** — chaque phase sous forme de carte, du farm au boss, dans l'ordre.
 - **Filtre « Mon rôle »** — clique ton job pour faire ressortir tes actions ; le mode
   **Solo** masque tout le reste pour ne garder que ta ligne.
+- **Bascule FR / EN** — bouton de langue en haut à droite ; le choix est mémorisé.
+- **Thème clair / sombre** — bouton ☀/☾ en haut à droite ; le choix est mémorisé.
+- **Responsive** — mobile-first, du téléphone à l'écran ultra-wide.
 - **Sélecteur de comp** — bascule entre le flex **PLD** et **DNC**, la strat s'adapte.
 - **Cartes zoomables** — clic sur une carte pour l'agrandir.
 - **Couleurs FFXI** — rôles et éléments codés par couleur, cartes Boss et Farm bien distinctes.
@@ -26,17 +42,18 @@ dans le navigateur.
 
 C'est un site **statique** : un simple dépôt GitHub avec **GitHub Pages** activé suffit.
 
-1. Place `index.html` et `og.png` à la racine du dépôt.
+1. Copie **tout le contenu** (`index.html`, `og.png`, `css/`, `js/`, `img/`) à la racine du dépôt.
 2. **Settings → Pages** → Source : branche `main`, dossier `/(root)` → *Save*.
-3. Pour une nouvelle version, remplace `index.html` — l'URL ne change pas.
+3. Pour une nouvelle version, remplace le(s) fichier(s) concerné(s) — l'URL ne change pas.
+   (contenu de la strat = `js/app.js`, style = `css/style.css`.)
 
 > Si tu utilises un autre nom de dépôt que `Sortie-Guide`, pense à mettre à jour les URLs
 > `og:image` et `og:url` dans le `<head>` de `index.html` (sinon l'aperçu Discord pointe au mauvais endroit).
 
 ## Utiliser hors-ligne
 
-Télécharge `index.html` et ouvre-le dans n'importe quel navigateur : tout fonctionne en
-local (seul l'aperçu Discord `og.png` a besoin de l'URL hébergée).
+Télécharge le dossier complet et ouvre `index.html` dans n'importe quel navigateur : tout
+fonctionne en local (seul l'aperçu Discord `og.png` a besoin de l'URL hébergée).
 
 ## À faire (roadmap)
 
