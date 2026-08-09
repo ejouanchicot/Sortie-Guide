@@ -362,7 +362,7 @@ const PHASES=[
     {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Geo-Gravity","Indi-Frailty"]),
-      ln(["BRD"],["Honor March","Minuet ×2","Aria"],{cond:"sans RDM : Honor + Minuet ×2 + Victory"})
+      ln(["BRD"],["Honor March","Victory March"],{cond:"Degei slow → garde la vitesse d'attaque"})
     ]},
     {label:"RDM",cls:"heal",lines:[
       ln(["RDM"],["Saboteur → Gravity II","Dia III","Distract III"])
@@ -393,7 +393,7 @@ const PHASES=[
       ln(["COR"],"tape (DPS)")
     ]},
     {label:"DD · SC",cls:"dd",lines:[
-      ln(["MNK"],"Shijin Spiral → Shijin Spiral")
+      ln(["MNK"],"Victory Smite ×2")
     ]},
     {label:"MB Fire",cls:"mb",lines:[
       ln(["RDM","GEO"],"MB Fire sur le SC")
@@ -449,13 +449,13 @@ const PHASES=[
       ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
       ln(["ALL"],"pas d'empilement (Counter 500+/hit)")
     ]},
-    {label:"◈ Mains THUNDER → proc Ice",cls:"",lines:[
-      ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
-      ln(["GEO","RDM"],"MB Ice sur le SC")
-    ]},
-    {label:"◈ Mains WIND → proc Earth",cls:"",lines:[
+    {label:"◈ Mains THUNDER → proc Earth",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
-      ln(["GEO","RDM"],"MB Earth sur le SC"),
+      ln(["GEO","RDM"],"MB Earth sur le SC")
+    ]},
+    {label:"◈ Mains WIND → proc Ice",cls:"",lines:[
+      ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
+      ln(["GEO","RDM"],"MB Ice sur le SC"),
       ln(["ALL"],"Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)",{warn:1})
     ]},
     {label:"DD (varie la source)",cls:"dd",lines:[
