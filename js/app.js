@@ -11,6 +11,7 @@ function ln(r,t,opt){opt=opt||{};return {r:r,t:t,cond:opt.cond,warn:opt.warn,com
 const LANG=(function(){try{var l=localStorage.getItem('sortie_lang');return l==='en'?'en':'fr';}catch(e){return 'fr';}})();
 const TR={
  "Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre":"At Start: wait for Mazurka (BRD) and/or Bolter's (COR) · do NOT go through the door until you have one or the other",
+ "Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed":"At Start: wait for Mazurka (BRD), Bolter's (COR) and/or Chocobo Jig (DNC) · do NOT go through the door until you have move speed",
  "Bolter's (Tactician's déjà posé)":"Bolter's (Tactician's already up)",
  "Trajet · buffs de déplacement":"Route · movement buffs",
  "Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.":"From Start (center-left) · right wall, straight SOUTH → bottom-left corner.",
@@ -41,6 +42,7 @@ const TR={
  "DD · on spam":"DD · spam",
  "WS libres (spam)":"free WS (spam)",
  "spam Ruthless Stroke · le DNC ne peut pas proc":"spam Ruthless Stroke · DNC can't proc",
+ "Switch Rudra's Storm si Degei est Fire / Wind / Thunder":"Switch to Rudra's Storm if Degei is Fire / Wind / Thunder",
  "Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).":"Right wall, straight EAST → bottom-right corner (Ghost ×3, then Skomora, cell N).",
  "tape (DPS)":"melee (DPS)",
  "SC Light à mort":"Light SC until dead",
@@ -51,6 +53,9 @@ const TR={
  "Mur de droite, plein NORD → coin haut-droite (Umbril ×5, puis Leshonn).":"Right wall, straight NORTH → top-right corner (Umbril ×5, then Leshonn).",
  "≥1 WS par mob · tous tués = lock ses TP moves":"≥1 WS per mob · all killed = locks its TP moves",
  "≥1 WS par mob (obligatoire)":"≥1 WS per mob (mandatory)",
+ "DD · tout le monde tape":"DD · everyone hits",
+ "≥1 WS par mob (obligatoire) · PLD, COR, RDM, BRD, MNK":"≥1 WS per mob (mandatory) · PLD, COR, RDM, BRD, MNK",
+ "≥1 WS par mob (obligatoire) · DNC, COR, RDM, BRD, MNK":"≥1 WS per mob (mandatory) · DNC, COR, RDM, BRD, MNK",
  "kite le boss":"kite the boss",
  "Zap copie un debuff → pas de Paralyze":"Zap copies a debuff → no Paralyze",
  "Règles":"Rules",
@@ -89,17 +94,20 @@ const OVINTRO = LANG==='en'
  : '<p><b>Sortie \u00b7 run lin\u00e9aire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu\'au dernier boss, en encha\u00eenant Degei \u2192 Skomora \u2192 Leshonn \u2192 Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class="ovi-tip">Clique ton job dans <b>Mon r\u00f4le</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p>';
 
 const BUFFS_P1=[
-  ln(["ALL"],"Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1}),
+  ln(["ALL"],"Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
+  ln(["ALL"],"Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
   ln(["COR"],"Bolter's + Tactician's"),
-  ln(["BRD"],"Mazurka")
+  ln(["BRD"],"Mazurka"),
+  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
 ];
 const BUFFS_STD=[
-  ln(["COR"],"Bolter's (Tactician's déjà posé)")
+  ln(["COR"],"Bolter's (Tactician's déjà posé)"),
+  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
 ];
 
 const PHASES=[
 {n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:BUFFS_P1,cards:[
-  {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",groups:[
+  {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
     {label:"Setup · au camp Fomor",cls:"tank",lines:[
       ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"],{comp:"PLD"}),
       ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
@@ -109,13 +117,14 @@ const PHASES=[
       ln(["GEO"],["Acumen","Malaise"]),
       ln(["BRD"],["Honor March","Victory March"])
     ]},
-    {label:"Fomor ×3 → MNK · SC Step 4",cls:"dd",lines:[
-      ln(["MNK"],"Shijin Spiral → Tornado Kick (SC Step 4) ×3"),
+    {label:"Fomor ×3 · SC Step 4",cls:"dd",img:"Fomor",lines:[
+      ln(["MNK"],"Shijin Spiral → Tornado Kick (SC Step 4) ×3",{comp:"PLD"}),
       ln(["DNC"],"Dancing Edge ×4",{comp:"DNC"})
     ]},
-    {label:"Acuex ×3 → SC mono-cible + MB Fire (×3 kills)",cls:"mb",lines:[
+    {label:"Acuex ×3 → SC mono-cible + MB Fire (×3 kills)",cls:"mb",img:"Acuex",lines:[
       ln(["PLD","RDM"],"Chant du Cygne > Chant du Cygne"),
       ln(["PLD","COR","BRD"],"Savage Blade > Last Stand  (PLD+COR ou BRD+COR)"),
+      ln(["MNK"],"Victory Smite ×2  (Light)",{comp:"DNC"}),
       ln(["RDM","GEO"],"MB Fire sur le SC")
     ]}
   ]},
@@ -152,7 +161,7 @@ const PHASES=[
     {label:"DD · on spam",cls:"dd",lines:[
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
       ln(["MNK"],"WS libres (spam)"),
-      ln(["DNC"],"spam Ruthless Stroke · le DNC ne peut pas proc",{comp:"DNC"})
+      ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"],{comp:"DNC"})
     ]}
   ]}
 ]},
@@ -165,7 +174,8 @@ const PHASES=[
       ln(["COR"],"tape (DPS)")
     ]},
     {label:"DD · SC",cls:"dd",lines:[
-      ln(["MNK"],"Victory Smite ×2")
+      ln(["MNK"],"Victory Smite ×2"),
+      ln(["DNC"],"Ruthless Stroke ×2 = Fusion",{comp:"DNC"})
     ]},
     {label:"MB Fire",cls:"mb",lines:[
       ln(["RDM","GEO"],"MB Fire sur le SC")
@@ -197,9 +207,9 @@ const PHASES=[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["BRD"],["Honor March","Victory March"])
     ]},
-    {label:"DD",cls:"dd",lines:[
-      ln(["MNK"],"≥1 WS par mob (obligatoire)"),
-      ln(["DNC"],"≥1 WS par mob (obligatoire)",{comp:"DNC"})
+    {label:"DD · tout le monde tape",cls:"dd",lines:[
+      ln(["ALL"],"≥1 WS par mob (obligatoire) · PLD, COR, RDM, BRD, MNK",{comp:"PLD"}),
+      ln(["ALL"],"≥1 WS par mob (obligatoire) · DNC, COR, RDM, BRD, MNK",{comp:"DNC"})
     ]}
   ]},
   {kind:"boss",name:"Boss · Leshonn",tag:"Thunder ↔ Wind · ~870k",groups:[
@@ -223,22 +233,22 @@ const PHASES=[
     ]},
     {label:"◈ Mains THUNDER → proc Earth",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
-      ln(["GEO","RDM"],"MB Earth sur le SC")
+      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"}),
+      ln(["COR"],"spam Savage Blade"),
+      ln(["RDM","GEO"],"MB Earth sur le SC")
     ]},
     {label:"◈ Mains WIND → proc Ice",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
-      ln(["GEO","RDM"],"MB Ice sur le SC"),
-      ln(["ALL"],"Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)",{warn:1})
-    ]},
-    {label:"DD (varie la source)",cls:"dd",lines:[
+      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"}),
       ln(["COR"],"spam Savage Blade"),
-      ln(["MNK"],"SC selon le mode"),
-      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"})
+      ln(["RDM","GEO"],"MB Ice sur le SC"),
+      ln(["ALL"],"Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)",{warn:1})
     ]}
   ]}
 ]},
 {n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:[
-  ln(["COR"],"Bolter's + Tactician's")
+  ln(["COR"],"Bolter's + Tactician's"),
+  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
 ],cards:[
   {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
     {label:"PLD",cls:"tank",lines:[
@@ -280,7 +290,7 @@ function colorize(s){
   s=s.replace(/→/g,'<span style="color:var(--dim)">→</span>');
   return s;
 }
-function roleChip(r){return '<span class="role" style="color:'+jcol(r)+'">'+r+'</span>';}
+function roleChip(r){return '<span class="role" style="--jc:'+jcol(r)+'">'+r+'</span>';}
 function lineHtml(l,g){
   const roles=(l.r||["ALL"]);
   const chips=roles.map(roleChip).join("");
@@ -328,10 +338,14 @@ const app=document.getElementById("app");
 
 function ovDot(x,y,l){return '<circle cx="'+x+'" cy="'+y+'" r="1.6" fill="#0d1218" stroke="url(#pg)" stroke-width="0.85"/><text x="'+x+'" y="'+(y+0.68)+'" text-anchor="middle" class="ovn">'+l+'</text>';}
 const MAPIMG="img/map.jpg";
+const ZMAP={1:'#a6b2c2',2:'var(--e-wind)',3:'var(--e-water)',4:'var(--e-fire)'};
+const OVSTEPS='<ol class="ovsteps">'+PHASES.map(function(p){return '<li style="--zc:'+ZMAP[p.n]+'"><span class="osnum">'+p.n+'</span><span class="ostxt"><b>'+esc(p.boss)+'</b><span>'+esc(tr(p.title))+'</span></span></li>';}).join('')+'</ol>';
 const OVERVIEW='<section class="overview">'
   +'<div class="ovhead"><span class="ovtitle">'+tr("Vue d'ensemble du run")+'</span>'
   +'<span class="ovsub"><span class="zoomhint">'+tr("cliquer sur la carte pour agrandir")+'</span></span></div>'
-  +'<div class="ovintro">'+OVINTRO+'</div>'
+  +'<div class="ovgrid">'
+  +'<div class="ovside"><div class="ovintro">'+OVINTRO+'</div></div>'
+  +'<div class="ovmapwrap">'
   +'<div class="ovmap mapfig">'
   +'<img src="'+MAPIMG+'" alt="Carte complète du run" loading="lazy" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
   +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
@@ -339,42 +353,43 @@ const OVERVIEW='<section class="overview">'
   +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'
   +'<polyline class="ovrail" points="17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3"/>'
   +'<polyline class="ovflow" points="17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3"/>'
-  +ovDot(17.2,41.7,'S')
+  +ovDot(17.7,42.4,'S')
   +'</svg></div>'
-+'<div class="ovlegend">'
-+'<span class="lgi"><b>'+tr("Trajet")+'</b> S → ① → ② → ③ → ④</span>'
-+'<span class="lgsep"></span>'
-+'<span class="lgi"><span class="lgpin big"></span> Boss</span>'
-+'<span class="lgi"><span class="lgpin"></span> '+tr("Pack de mobs")+'</span>'
-+'<span class="lgsep"></span>'
-+'<span class="lgi"><span class="lgnum" style="--zc:#a6b2c2">1</span> Degei</span>'
-+'<span class="lgi"><span class="lgnum" style="--zc:var(--e-wind)">2</span> Skomora</span>'
-+'<span class="lgi"><span class="lgnum" style="--zc:var(--e-water)">3</span> Leshonn</span>'
-+'<span class="lgi"><span class="lgnum" style="--zc:var(--e-fire)">4</span> Ghatjot</span>'
-+'</div></section>';
+  +'</div>'
+  +'</div></section>';
 app.innerHTML=OVERVIEW;
 const MOB={"Degei": "img/mob-degei.png", "Skomora": "img/mob-skomora.png", "Leshonn": "img/mob-leshonn.png", "Ghatjot": "img/mob-ghatjot.png", "Acuex": "img/mob-acuex.png", "Fomor": "img/mob-fomor.png", "Ghost": "img/mob-ghost.png", "Umbril": "img/mob-umbril.png"};
 const ELC={fire:'var(--e-fire)',water:'var(--e-water)',ice:'var(--e-ice)',thunder:'var(--e-thunder)',wind:'var(--e-wind)',earth:'var(--e-earth)',light:'var(--e-light)',dark:'var(--e-dark)',red:'var(--e-fire)',blue:'var(--e-water)',green:'var(--e-wind)',gray:'#a6b2c2'};
 const ZC2={red:'#ff9d3a',blue:'#7ce0ff',green:'#b6ff5a',gray:'#ffffff'};
 const BOSSES=[
- {name:'Ghatjot',n:4,el:'red', x:11,  y:5.5, nx:20.4,ny:7.9},
- {name:'Leshonn',n:3,el:'blue',x:95,  y:5.5, nx:89.1,ny:7.9},
- {name:'Degei',  n:1,el:'gray',x:19,  y:86,  nx:20.4,ny:76.7},
- {name:'Skomora',n:2,el:'green',x:90, y:86,  nx:89.1,ny:76.7}
+ {name:'Ghatjot',n:4,el:'red', x:12.5,y:5.5, nx:20.4,ny:7.9},
+ {name:'Leshonn',n:3,el:'blue',x:95,  y:7.9, nx:89.1,ny:7.9},
+ {name:'Degei',  n:1,el:'gray',x:20.4,y:83,  nx:20.4,ny:76.7},
+ {name:'Skomora',n:2,el:'green',x:89.1,y:85, nx:89.1,ny:76.7}
 ];
 const PACKS=[
  {name:'Acuex', el:'red', x:29.7,y:53.5, q:'×12', ph:1},
- {name:'Fomor', el:'gray',x:31,y:65, q:'WHM/BLM/RDM ×5', ph:1},
+ {name:'Fomor', el:'gray',x:28,y:69, q:'WHM/BLM/RDM ×5', ph:1},
  {name:'Ghost', el:'green',x:67.0,y:66.1, q:'×12', ph:2},
  {name:'Umbril',el:'blue',x:78.5,y:29.0, q:'×12', ph:3}
 ];
+function pqHtml(q){
+  var m=q.match(/×\d+/); var count=m?m[0]:'';
+  var rest=q.replace(/×\d+/,'').trim();
+  if(rest.indexOf('/')>=0){
+    var jobs=rest.split('/').map(function(s){return s.trim();}).filter(Boolean);
+    return '<span class="pq pqlist">'+(count?'<b>'+count+'</b>':'')+jobs.map(function(j){return '<span>'+j+'</span>';}).join('')+'</span>';
+  }
+  return '<span class="pq">'+q+'</span>';
+}
 (function(){
   const ovmap=document.querySelector('.ovmap'); if(!ovmap)return;
   const wrap=document.createElement('div'); wrap.className='ovpoi'; let h='';
-  PACKS.forEach(p=>{ h+='<div class="poi pack" style="left:'+p.x+'%;top:'+p.y+'%;--pc:'+ELC[p.el]+'"><img src="'+MOB[p.name]+'" alt="'+p.name+'"><span class="plabel">'+p.name+'<span class="pq">'+p.q+'</span></span></div>'; });
+  PACKS.forEach(p=>{ h+='<div class="poi pack" style="left:'+p.x+'%;top:'+p.y+'%;--pc:'+ELC[p.el]+'"><img src="'+MOB[p.name]+'" alt="'+p.name+'"><span class="plabel">'+p.name+''+pqHtml(p.q)+'</span></div>'; });
   BOSSES.forEach(bo=>{
-    h+='<div class="poi boss" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'"><span class="plabel">'+bo.name+'</span></div>';
-    h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+'">'+bo.n+'</div>';
+    var ad=(-(4-bo.n)*0.3375)+'s'; // onde de pulsation dans le sens du chemin (1→2→3→4)
+    h+='<div class="poi boss" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+';--ad:'+ad+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'"><span class="plabel">'+bo.name+'</span></div>';
+    h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+';--ad:'+ad+'">'+bo.n+'</div>';
   });
   wrap.innerHTML=h; ovmap.appendChild(wrap);
 })();
@@ -384,11 +399,11 @@ function phaseMapHtml(p){
   var seg=SEG[p.n], bo=BOSSN[p.n];
   var packs=PACKS.filter(function(x){return x.ph===p.n;});
   var poi='';
-  packs.forEach(function(pk){ poi+='<div class="poi pack" style="left:'+pk.x+'%;top:'+pk.y+'%;--pc:'+ELC[pk.el]+'"><img src="'+MOB[pk.name]+'" alt="'+pk.name+'"><span class="plabel">'+pk.name+'<span class="pq">'+pk.q+'</span></span></div>'; });
+  packs.forEach(function(pk){ poi+='<div class="poi pack" style="left:'+pk.x+'%;top:'+pk.y+'%;--pc:'+ELC[pk.el]+'"><img src="'+MOB[pk.name]+'" alt="'+pk.name+'"><span class="plabel">'+pk.name+''+pqHtml(pk.q)+'</span></div>'; });
   poi+='<div class="poi boss" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'"><span class="plabel">'+bo.name+'</span></div>';
   poi+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+'">'+bo.n+'</div>';
   var startDot='';
-  if(p.n===1){ startDot=ovDot(17.2,41.7,'S'); }
+  if(p.n===1){ startDot=ovDot(17.7,42.4,'S'); }
   else { var pb=BOSSN[p.n-1]; poi+='<div class="ovnum" style="left:'+pb.nx+'%;top:'+pb.ny+'%;--pc:'+ELC[pb.el]+';--pc2:'+ZC2[pb.el]+'">'+pb.n+'</div>'; }
   var svg='<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true"><polyline class="ovrail" points="'+seg+'"/><polyline class="ovflow" points="'+seg+'"/>'+startDot+'</svg>';
   return '<div class="ovmap phasemap mapfig"><img src="'+MAPIMG+'" alt="Carte Phase '+p.n+'" loading="lazy">'+svg+'<div class="ovpoi">'+poi+'</div></div>';
@@ -405,16 +420,29 @@ PHASES.forEach(p=>{
   p.cards.forEach(c=>{
     let groups="";
     c.groups.forEach(g=>{
-      groups+='<div class="grp '+(g.cls||"")+'"><div class="glabel '+(g.cls||"")+'">'+colorize(tr(g.label))+'</div>'+(g.note?'<div class="gnote">'+esc(tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
+      var gthumb='';
+      if(g.img && MOB[g.img]){ var gpk=PACKS.find(function(x){return x.name===g.img;}); var gac=gpk?ELC[gpk.el]:'var(--r-buff)';
+        gthumb='<span class="gthumb" style="--ac:'+gac+'"><img src="'+MOB[g.img]+'" alt="'+g.img+'"></span>'; }
+      var glabelHtml='<div class="glabel '+(g.cls||"")+'">'+colorize(tr(g.label))+'</div>';
+      var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
+      groups+='<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+'">'+headHtml+(g.note?'<div class="gnote">'+esc(tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
     });
-    cards+='<div class="card '+(c.kind==="boss"?"boss":"pack")+'"><div class="chead">'
-      +'<span class="ckind '+c.kind+'">'+(c.kind==="boss"?"BOSS":"PACK")+'</span>'
-      +'<span class="cname">'+esc(tr(c.name))+'</span>'
-      +'<span class="ctag">'+colorize(tr(c.tag))+'</span></div>'
+    // portrait(s) du/des mob(s) + couleur d'accent
+    var mks=[], acc='var(--r-buff)';
+    if(c.kind==="boss"){ var bb=BOSSN[p.n]; if(bb){ mks=[bb.name]; acc=ELC[bb.el]; } }
+    else { var nm=tr(c.name)+" "+c.name; mks=Object.keys(MOB).filter(function(k){return nm.indexOf(k)>=0;});
+      var pk=PACKS.find(function(x){return mks.indexOf(x.name)>=0;}); if(pk) acc=ELC[pk.el]; }
+    if(c.noHeadImg) mks=[];
+    var thumbHtml = mks.length ? '<span class="cthumbs'+(mks.length>1?' multi':'')+'">'+mks.map(function(k){return '<span class="cthumb"><img src="'+MOB[k]+'" alt="'+k+'"></span>';}).join('')+'</span>' : '';
+    cards+='<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+acc+'">'
+      +'<div class="chead">'+thumbHtml
+      +'<div class="chmeta"><div class="chtop"><span class="ckind '+c.kind+'">'+(c.kind==="boss"?"BOSS":"FARM")+'</span>'
+      +'<span class="cname">'+esc(tr(c.name))+'</span></div>'
+      +'<span class="ctag">'+colorize(tr(c.tag))+'</span></div></div>'
       +'<div class="cbody">'+groups+'</div></div>';
   });
   const buffsHtml='<div class="buffs"><span class="bhead">'+tr("Trajet · buffs de déplacement")+'</span>'
-    + p.buffs.map(b=>'<span class="bl'+(b.warn?' warn':'')+'" data-r="'+(b.r||['ALL']).join(' ')+'">'+roleChip(b.r[0])+'<span>'+(Array.isArray(b.t)?'<ul class="acts">'+b.t.map(function(it){return '<li>'+colorize(tr(it))+'</li>';}).join('')+'</ul>':colorize(tr(b.t)))+'</span></span>').join("")+'</div>';
+    + p.buffs.map(b=>'<span class="bl'+(b.warn?' warn':'')+'" data-r="'+(b.r||['ALL']).join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'+roleChip(b.r[0])+'<span>'+(Array.isArray(b.t)?'<ul class="acts">'+b.t.map(function(it){return '<li>'+colorize(tr(it))+'</li>';}).join('')+'</ul>':colorize(tr(b.t)))+'</span></span>').join("")+'</div>';
   const mapHtml = p.map ? '<figure class="mapfig" data-full="'+p.map+'">'
       +'<img src="'+p.map+'" alt="Carte Phase '+p.n+' · '+esc(p.boss)+'" loading="lazy" onerror="this.closest(\'.mapfig\').classList.add(\'missing\')">'
       +'<div class="mapmiss">Carte non trouvée · ajoute <code>'+esc(p.map)+'</code> dans le dépôt (dossier <code>maps/</code>).</div>'
@@ -435,7 +463,7 @@ PHASES.forEach(p=>{
     +'<div class="pgrid"><div class="pleft">'
     +buffsHtml
     +'<div class="cards">'+cards+'</div>'
-    +'</div><div class="pright">'+phaseMapHtml(p)+'</div></div>'
+    +'</div></div>'
     +'</div>';
   TL.appendChild(sec);
 });
@@ -478,10 +506,14 @@ const soloBtn=document.createElement("button");soloBtn.className="chip";soloBtn.
 jobsEl.appendChild(soloBtn);
 let curJob=null;
 function lineHidden(el){
+  const comp=document.body.getAttribute("data-comp");
+  const roles=(el.dataset.r||"").split(" ");
+  // comp flex : PLD et DNC s'excluent — on cache le job flex absent
+  const other = comp==="PLD" ? "DNC" : "PLD";
+  if(roles.indexOf(other)>=0) return true;
   const dc=el.dataset.comp;
-  if(dc && dc!==document.body.getAttribute("data-comp")) return true;
+  if(dc && dc!==comp) return true;
   if(document.body.classList.contains("solo") && curJob){
-    const roles=(el.dataset.r||"").split(" ");
     if(roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0) return true;
   }
   return false;
@@ -493,17 +525,17 @@ function applyFilter(){
     el.classList.toggle("solohide", solo && roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0);
   });
   document.querySelectorAll(".grp").forEach(g=>{
-    g.classList.toggle("emptyhide", solo && ![...g.querySelectorAll(".line")].some(l=>!lineHidden(l)));
+    g.classList.toggle("emptyhide", ![...g.querySelectorAll(".line")].some(l=>!lineHidden(l)));
   });
   document.querySelectorAll(".card").forEach(c=>{
-    c.classList.toggle("emptyhide", solo && ![...c.querySelectorAll(".line")].some(l=>!lineHidden(l)));
+    c.classList.toggle("emptyhide", ![...c.querySelectorAll(".line")].some(l=>!lineHidden(l)));
   });
   document.querySelectorAll(".buffs .bl").forEach(el=>{
     const roles=(el.dataset.r||"").split(" ");
     el.classList.toggle("solohide", solo && roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0);
   });
   document.querySelectorAll(".buffs").forEach(bf=>{
-    bf.classList.toggle("emptyhide", solo && ![...bf.querySelectorAll(".bl")].some(l=>!l.classList.contains("solohide")));
+    bf.classList.toggle("emptyhide", ![...bf.querySelectorAll(".bl")].some(l=>!lineHidden(l)));
   });
   if(typeof placeNodes==='function') requestAnimationFrame(placeNodes);
 }
