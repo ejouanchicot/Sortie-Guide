@@ -484,6 +484,11 @@ body::before{
 #mapedit,#mappanel{pointer-events:none}
 #mapedit .mecard,#mappanel .mecard{pointer-events:auto}
 
+/* ═══════════ V14 · carte flottante du tracé (ancrée au milieu du tracé) ═══════════ */
+#mappanel .mprange{flex:1;min-width:96px;accent-color:var(--cyan);cursor:pointer}
+#mappanel .mpval{font-family:var(--mono);font-size:10px;color:var(--tx2);min-width:34px;text-align:right}
+#mappanel .mpcol{flex:none;width:42px;height:26px;padding:2px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -582,7 +587,7 @@ body::before{
   let stage,layer,gMap,gRoutes,gPins,gTexts,gEdit,curIdx=0,anim=null,selNode=null,tool='select',spaceDown=false;
   let mobScale=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1;
   let labelMargin=(typeof LBLMARGIN!=='undefined'&&LBLMARGIN!=null)?LBLMARGIN:6;
-  let curRoute=0,selHandleIdx=-1,curInspRoute=null;
+  let curRoute=0,selHandleIdx=-1;
   let dirty=false;   // des modifications ne sont pas encore écrites dans data.js
   const layerVis={map:true,routes:true,texts:true,pins:true};
   // Phase 3 : création de marqueurs depuis une palette d'images
@@ -1012,8 +1017,8 @@ body::before{
     askConfirm('Supprimer le tracé <b>'+(rt.name?esc(rt.name):(rt.n!=null?rt.n:curRoute+1))+'</b> ? Le guide ne l’affichera plus.',{title:'Supprimer le tracé'}).then(v=>{if(!v)return;
       if(rt._case)rt._case.destroy();if(rt._rail)rt._rail.destroy();if(rt._flow)rt._flow.destroy();f.routes.splice(curRoute,1);curRoute=Math.max(0,curRoute-1);selHandleIdx=-1;
       buildRoutePicker();refreshPathEdit();buildLayers();updateAnim();commit();});}
-  function refreshPathEdit(){clearHandles();if(tool!=='path'){draw();return;}
-    const routes=activeRoutes();if(!routes.length){renderRouteInspector();draw();return;}if(curRoute>=routes.length)curRoute=0;
+  function refreshPathEdit(){clearHandles();if(tool!=='path'){syncRoutePanel();draw();return;}
+    const routes=activeRoutes();if(!routes.length){renderRouteInspector();syncRoutePanel();draw();return;}if(curRoute>=routes.length)curRoute=0;
     const rt=routes[curRoute];if(!rt._pts)rt._pts=S.parsePts(rt.points);
     const hit=new Konva.Line({points:flatCanvas(rt._pts),stroke:'#54d1c4',strokeWidth:20,opacity:0.001,lineCap:'round',lineJoin:'round',name:'phit'});
     hit.on('dblclick dbltap',()=>insertRoutePoint(rt));gEdit.add(hit);
@@ -1031,7 +1036,7 @@ body::before{
       h.on('mouseenter',()=>stage.container().style.cursor='pointer');
       h.on('mouseleave',()=>stage.container().style.cursor=spaceDown?'grab':'crosshair');
       gEdit.add(h);});
-    if(curInspRoute===rt&&document.getElementById('f_pcount'))syncRouteInspector(rt);else renderRouteInspector();
+    renderRouteInspector();syncRoutePanel();
     draw();}
   function addRoutePoint(x,y){const rt=activeRoutes()[curRoute];if(!rt)return;if(!rt._pts)rt._pts=S.parsePts(rt.points);rt._pts.push([r1(x),r1(y)]);selHandleIdx=rt._pts.length-1;syncRouteLine(rt);refreshPathEdit();commit();}
   function insertRoutePoint(rt){const p=stage.getPointerPosition();const mx=U((p.x-stage.x())/stage.scaleX()),my=U((p.y-stage.y())/stage.scaleY());
@@ -1054,30 +1059,57 @@ body::before{
     document.getElementById('rNew').addEventListener('click',addNewRoute);
     document.getElementById('rDel').addEventListener('click',deleteRoute);
     document.getElementById('rUndo').addEventListener('click',undoLastPoint);}
-  function renderRouteInspector(){if(tool!=='path')return;const routes=activeRoutes();const body=document.getElementById('inspBody');
-    if(!routes.length){body.innerHTML='<div class="empty">Aucun tracé. Clique sur ＋ pour en créer un.</div>';setInspTitle('Tracés');curInspRoute=null;return;}
-    const rt=routes[curRoute];if(!rt)return;setInspTitle('Tracé '+(rt.n!=null?rt.n:curRoute+1),rt.c1||elc(rt.el));if(document.activeElement&&/^f_/.test(document.activeElement.id||''))return;
+  // l'inspecteur ne configure plus le tracé : il ne garde que l'aide (raccourcis d'édition des points)
+  function renderRouteInspector(){if(tool!=='path')return;const routes=activeRoutes(),body=document.getElementById('inspBody');
+    if(!routes.length){body.innerHTML='<div class="empty">Aucun tracé. Clique sur ＋ dans la barre du haut pour en créer un.</div>';setInspTitle('Tracés');return;}
+    const rt=routes[curRoute];if(!rt)return;
+    setInspTitle('Tracé '+(rt.n!=null?rt.n:curRoute+1),rt.c1||elc(rt.el));
+    body.innerHTML='<div class="hintbox">Les réglages du tracé (nom, couleur, opacité, largeur, suppression) sont dans la <b>carte flottante posée au milieu du tracé</b>.<br><br>'+
+      '<b>Clic</b> = ajouter un point · <b>glisser</b> = déplacer · <b>double-clic</b> sur le tracé = insérer · <b>Suppr</b> = retirer.<br>'+
+      '<b>Maj</b>+glisser = axe horizontal/vertical · <b>Ctrl</b>+glisser = centrer entre voisins · <b>Ctrl+Maj</b>+glisser = aligner sur la droite préc→suiv.</div>';}
+
+  /* ---- Carte flottante du tracé : ancrée au milieu du tracé, elle suit zoom/pan ---- */
+  let panelRoute=null;
+  function routeMid(rt){const p=(rt&&rt._pts)||[];
+    if(!p.length)return {x:C(50),y:C(50)};
+    if(p.length===1)return {x:C(p[0][0]),y:C(p[0][1])};
+    const i=Math.floor((p.length-1)/2),m=S.midpoint(p[i],p[i+1]);
+    return {x:C(m[0]),y:C(m[1])};}
+  // (ré)ouvre la carte seulement quand le tracé courant change — sinon on repositionne
+  function syncRoutePanel(){
+    if(tool!=='path'){if(panelRoute){closeMapPanel();panelRoute=null;}return;}
+    const rt=activeRoutes()[curRoute];
+    if(!rt){if(panelRoute){closeMapPanel();panelRoute=null;}return;}
+    if(panelRoute!==rt||!mapPanel){openRoutePanel(rt);return;}
+    const c=document.getElementById('rp_pcount');if(c)c.textContent=rt._pts.length;
+    positionMapPanel();}
+  function openRoutePanel(rt){
     const f=FL[curIdx],bn={};(f.bosses||[]).forEach(b=>bn[b.n]=b);const b=bn[rt.n];
     const defName=b?(rt.n+' · '+b.name):('Tracé '+(rt.n!=null?rt.n:curRoute+1));
     const curCol=rt.c1||elc(rt.el)||BK.FALLBACK;
-    body.innerHTML=
-      '<div class="fld"><label>Nom du tracé</label><input id="f_rname" type="text" value="'+esc(rt.name||'')+'" placeholder="'+esc(defName)+'"></div>'+
-      '<div class="fld"><label>Couleur du tracé</label><input id="f_c1" type="color" value="'+curCol+'" style="height:36px;padding:2px;cursor:pointer"></div>'+
-      '<div class="fld"><label>Opacité de la couleur · <span id="f_alv">'+Math.round(ra(rt)*100)+'%</span></label><input id="f_alpha" type="range" min="0" max="100" value="'+Math.round(ra(rt)*100)+'"></div>'+
-      '<div class="fld"><label>Largeur de la bande · <span id="f_fsv">'+Math.round(fsz(rt)*100)+'%</span></label><input id="f_fs" type="range" min="40" max="220" value="'+Math.round(fsz(rt)*100)+'"></div>'+
-      '<div class="fld"><label>Palette éléments</label><div class="swatches" id="swRoute"></div></div>'+
-      '<div class="fld"><button class="tbtn" id="f_creset" style="width:100%;justify-content:center"><svg class="bi" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg> Couleur du boss (défaut)</button></div>'+
-      '<div class="hintbox">Toujours lisible : liseré sombre + couleur du boss + pointillés blancs qui défilent.<br><span id="f_pcount">'+rt._pts.length+'</span> points · clic = ajouter · glisser = déplacer · dbl-clic = insérer · Suppr = retirer.<br><b>Maj</b>+glisser = axe horizontal/vertical · <b>Ctrl</b>+glisser = centrer entre voisins · <b>Ctrl+Maj</b>+glisser = aligner sur la droite préc→suiv.</div>';
-    document.getElementById('f_rname').addEventListener('input',e=>{rt.name=e.target.value;buildRoutePicker();commitSoon();});
-    document.getElementById('f_c1').addEventListener('input',e=>{rt.c1=e.target.value;applyRouteColors(rt);buildRoutePicker();});
-    document.getElementById('f_alpha').addEventListener('input',e=>{rt.a=(+e.target.value)/100;document.getElementById('f_alv').textContent=(+e.target.value)+'%';applyRouteColors(rt);});
-    document.getElementById('f_fs').addEventListener('input',e=>{rt.fs=(+e.target.value)/100;document.getElementById('f_fsv').textContent=(+e.target.value)+'%';applyBandSize(rt);});
-    document.getElementById('f_creset').addEventListener('click',()=>{delete rt.c1;applyRouteColors(rt);buildRoutePicker();renderRouteInspectorForce();});
-    const swR=document.getElementById('swRoute');S.EL_KEYS.forEach(k=>{const bb=document.createElement('div');bb.className='sw';bb.style.background=elc(k);bb.title=k;bb.addEventListener('click',()=>{rt.c1=elc(k);applyRouteColors(rt);buildRoutePicker();renderRouteInspectorForce();});swR.appendChild(bb);});
-    curInspRoute=rt;}
-  function renderRouteInspectorForce(){const a=document.activeElement;if(a&&a.blur)a.blur();renderRouteInspector();}
-  // mise à jour légère : seul le compteur de points change pendant l'édition (pas de reconstruction du panneau)
-  function syncRouteInspector(rt){const el=document.getElementById('f_pcount');if(el)el.textContent=rt._pts.length;}
+    let h='<div class="mptitle" style="--dot:'+curCol+'">Tracé '+(rt.n!=null?rt.n:curRoute+1)+(b?' · '+esc(b.name):'')+'</div>';
+    h+='<div class="mprow"><span class="mplbl">Nom</span><input class="mpin" id="rp_name" type="text" value="'+esc(rt.name||'')+'" placeholder="'+esc(defName)+'"></div>';
+    h+='<div class="mprow"><span class="mplbl">Couleur</span><input class="mpcol" id="rp_c1" type="color" value="'+curCol+'"><div class="mpsw" id="rp_sw"></div></div>';
+    h+='<div class="mprow"><span class="mplbl">Opacité</span><input class="mprange" id="rp_a" type="range" min="0" max="100" value="'+Math.round(ra(rt)*100)+'"><span class="mpval" id="rp_av">'+Math.round(ra(rt)*100)+'%</span></div>';
+    h+='<div class="mprow"><span class="mplbl">Largeur</span><input class="mprange" id="rp_fs" type="range" min="40" max="220" value="'+Math.round(fsz(rt)*100)+'"><span class="mpval" id="rp_fsv">'+Math.round(fsz(rt)*100)+'%</span></div>';
+    h+='<div class="mpacts"><button class="mpbtn primary" id="rp_reset" title="Reprendre la couleur de l’élément du boss">'+RESET_SVG+' Couleur du boss</button>'+
+       '<button class="mpbtn danger" id="rp_del" title="Supprimer ce tracé">'+TRASH_SVG+'</button></div>';
+    h+='<div class="mpnote"><span id="rp_pcount">'+((rt._pts||[]).length)+'</span> points · clic = ajouter · dbl-clic = insérer · Suppr = retirer</div>';
+    openMapPanel(rt,()=>routeMid(rt),h,()=>{
+      panelRoute=rt;
+      const nm=document.getElementById('rp_name');
+      nm.addEventListener('input',()=>{rt.name=nm.value;buildRoutePicker();commitSoon();});
+      const setCol=hex=>{rt.c1=hex;applyRouteColors(rt);buildRoutePicker();
+        const t=document.querySelector('#mappanel .mptitle');if(t)t.style.setProperty('--dot',hex);
+        const ci=document.getElementById('rp_c1');if(ci&&ci.value!==hex)ci.value=hex;};
+      document.getElementById('rp_c1').addEventListener('input',e=>setCol(e.target.value));
+      const sw=document.getElementById('rp_sw');S.EL_KEYS.forEach(k=>{const d=document.createElement('div');
+        d.className='sw';d.style.background=elc(k);d.title=k;d.addEventListener('click',()=>setCol(elc(k)));sw.appendChild(d);});
+      const ai=document.getElementById('rp_a');ai.addEventListener('input',()=>{rt.a=(+ai.value)/100;document.getElementById('rp_av').textContent=(+ai.value)+'%';applyRouteColors(rt);});
+      const fi=document.getElementById('rp_fs');fi.addEventListener('input',()=>{rt.fs=(+fi.value)/100;document.getElementById('rp_fsv').textContent=(+fi.value)+'%';applyBandSize(rt);});
+      document.getElementById('rp_reset').addEventListener('click',()=>{delete rt.c1;applyRouteColors(rt);buildRoutePicker();panelRoute=null;syncRoutePanel();});
+      document.getElementById('rp_del').addEventListener('click',()=>deleteRoute());   // annuler laisse la carte en place
+    });}
 
   /* ============================================================
      7 · SÉLECTION + INSPECTEUR (marqueurs / numéros)
@@ -1226,6 +1258,7 @@ body::before{
     w.innerHTML='<div class="mecard">'+html+'</div>';w.classList.add('on');positionMapPanel();if(wire)wire(w);}
   const TRASH_SVG='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7v13a1 1 0 001 1h10a1 1 0 001-1V7M10 11v6M14 11v6"/></svg>';
   const PENCIL_SVG='<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
+  const RESET_SVG='<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>';
   function openPinPanel(o,kind){const g=pinNode(o);if(!g)return;const col=elc(o.el);
     const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y};};
     const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[kind]||'Marqueur';
