@@ -289,6 +289,9 @@ const ROUTES_B=[
 // ---- annotations texte (outil Texte de Map Studio) · {x,y,t,s,c} · s = taille en % de carte ----
 const TEXTS_B=[
 ];
+// ---- formes libres (outils Formes / Image) · {k,x,y,w,h,...} · k = rect | ell | img ----
+const SHAPES_B=[
+];
 
 // ---- zones du sous-sol : chacune a SA carte + son boss/midboss/chemin ----
 const ZONES_B=[
@@ -323,6 +326,9 @@ const ROUTES_TOP=[
 ];
 const TEXTS=[
 ];
+// ---- formes libres (outils Formes / Image) · {k,x,y,w,h,...} · k = rect | ell | img ----
+const SHAPES=[
+];
 
 // ---- midboss (NM mineurs) du rez-de-chaussée : Obdella=A, Porxie=B, Bhoot=C, Deleterious=D ----
 const MIDS_TOP=[
@@ -337,9 +343,9 @@ const FLOORS=[
  {id:'top', fr:'Rez-de-chaussée', en:'Top Floor', sub:'A–D', map:'img/map.webp',
   points:OVPTS_TOP, start:{x:17.7,y:42.4,l:'S'}, startNode:'Start · Device',
   introFr:OVINTRO_TOP_FR, introEn:OVINTRO_TOP_EN,
-  phases:PHASES, bosses:BOSSES, packs:PACKS, mids:MIDS_TOP, routes:ROUTES_TOP, texts:TEXTS, zones:ZONES_TOP},
+  phases:PHASES, bosses:BOSSES, packs:PACKS, mids:MIDS_TOP, routes:ROUTES_TOP, texts:TEXTS, shapes:SHAPES, zones:ZONES_TOP},
  {id:'bottom', fr:'Sous-sol', en:'Basement', sub:'E–H', map:'img/map-basement.webp',
-  points:'', start:null, startNode:'', routes:ROUTES_B, texts:TEXTS_B, zones:ZONES_B,
+  points:'', start:null, startNode:'', routes:ROUTES_B, texts:TEXTS_B, shapes:SHAPES_B, zones:ZONES_B,
   introFr:OVINTRO_BOT_FR, introEn:OVINTRO_BOT_EN,
   phases:PHASES_B, bosses:BOSSES_B, packs:PACKS_B, mids:MIDS_B}
 ];

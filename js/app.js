@@ -142,6 +142,20 @@ function txtSvg(o){
   return box+texts;
 }
 function textsSvg(f){ return (f.texts&&f.texts.length)?f.texts.map(txtSvg).join(''):''; }
+// formes libres (outils Formes / Image de Map Studio) — rendues EN PREMIER dans le SVG,
+// donc sous les tracés, le départ et les annotations, comme dans l'éditeur
+function shapeSvg(o){
+  var S=window.SORTIE, a=S.shapeAlpha(o), sw=S.shapeStroke(o), c=o.c||S.SHAPE_DEF.c;
+  var x=o.x-o.w/2, y=o.y-o.h/2;
+  if(o.k==='img') return o.src
+    ? '<image href="'+esc(o.src)+'" x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'"'
+      +' preserveAspectRatio="none" opacity="'+a+'"/>'
+    : '';
+  var trait = sw ? ';stroke:'+c+';stroke-width:'+sw+'px' : '';
+  if(o.k==='ell') return '<ellipse cx="'+o.x+'" cy="'+o.y+'" rx="'+(o.w/2)+'" ry="'+(o.h/2)+'" style="fill:'+c+';opacity:'+a+trait+'"/>';
+  return '<rect x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'" rx="'+(o.r||0)+'" style="fill:'+c+';opacity:'+a+trait+'"/>';
+}
+function shapesSvg(f){ return (f.shapes&&f.shapes.length)?f.shapes.map(shapeSvg).join(''):''; }
 function buildOverview(f, floor){
   var intro=introHtml(f);
   var mapBlock;
@@ -151,6 +165,7 @@ function buildOverview(f, floor){
       +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
       +'<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true">'
       +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'
+      +shapesSvg(f)
       +((f.routes&&f.routes.length)
           ? f.routes.map(function(rt){var col=rt.c1||ELC[rt.el]||SB.FALLBACK;var op=(rt.a!=null?rt.a:SB.ALPHA);var s=(rt.fs!=null?rt.fs:1);var cw=(SB.cw*s),rw=(SB.rw*s),fw=(SB.fw*s),fda=(SB.fdaA*s)+' '+(SB.fdaB*s),foff=(SB.foff*s);return '<polyline class="ovcase" points="'+rt.points+'" style="--cw:'+cw+'"/><polyline class="ovrail" points="'+rt.points+'" style="stroke:'+col+';opacity:'+op+';--rw:'+rw+'"/><polyline class="ovflow" points="'+rt.points+'" style="--fw:'+fw+';--fda:'+fda+';--foff:'+foff+'"/>';}).join('')
           : (f.points?'<polyline class="ovcase" points="'+f.points+'"/><polyline class="ovrail" points="'+f.points+'"/><polyline class="ovflow" points="'+f.points+'"/>':''))
@@ -323,6 +338,7 @@ function effectiveFloor(f){
     // plus rien dire. Avant, `showWhole` les cachait aussi dès qu'un tronçon existait, donc
     // elles n'apparaissaient QUE sur l'onglet « Tous » — l'outil Texte était invisible partout ailleurs.
     texts: zoneMap ? [] : (f.texts||[]),
+    shapes: zoneMap ? [] : (f.shapes||[]),
     // avec un tronçon d'étape (routes) on n'affiche QUE ce tronçon ; le "S" seulement sur l'étape 1
     points: showWhole ? (f.points||'') : '',
     start: showWhole ? (f.start||null) : (route && z.n===1 ? (f.start||null) : null),

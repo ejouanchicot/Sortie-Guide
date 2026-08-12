@@ -111,6 +111,32 @@
     if(rt.fs!=null&&Math.abs(rt.fs-1)>0.001)ex+=", fs:"+(Math.round(rt.fs*100)/100);
     s+=" {n:"+rt.n+", el:'"+rt.el+"'"+ex+", points:'"+(rt.points||'')+"'},\n";});return s+'];';}
 
+  /* ---- FORMES libres : rectangle, ellipse ou image posée sur la carte ----
+     Un seul type d'objet pour les trois : ils partagent centre + taille et ne diffèrent
+     que par `k`. Évite trois blocs data.js, trois rendus Konva et trois rendus SVG.
+       k       'rect' | 'ell' | 'img'
+       x,y     centre en % (même repère que tout le reste)
+       w,h     taille en % de carte
+       c       couleur de remplissage (rect/ell)            défaut #5bd6ef
+       a       opacité 0–1                                  défaut .35 (rect/ell), 1 (img)
+       sw      épaisseur du contour en % de carte           défaut .25 · 0 = sans contour
+       r       rayon des coins en % (rect seulement)        défaut 0
+       src     chemin de l'image depuis la racine (img)                                  */
+  var SHAPE_DEF = {a:0.35, aImg:1, sw:0.25, c:'#5bd6ef'};
+  function shapeAlpha(o){ return (o && o.a != null) ? o.a : (o && o.k === 'img' ? SHAPE_DEF.aImg : SHAPE_DEF.a); }
+  function shapeStroke(o){ return (o && o.sw != null) ? o.sw : SHAPE_DEF.sw; }
+  function shapesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(o){
+    var ex='', def=(o.k==='img'?SHAPE_DEF.aImg:SHAPE_DEF.a);
+    if(o.k==='img') ex+=", src:'"+escJs(o.src||'')+"'";
+    else{
+      ex+=", c:'"+(o.c||SHAPE_DEF.c)+"'";
+      if(o.sw!=null&&Math.abs(o.sw-SHAPE_DEF.sw)>0.001)ex+=", sw:"+(Math.round(o.sw*100)/100);
+      if(o.k==='rect'&&o.r)ex+=", r:"+(Math.round(o.r*100)/100);
+    }
+    if(o.a!=null&&Math.abs(o.a-def)>0.001)ex+=", a:"+(Math.round(o.a*100)/100);
+    s+=" {k:'"+o.k+"', x:"+r1(o.x)+",y:"+r1(o.y)+", w:"+r1(o.w)+",h:"+r1(o.h)+ex+"},\n";});
+    return s+'];';}
+
   // ---- annotations texte : {x,y,t,s,c, al?,bg?,b?,i?,u?,st?,f?,ol?} — s = taille en % de carte
   //   t  = texte multi-lignes AVEC marqueurs de liste PAR LIGNE (façon markdown) :
   //        « - texte » → puce · « 1. texte » (n'importe quel nombre) → numéroté (renuméroté auto)
@@ -217,6 +243,7 @@
     esc:esc, escAttr:escAttr, pqHtml:pqHtml,
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
     pinMeta:pinMeta, bossesConst:bossesConst, packsConst:packsConst, midsConst:midsConst, routesConst:routesConst,
+    SHAPE_DEF:SHAPE_DEF, shapeAlpha:shapeAlpha, shapeStroke:shapeStroke, shapesConst:shapesConst,
     TEXT_FONT:TEXT_FONT, textFont:textFont, textAdv:textAdv, textAlign:textAlign, textBold:textBold, textItalic:textItalic, textOutline:textOutline, textDeco:textDeco,
     parseInline:parseInline, parseRich:parseRich, runsToHtml:runsToHtml, stripRuns:stripRuns,
     textParse:textParse, textLines:textLines, textsConst:textsConst

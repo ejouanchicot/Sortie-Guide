@@ -28,14 +28,15 @@
      ============================================================ */
   let FL=(typeof FLOORS!=='undefined')?FLOORS:[];
   const stageWrap=document.querySelector('.stage-wrap'), loadingEl=document.getElementById('loading'), loadmsg=document.getElementById('loadmsg');
-  let stage,layer,gMap,gRoutes,gPins,gTexts,gEdit,curIdx=0,anim=null,selNode=null,tool='select',spaceDown=false;
+  let stage,layer,gMap,gShapes,gRoutes,gPins,gTexts,gEdit,curIdx=0,anim=null,selNode=null,tool='select',spaceDown=false;
   let mobScale=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1;
   let labelMargin=(typeof LBLMARGIN!=='undefined'&&LBLMARGIN!=null)?LBLMARGIN:6;
   let curRoute=0,selHandleIdx=-1;
   let dirty=false;   // des modifications ne sont pas encore écrites dans data.js
-  const layerVis={map:true,routes:true,texts:true,pins:true};
+  const layerVis={map:true,shapes:true,routes:true,texts:true,pins:true};
   // Phase 3 : création de marqueurs depuis une palette d'images
   let armedPin=null,palCat='boss';
+  let armedShape=null;   // 'rect' | 'ell' | {src} : ce que les outils Formes / Image vont poser
   let lastPh=1;   // dernière phase choisie pour un pack — reprise à la création suivante
   // rosters par étage : les NM (boss/midboss) diffèrent entre rez-de-chaussée et sous-sol
   const BOSS_TOP=['Degei','Skomora','Leshonn','Ghatjot'],BOSS_BOT=['Dhartok','Triboulex','Aita','Gartell','Aminon'];
@@ -74,6 +75,9 @@
       const p=stage.getPointerPosition();if(!p)return;const mx=U((p.x-stage.x())/stage.scaleX()),my=U((p.y-stage.y())/stage.scaleY());
       if(tool==='path'){ if(nm==='phandle'||nm==='phit')return; if(mx<0||mx>100||my<0||my>100)return; addRoutePoint(mx,my); return; }
       if(tool==='pin'&&armedPin){ if(nm==='pin'||nm==='marker')return; if(mx<0||mx>100||my<0||my>100)return; placePin(armedPin.kind,armedPin.name,mx,my); return; }
+      if((tool==='shape'||tool==='image')&&armedShape){ if(mx<0||mx>100||my<0||my>100)return;
+        if(tool==='image')createShape('img',mx,my,armedShape.src); else createShape(armedShape,mx,my); return; }
+      if(tool==='pipette'){ pickColorAt(p); return; }
       if(tool==='text'){ if(nm==='text')return; if(mx<0||mx>100||my<0||my>100)return; createText(mx,my); } });
     // pinch-zoom + pan à deux doigts (tactile mobile/tablette)
     let _pd=0,_pc=null;
@@ -102,14 +106,17 @@
      3 · RENDU D'UN ÉTAGE
      ============================================================ */
   async function renderFloor(idx){
-    curIdx=idx;armedPin=null;select(null);const f=FL[idx];if(!f)return;
+    curIdx=idx;armedPin=null;armedShape=null;select(null);const f=FL[idx];if(!f)return;
     loadingEl.style.display='flex';loadmsg.textContent='Chargement de la carte…';
     layer.destroyChildren();if(anim){anim.stop();anim=null;}
-    gMap=new Konva.Group();gRoutes=new Konva.Group();gPins=new Konva.Group();gTexts=new Konva.Group();gEdit=new Konva.Group();layer.add(gMap,gRoutes,gPins,gTexts,gEdit);
+    gMap=new Konva.Group();gShapes=new Konva.Group();gRoutes=new Konva.Group();gPins=new Konva.Group();gTexts=new Konva.Group();gEdit=new Konva.Group();
+    layer.add(gMap,gShapes,gRoutes,gPins,gTexts,gEdit);   // les formes se posent SOUS les traces et les marqueurs
     const mimg=await loadImg(BASE+f.map);
     if(mimg)gMap.add(new Konva.Image({image:mimg,width:MAP,height:MAP,cornerRadius:6,listening:false}));
     else gMap.add(new Konva.Rect({width:MAP,height:MAP,fill:'#e9d9b0',cornerRadius:6}));
     gMap.add(new Konva.Rect({width:MAP,height:MAP,stroke:'#3a5170',strokeWidth:1.5,cornerRadius:6,listening:false}));
+
+    for(const o of (f.shapes||[]))await addShape(o);
 
     const routes=(f.routes&&f.routes.length)?f.routes:[];
     routes.forEach(rt=>{rt._pts=S.parsePts(rt.points);makeRouteLines(rt);});
@@ -192,20 +199,130 @@
     // marqueurs cliquables/déplaçables en Sélection (et cliquables en Navigation) ; en Tracé/Marqueur/Texte les clics vont à la scène
     if(gPins){gPins.getChildren().forEach(n=>{if(n.name()==='pin'||n.name()==='marker')n.draggable(drag);});gPins.listening(tool==='select'||tool==='pan');}
     if(gTexts){gTexts.getChildren().forEach(n=>{if(n.name()==='text')n.draggable(drag);});gTexts.listening(tool==='select'||tool==='pan'||tool==='text');}
+    if(gShapes){gShapes.getChildren().forEach(n=>n.draggable(drag));gShapes.listening(tool==='select'||tool==='pan');}
     setPanMode(tool==='pan'||spaceDown);
     if((tool==='path'||tool==='text')&&!spaceDown)stage.container().style.cursor='crosshair';
+    else if(tool==='pipette'&&!spaceDown)stage.container().style.cursor='cell';
+    else if((tool==='shape'||tool==='image')&&!spaceDown)stage.container().style.cursor=armedShape?'crosshair':'default';
     else if(tool==='pin'&&!spaceDown)stage.container().style.cursor=armedPin?'crosshair':'default';
     const _m=(tool==='pan'||spaceDown)?['<path d="M8 13V5.5a1.5 1.5 0 013 0V12m0-1v-1.5a1.5 1.5 0 013 0V12m0-.5a1.5 1.5 0 013 0V16a5 5 0 01-5 5h-1.6a5 5 0 01-3.5-1.5L5 16.5"/>','Navigation']
       :(tool==='pin'?['<circle cx="12" cy="10" r="3"/><path d="M12 21c5-5.5 7-8.5 7-11a7 7 0 10-14 0c0 2.5 2 5.5 7 11z"/>','Placer un marqueur']
       :tool==='path'?['<path d="M4 20l6-11 5 4 5-9"/><circle cx="4" cy="20" r="1.6"/><circle cx="20" cy="4" r="1.6"/>','Tracer un chemin']
       :tool==='text'?['<path d="M5 6h14M12 6v13M9 19h6"/>','Ajouter du texte']
+      :tool==='shape'?['<rect x="4" y="4" width="7" height="7" rx="1"/><circle cx="16.5" cy="16.5" r="3.5"/>','Poser une forme']
+      :tool==='image'?['<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-9 9"/>','Poser une image']
+      :tool==='pipette'?['<path d="M14 6l4 4M18 2l4 4-3 3-4-4zM14 6L5 15v4h4l9-9"/>','Prelever une couleur']
       :['<path d="M4 3l7 17 2.5-6.5L20 11z"/>','Déplacer les marqueurs']);
     document.getElementById('modeChip').innerHTML='<svg class="mhi" viewBox="0 0 24 24">'+_m[0]+'</svg>'+_m[1];
     updatePathUI();updatePinUI();refreshPathEdit();
-    if(tool!=='pin')closeArmBar();   // la barre d'armement n'existe que pendant l'outil Marqueur
+    if(tool!=='pin'&&tool!=='shape'&&tool!=='image')closeArmBar();
     if(tool==='pin'){select(null);showPalette();}
+    else if(tool==='shape'||tool==='image'){select(null);showShapeHint();}
     else if(tool==='text'){select(null);showTextHint();}
+    else if(tool==='pipette'){showPipetteHint();}
     else if(tool!=='path')select(selNode);}
+
+  /* ============================================================
+     4c · FORMES (rectangle, ellipse, image)
+     ------------------------------------------------------------
+     Un seul type d'objet pour les trois outils : ils partagent centre et
+     taille et ne different que par `k`. Posees SOUS tout le reste, elles
+     servent a marquer une zone, pas a couvrir les marqueurs.
+     ============================================================ */
+  const SH_DEF=S.SHAPE_DEF;
+  function shapeNode(o){return gShapes?gShapes.getChildren().find(n=>n._meta&&n._meta.o===o):null;}
+  const shColor=o=>o.c||SH_DEF.c;
+  // dessine (ou redessine) le corps de la forme dans son groupe
+  async function paintShape(g){const o=g._meta.o;
+    (g._body||[]).forEach(n=>n.destroy());g._body=[];
+    const w=Math.max(2,C(o.w)),h=Math.max(2,C(o.h)),al=S.shapeAlpha(o),sw=C(S.shapeStroke(o));
+    let node;
+    if(o.k==='img'){
+      const im=o.src?await loadImg(BASE+o.src):null;
+      node=im?new Konva.Image({image:im,width:w,height:h,offsetX:w/2,offsetY:h/2,opacity:al,listening:false})
+             :new Konva.Rect({width:w,height:h,offsetX:w/2,offsetY:h/2,fill:'rgba(150,180,225,.10)',stroke:'#6c7f9c',strokeWidth:2,dash:[8,6],listening:false});
+    }else if(o.k==='ell'){
+      node=new Konva.Ellipse({radiusX:w/2,radiusY:h/2,fill:shColor(o),opacity:al,
+        stroke:sw?shColor(o):null,strokeWidth:sw,strokeScaleEnabled:false,listening:false});
+    }else{
+      node=new Konva.Rect({width:w,height:h,offsetX:w/2,offsetY:h/2,cornerRadius:C(o.r||0),fill:shColor(o),opacity:al,
+        stroke:sw?shColor(o):null,strokeWidth:sw,listening:false});
+    }
+    g.add(node);g._body.push(node);node.moveToBottom();
+    // zone de saisie : toujours pleine, meme si la forme est presque transparente
+    g._hit.width(w);g._hit.height(h);g._hit.offsetX(w/2);g._hit.offsetY(h/2);g._hit.moveToTop();
+    draw();}
+  async function addShape(o){
+    const g=new Konva.Group({x:C(o.x),y:C(o.y),name:'shape'});g._meta={kind:'shape',o};g._body=[];
+    const hit=new Konva.Rect({fill:'transparent'});g._hit=hit;g.add(hit);
+    wireHover(g);
+    g.on('click tap',e=>{e.cancelBubble=true;select(g);});
+    g.on('dragmove',()=>{o.x=r1(U(g.x()));o.y=r1(U(g.y()));liveUpdate();});
+    g.on('dragend',commit);
+    gShapes.add(g);await paintShape(g);return g;}
+  function refreshShape(o){const g=shapeNode(o);if(g)paintShape(g).then(()=>{if(selNode===g)drawRing(g);});}
+  async function createShape(k,x,y,src){const f=FL[curIdx];
+    const o={k:k,x:r1(S.clamp(x)),y:r1(S.clamp(y)),w:lastShape.w,h:lastShape.h};
+    if(k==='img'){o.src=src||'';}else{o.c=lastShape.c;}
+    (f.shapes=f.shapes||[]).push(o);
+    await addShape(o);buildLayers();
+    openShapePanel(o);commit();
+    toast((k==='img'?'Image posée':(k==='ell'?'Ellipse posée':'Rectangle posé'))+' — clique encore pour en poser un autre.','ok');}
+  function deleteShape(o){const f=FL[curIdx],arr=f.shapes,i=arr?arr.indexOf(o):-1;if(i>=0)arr.splice(i,1);
+    const g=shapeNode(o);if(g)g.destroy();select(null);buildLayers();draw();commit();}
+  // valeurs reprises d'une forme a la suivante
+  let lastShape={w:14,h:10,c:SH_DEF.c};
+  function syncShapePanel(o){const wv=document.getElementById('sh_wv'),hv=document.getElementById('sh_hv');
+    if(wv)wv.textContent=r1(o.w)+' %';if(hv)hv.textContent=r1(o.h)+' %';
+    const wi=document.getElementById('sh_w'),hi=document.getElementById('sh_h');
+    if(wi&&document.activeElement!==wi)wi.value=o.w;if(hi&&document.activeElement!==hi)hi.value=o.h;}
+  function openShapePanel(o){const g=shapeNode(o);if(!g)return;
+    const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y,y2:bb.y+bb.height};};
+    const nom={rect:'Rectangle',ell:'Ellipse',img:'Image'}[o.k]||'Forme';
+    const al=Math.round(S.shapeAlpha(o)*100), sw=S.shapeStroke(o);
+    let h='<div class="mptitle" style="--dot:'+(o.k==='img'?'#8b7cff':shColor(o))+'">'+nom+'</div>';
+    if(o.k!=='img'){
+      h+='<div class="mprow"><span class="mplbl">Forme</span><div class="mpseg" id="sh_k">'+
+         [['rect','▭'],['ell','◯']].map(t=>'<button data-k="'+t[0]+'"'+(o.k===t[0]?' class="on"':'')+' title="'+(t[0]==='rect'?'Rectangle':'Ellipse')+'">'+t[1]+'</button>').join('')+'</div></div>';
+      h+='<div class="mprow"><span class="mplbl">Couleur</span><input class="mpcol" id="sh_c" type="color" value="'+shColor(o)+'"><div class="mpsw" id="sh_sw"></div></div>';
+      h+='<div class="mprow"><span class="mplbl">Contour</span><input class="mprange" id="sh_st" type="range" min="0" max="150" value="'+Math.round(sw*100)+'"><span class="mpval" id="sh_stv">'+(sw?r1(sw)+' %':'aucun')+'</span></div>';
+      if(o.k==='rect')h+='<div class="mprow"><span class="mplbl">Coins</span><input class="mprange" id="sh_r" type="range" min="0" max="600" value="'+Math.round((o.r||0)*100)+'"><span class="mpval" id="sh_rv">'+r1(o.r||0)+' %</span></div>';
+    }
+    h+='<div class="mprow"><span class="mplbl">Opacité</span><input class="mprange" id="sh_a" type="range" min="0" max="100" value="'+al+'"><span class="mpval" id="sh_av">'+al+' %</span></div>';
+    h+='<div class="mprow"><span class="mplbl">Largeur</span><input class="mprange" id="sh_w" type="range" min="0.5" max="100" step="0.5" value="'+o.w+'"><span class="mpval" id="sh_wv">'+r1(o.w)+' %</span></div>';
+    h+='<div class="mprow"><span class="mplbl">Hauteur</span><input class="mprange" id="sh_h" type="range" min="0.5" max="100" step="0.5" value="'+o.h+'"><span class="mpval" id="sh_hv">'+r1(o.h)+' %</span></div>';
+    h+='<div class="mpacts"><button class="mpbtn primary" id="sh_fit">'+RESET_SVG+' Carrer</button>'+
+       '<button class="mpbtn danger" id="sh_del" title="Supprimer cette forme">'+TRASH_SVG+'</button></div>';
+    h+='<div class="mpnote">Glisse la forme sur la carte pour la déplacer · les curseurs Largeur et Hauteur la redimensionnent.</div>';
+    openMapPanel(o,anchor,h,()=>{
+      mapPanel.node=g;
+      const maj=()=>{refreshShape(o);commitSoon();};
+      if(o.k!=='img'){
+        const setC=hex=>{o.c=hex;lastShape.c=hex;const t=document.querySelector('#mappanel .mptitle');if(t)t.style.setProperty('--dot',hex);
+          const ci=document.getElementById('sh_c');if(ci&&ci.value!==hex)ci.value=hex;maj();};
+        document.getElementById('sh_c').addEventListener('input',e=>setC(e.target.value));
+        const sw2=document.getElementById('sh_sw');S.EL_KEYS.forEach(k=>{const d=document.createElement('div');
+          d.className='sw';d.style.background=elc(k);d.title=k;d.addEventListener('click',()=>setC(elc(k)));sw2.appendChild(d);});
+        document.querySelectorAll('#sh_k button[data-k]').forEach(b=>b.addEventListener('click',()=>{
+          o.k=b.dataset.k;document.querySelectorAll('#sh_k button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+          refreshShape(o);commitSoon();openShapePanel(o);}));
+        const st=document.getElementById('sh_st');st.addEventListener('input',()=>{o.sw=(+st.value)/100;
+          document.getElementById('sh_stv').textContent=o.sw?r1(o.sw)+' %':'aucun';maj();});
+        const rr=document.getElementById('sh_r');if(rr)rr.addEventListener('input',()=>{o.r=(+rr.value)/100;
+          document.getElementById('sh_rv').textContent=r1(o.r)+' %';maj();});
+      }
+      const aa=document.getElementById('sh_a');aa.addEventListener('input',()=>{o.a=(+aa.value)/100;
+        document.getElementById('sh_av').textContent=(+aa.value)+' %';maj();});
+      const wi=document.getElementById('sh_w');wi.addEventListener('input',()=>{o.w=lastShape.w=+wi.value;
+        document.getElementById('sh_wv').textContent=r1(o.w)+' %';maj();});
+      const hi=document.getElementById('sh_h');hi.addEventListener('input',()=>{o.h=lastShape.h=+hi.value;
+        document.getElementById('sh_hv').textContent=r1(o.h)+' %';maj();});
+      document.getElementById('sh_fit').addEventListener('click',()=>{const m=Math.max(o.w,o.h);o.w=o.h=lastShape.w=lastShape.h=m;
+        syncShapePanel(o);maj();});
+      const del=document.getElementById('sh_del');del.addEventListener('click',()=>{del.blur();
+        askConfirm('Supprimer cette '+nom.toLowerCase()+' ? Elle sera retirée de data.js au prochain enregistrement.',{title:'Supprimer la forme'})
+          .then(v=>{if(v){closeMapPanel();deleteShape(o);}});});
+    });}
 
   /* ---------- Phase 3 : palette + création + suppression ---------- */
   // (la taille des mobs est un réglage global : elle vit dans l'inspecteur, plus dans la barre du haut)
@@ -224,16 +341,31 @@
   function showPalette(){if(tool!=='pin')return;setInspTitle('Nouveau marqueur','var(--cyan)');
     document.getElementById('inspBody').innerHTML='<div class="hintbox">La barre en haut de la carte sert à choisir le <b>type</b> et la <b>créature</b>. <b>Clique sur la carte</b> pour poser : sa carte de réglages s’ouvre à côté et l’outil <b>reste armé</b> pour en poser d’autres. <b>Échap</b> désarme, <b>V</b> revient en Sélection pour déplacer.</div>';
     openArmBar();}
-  function openArmBar(){const w=ensureArmEl();
-    if(w.classList.contains('on')){renderArmGrid();return;}   // déjà ouverte : ne pas casser la frappe en cours
-    const cats=[['boss','Boss'],['mid','Midboss'],['pack','Pack']];
+  // Coquille commune aux trois barres (marqueur, forme, image) : tete + fermeture + deplacement.
+  // Renvoie null si la barre est deja ouverte pour le meme outil, pour ne pas casser une frappe.
+  const ARCLOSE='<button type="button" class="arclose" id="ar_x" title="Fermer (revenir en Sélection)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+  function armShell(kind,svg,titre,tete,corps){
+    const w=ensureArmEl();
+    if(w.classList.contains('on')&&w.dataset.kind===kind)return null;
+    w.dataset.kind=kind;
     w.innerHTML='<div class="arcard"><div class="arhead" title="Glisser pour déplacer la barre · double-clic pour la recentrer">'+
-      '<span class="artitle">'+MOBPIN_SVG+'Poser un marqueur</span>'+
+      '<span class="artitle">'+svg+titre+'</span>'+(tete||'')+ARCLOSE+'</div>'+(corps||'')+'</div>';
+    w.classList.add('on');w.classList.remove('armed');
+    document.getElementById('ar_x').addEventListener('click',()=>pick('select'));
+    const t=w.querySelector('.arhead');
+    wireBoxDrag(t,()=>{const r=w.getBoundingClientRect(),wr=stageWrap.getBoundingClientRect();
+        return {x:r.left-wr.left,y:r.top-wr.top};},
+      (base,dx,dy)=>placeArmBar(base.x+dx,base.y+dy));
+    t.addEventListener('dblclick',e=>{if(e.target.closest(CMD))return;e.preventDefault();armPos=null;placeArmBar();});
+    placeArmBar();
+    return w;}
+  function openArmBar(){
+    const cats=[['boss','Boss'],['mid','Midboss'],['pack','Pack']];
+    const w=armShell('pin',MOBPIN_SVG,'Poser un marqueur',
       '<div class="arseg" id="ar_cat">'+cats.map(c=>'<button type="button" data-pc="'+c[0]+'"'+(palCat===c[0]?' class="on"':'')+'>'+c[1]+'</button>').join('')+'</div>'+
-      '<input class="arsearch" id="ar_q" placeholder="chercher une créature…" value="'+esc(armSearch)+'">'+
-      '<button type="button" class="arclose" id="ar_x" title="Fermer (revenir en Sélection)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
-      '<div class="argrid" id="ar_grid"></div><div class="arhint" id="ar_hint"></div></div>';
-    w.classList.add('on');
+      '<input class="arsearch" id="ar_q" placeholder="chercher une créature…" value="'+esc(armSearch)+'">',
+      '<div class="argrid" id="ar_grid"></div><div class="arhint" id="ar_hint"></div>');
+    if(!w){renderArmGrid();return;}   // déjà ouverte : ne pas casser la frappe en cours
     w.querySelectorAll('#ar_cat button[data-pc]').forEach(b=>b.addEventListener('click',()=>{
       palCat=b.dataset.pc;armedPin=null;
       w.querySelectorAll('#ar_cat button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
@@ -244,15 +376,86 @@
     // Échap dans le champ : vide la recherche, puis (2e fois) sort de l'outil
     qi.addEventListener('keydown',e=>{if(e.key!=='Escape')return;e.preventDefault();e.stopPropagation();
       if(armSearch){armSearch='';qi.value='';renderArmGrid();}else pick('select');});
-    document.getElementById('ar_x').addEventListener('click',()=>pick('select'));
-    // la barre n'a pas d'objet auquel s'ancrer : on la déplace elle, en pixels du cadre de la carte
-    const tete=w.querySelector('.arhead');
-    wireBoxDrag(tete,()=>{const r=w.getBoundingClientRect(),wr=stageWrap.getBoundingClientRect();
-        return {x:r.left-wr.left,y:r.top-wr.top};},
-      (base,dx,dy)=>placeArmBar(base.x+dx,base.y+dy));
-    tete.addEventListener('dblclick',e=>{if(e.target.closest(CMD))return;e.preventDefault();armPos=null;placeArmBar();});
-    placeArmBar();
     renderArmGrid();qi.focus();}
+
+  /* ---------- barres d'armement des outils Formes et Image ---------- */
+  const SHAPE_SVG='<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><circle cx="16.5" cy="16.5" r="3.5"/></svg>';
+  const IMAGE_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg>';
+  function openShapeBar(){
+    const w=armShell('shape',SHAPE_SVG,'Poser une forme',
+      '<div class="arseg" id="ar_k">'+[['rect','Rectangle'],['ell','Ellipse']]
+        .map(t=>'<button type="button" data-k="'+t[0]+'"'+(armedShape===t[0]?' class="on"':'')+'>'+t[1]+'</button>').join('')+'</div>'+
+      '<input class="arcol" id="ar_col" type="color" value="'+lastShape.c+'" title="Couleur de la forme">',
+      '<div class="arhint" id="ar_hint"></div>');
+    if(!w)return;
+    w.querySelectorAll('#ar_k button[data-k]').forEach(b=>b.addEventListener('click',()=>{
+      armedShape=b.dataset.k;
+      w.querySelectorAll('#ar_k button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      stage.container().style.cursor='crosshair';shapeHint();}));
+    document.getElementById('ar_col').addEventListener('input',e=>{lastShape.c=e.target.value;shapeHint();});
+    shapeHint();}
+  function shapeHint(){const h=document.getElementById('ar_hint');if(!h)return;
+    h.innerHTML=armedShape?('<b>'+(armedShape==='ell'?'Ellipse':'Rectangle')+'</b> armé — clique sur la carte pour le poser. La forme se pose <b>sous</b> les tracés et les marqueurs. <b>Échap</b> désarme.')
+      :'Choisis une forme, puis clique sur la carte.';}
+  function openImageBar(){
+    const w=armShell('image',IMAGE_SVG,'Poser une image',
+      '<input class="arsearch" id="ar_q" placeholder="chercher une image…" value="'+esc(armSearch)+'">',
+      '<div class="argrid" id="ar_grid"></div><div class="arhint" id="ar_hint"></div>');
+    if(!w){renderImageGrid();return;}
+    const qi=document.getElementById('ar_q');
+    qi.addEventListener('input',()=>{armSearch=qi.value;renderImageGrid();});
+    qi.addEventListener('focus',()=>{w.classList.remove('armed');});
+    qi.addEventListener('keydown',e=>{if(e.key!=='Escape')return;e.preventDefault();e.stopPropagation();
+      if(armSearch){armSearch='';qi.value='';renderImageGrid();}else pick('select');});
+    renderImageGrid();qi.focus();}
+  // catalogue = les images du projet declarees dans data.js (MOB)
+  function imageRoster(){const M=MOBOF(),q=armSearch.trim().toLowerCase();
+    return Object.keys(M).filter(n=>!q||n.toLowerCase().includes(q)).map(n=>({nom:n,src:M[n]}));}
+  function renderImageGrid(){const w=document.getElementById('armbar');if(!w||w.dataset.kind!=='image')return;
+    const grid=document.getElementById('ar_grid'),liste=imageRoster();
+    grid.style.display=liste.length?'':'none';
+    grid.innerHTML=liste.map(it=>'<button type="button" class="palbtn'+(armedShape&&armedShape.src===it.src?' on':'')+'" data-src="'+esc(it.src)+'"><img src="'+BASE+it.src+'" alt="'+esc(it.nom)+'"><span>'+esc(it.nom)+'</span></button>').join('');
+    grid.querySelectorAll('.palbtn').forEach(b=>b.addEventListener('click',()=>{
+      armedShape={src:b.dataset.src};
+      grid.querySelectorAll('.palbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      stage.container().style.cursor='crosshair';
+      const qi=document.getElementById('ar_q');if(qi)qi.blur();
+      imageHint();}));
+    imageHint();}
+  function imageHint(){const w=document.getElementById('armbar'),h=document.getElementById('ar_hint');if(!h)return;
+    if(w)w.classList.toggle('armed',!!(armedShape&&armedShape.src)&&document.activeElement!==document.getElementById('ar_q'));
+    if(!imageRoster().length){h.innerHTML='Aucune image'+(armSearch.trim()?' pour « '+esc(armSearch)+' »':'')+'.';return;}
+    h.innerHTML=(armedShape&&armedShape.src)?'<b>Image armée</b> — clique sur la carte, autant de fois que tu veux. <b>Échap</b> désarme.'
+      :'Choisis une image, puis clique sur la carte.';}
+  function showShapeHint(){
+    setInspTitle(tool==='image'?'Nouvelle image':'Nouvelle forme','var(--cyan)');
+    document.getElementById('inspBody').innerHTML='<div class="hintbox">'+
+      (tool==='image'
+        ? 'Choisis une image dans la barre du haut puis <b>clique sur la carte</b>. Elle se pose <b>sous</b> les tracés et les marqueurs — pratique pour illustrer une zone sans masquer la strat.'
+        : 'Choisis <b>Rectangle</b> ou <b>Ellipse</b> et sa couleur dans la barre du haut, puis <b>clique sur la carte</b>. La forme se pose <b>sous</b> les tracés et les marqueurs.')+
+      '<br><br>Sa carte de réglages s\u2019ouvre à côté (couleur, opacité, contour, taille) et l\u2019outil <b>reste armé</b>. En <b>Sélection</b>, glisse la forme pour la déplacer.</div>';
+    if(tool==='image')openImageBar();else openShapeBar();}
+
+  /* ---------- pipette : prélève une couleur sur la carte ---------- */
+  let pipetteHex=null;
+  function showPipetteHint(){setInspTitle('Pipette','var(--gold)');
+    document.getElementById('inspBody').innerHTML='<div class="hintbox"><b>Clique n\u2019importe où sur la carte</b> pour relever la couleur du pixel.<br><br>'+
+      'Si un objet est sélectionné (forme, texte, tracé), la couleur lui est appliquée directement. Sinon elle devient la couleur des <b>prochaines formes</b> et reste copiable ici.</div>'+
+      '<div class="fld"><label>Dernière couleur relevée</label><div class="in" id="pip_out" style="display:flex;align-items:center;gap:9px">'+
+      (pipetteHex?'<span style="width:18px;height:18px;border-radius:6px;border:1px solid var(--line2);background:'+pipetteHex+'"></span><code>'+pipetteHex+'</code>':'—')+'</div></div>';}
+  function pickColorAt(p){
+    let hex=null;
+    try{const cv=layer.getCanvas(),pr=cv.getPixelRatio?cv.getPixelRatio():1;
+      const ctx=cv._canvas.getContext('2d',{willReadFrequently:true});
+      const d=ctx.getImageData(Math.round(p.x*pr),Math.round(p.y*pr),1,1).data;
+      hex='#'+[d[0],d[1],d[2]].map(v=>('0'+v.toString(16)).slice(-2)).join('');
+    }catch(e){toast('Couleur illisible : '+e.message,'err');return;}
+    pipetteHex=hex;
+    const m=selNode&&selNode._meta;
+    if(m&&m.kind==='shape'&&m.o.k!=='img'){m.o.c=hex;refreshShape(m.o);commit();toast('Forme colorée en '+hex+'.','ok');}
+    else if(m&&m.kind==='text'){m.o.c=hex;refreshText(m.o);commit();toast('Texte coloré en '+hex+'.','ok');}
+    else{lastShape.c=hex;toast(hex+' relevé — couleur des prochaines formes.','ok');}
+    showPipetteHint();}
   // position libre de la barre (null = centrée en haut, son comportement par défaut)
   let armPos=null;
   function placeArmBar(x,y){const w=document.getElementById('armbar');if(!w)return;
@@ -509,8 +712,10 @@
     if(mapEd&&(!node||!node._meta||node._meta.o!==mapEd.cfg.o))closeMapEdit();
     if(mapPanel&&node!==mapPanel.node)closeMapPanel();
     layer.find('.selring').forEach(r=>r.destroy());selNode=node;const body=document.getElementById('inspBody');
-    if(!node){body.innerHTML='<div class="empty">Sélectionne un marqueur sur la carte (clic), puis <b>glisse-la</b> ou édite ses champs ici.</div>';setInspTitle('Inspecteur');closeInsp();draw();return;}
-    drawRing(node);renderInspector(node._meta);openInsp();draw();
+    if(!node){body.innerHTML='<div class="empty">Sélectionne un objet sur la carte (clic), puis <b>glisse-le</b> ou règle-le dans sa carte flottante.</div>';setInspTitle('Inspecteur');closeInsp();
+      draw();return;}
+    drawRing(node);renderInspector(node._meta);openInsp();
+    draw();
   }
   function drawRing(node){layer.find('.selring').forEach(r=>r.destroy());const bb=node.getClientRect({relativeTo:layer});
     gPins.add(new Konva.Rect({x:bb.x-6,y:bb.y-6,width:bb.width+12,height:bb.height+12,stroke:'#54d1c4',strokeWidth:2,dash:[6,4],cornerRadius:8,listening:false,name:'selring'}));}
@@ -526,6 +731,10 @@
       '<div class="fld two"><div><label>nx (%)</label><input id="f_nx" type="number" step="0.1" value="'+o.nx+'"></div><div><label>ny (%)</label><input id="f_ny" type="number" step="0.1" value="'+o.ny+'"></div></div>'+
       '<div class="hintbox">Glisse le numéro sur la carte, ou ajuste nx/ny. Il s’affiche près du boss.</div>';
       bindNum('nx',v=>{o.nx=v;o._mk.x(C(v));liveUpdate();});bindNum('ny',v=>{o.ny=v;o._mk.y(C(v));liveUpdate();});return;}
+    if(m.kind==='shape'){const nom={rect:'Rectangle',ell:'Ellipse',img:'Image'}[o.k]||'Forme';
+      setInspTitle(nom,o.k==='img'?'var(--violet)':shColor(o));
+      body.innerHTML='<div class="hintbox"><b>Clique</b> la forme sur la carte : sa carte de réglages s\u2019ouvre à côté (couleur, opacité, contour, taille). <b>Glisse</b> la forme sur la carte pour la déplacer.</div>';
+      openShapePanel(o);return;}
     if(m.kind==='text'){renderTextInspector(o);return;}
     // boss / pack / mid : réglages sur la carte (carte flottante), inspecteur = simple astuce cohérente avec le texte
     const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[m.kind];
@@ -564,20 +773,28 @@
   //   bascule dessus/dessous selon la place. Dès qu'on l'a déplacée, elle garde cet écart (donc
   //   elle suit toujours l'objet au zoom et au pan), on fige la bascule pour qu'elle ne saute pas
   //   en plein glisser, on la borne dans le cadre, et la flèche qui pointait l'objet disparaît.
-  function positionFloat(w,anchorFn,off){const s=stage.scaleX(),a=anchorFn();
+  //   L'ancre peut fournir y2 = bas de l'objet. Sans lui, basculer « dessous » repartait du HAUT
+  //   de l'objet, donc la carte se posait SUR lui : pour une grande forme elle la recouvrait
+  //   entierement, et plus aucun clic n'atteignait le canvas (ni deplacement, ni selection).
+  function positionFloat(w,anchorFn,off,noFlip){const s=stage.scaleX(),a=anchorFn();
     const dx=(off&&off.x)||0, dy=(off&&off.y)||0, bouge=!!(dx||dy);
     const sx=stage.x()+a.x*s+dx, sy=stage.y()+a.y*s+dy, card=w.firstElementChild;
     w.style.left=sx+'px';w.style.top=sy+'px';if(!card)return;const wr=stageWrap.getBoundingClientRect();
-    w.classList.toggle('moved',bouge);
-    if(bouge){
+    if(bouge||noFlip){
       w.classList.remove('below');card.style.transform='translate(-50%,-100%)';
       const r=card.getBoundingClientRect();let mx=0,my=0;
       if(r.left<wr.left+6)mx=(wr.left+6)-r.left;else if(r.right>wr.right-6)mx=(wr.right-6)-r.right;
       if(r.top<wr.top+6)my=(wr.top+6)-r.top;else if(r.bottom>wr.bottom-6)my=(wr.bottom-6)-r.bottom;
       if(mx||my)card.style.transform='translate(calc(-50% + '+mx+'px),calc(-100% + '+my+'px))';
+      w.classList.toggle('moved',bouge||!!my);     // bornee en hauteur : la fleche ne pointe plus rien
+      card.style.setProperty('--arrow','calc(50% - '+mx+'px)');
       return;}
-    w.classList.remove('below');if(card.getBoundingClientRect().top<wr.top+6)w.classList.add('below');
-    card.style.transform=w.classList.contains('below')?'translate(-50%,0)':'translate(-50%,-100%)';
+    w.classList.remove('moved');
+    w.classList.remove('below');card.style.transform='translate(-50%,-100%)';
+    if(card.getBoundingClientRect().top<wr.top+6){          // pas la place au-dessus : on passe dessous
+      w.classList.add('below');
+      if(a.y2!=null)w.style.top=(stage.y()+a.y2*s+dy)+'px'; // ... a partir du BAS de l'objet
+      card.style.transform='translate(-50%,0)';}
     const r=card.getBoundingClientRect();let sh=0;
     if(r.left<wr.left+6)sh=(wr.left+6)-r.left;else if(r.right>wr.right-6)sh=(wr.right-6)-r.right;
     if(sh){card.style.transform='translate(calc(-50% + '+sh+'px),'+(w.classList.contains('below')?'0':'-100%')+')';
@@ -586,7 +803,7 @@
   // elle doit le rester pour le marqueur suivant, sinon on la repousse à chaque pose.
   let panelOff={x:0,y:0};
   function positionMapEdit(){if(!mapEd)return;positionFloat(mapEd.wrap,mapEd.cfg.anchor);}
-  function positionMapPanel(){if(!mapPanel)return;positionFloat(mapPanel.wrap,mapPanel.anchor,panelOff);}
+  function positionMapPanel(){if(!mapPanel)return;positionFloat(mapPanel.wrap,mapPanel.anchor,panelOff,mapPanel.noFlip);}
   /* ---- glisser une boîte flottante par sa barre de titre (comme une fenêtre) ---- */
   // Toute la zone haute déplace la boîte, sauf les commandes qu'elle contient (segments,
   // recherche, fermeture) : sur celles-là on laisse l'événement suivre son cours, sans quoi
@@ -666,7 +883,7 @@
         if(selNode===g)openPinPanel(o,kind);}});}   // rouvre la carte de propriétés après édition du label
   /* ---- Carte flottante de propriétés (marqueurs) : même ergonomie que l'édition de texte ---- */
   function closeMapPanel(){if(!mapPanel)return;const w=mapPanel.wrap;mapPanel=null;w.classList.remove('on','below');w.innerHTML='';}
-  function openMapPanel(o,anchorFn,html,wire){closeMapPanel();const w=ensurePanelEl();mapPanel={wrap:w,anchor:anchorFn,o:o};
+  function openMapPanel(o,anchorFn,html,wire,noFlip){closeMapPanel();const w=ensurePanelEl();mapPanel={wrap:w,anchor:anchorFn,o:o,noFlip:!!noFlip};
     w.innerHTML='<div class="mecard">'+html+'</div>';w.classList.add('on');positionMapPanel();if(wire)wire(w);
     // la barre de titre déplace la carte, quel qu'en soit le contenu
     const ttl=w.querySelector('.mptitle');
@@ -677,7 +894,7 @@
   const PENCIL_SVG='<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
   const RESET_SVG='<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>';
   function openPinPanel(o,kind){const g=pinNode(o);if(!g)return;const col=elc(o.el);
-    const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y};};
+    const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y,y2:bb.y+bb.height};};
     const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[kind]||'Marqueur';
     let h='<div class="mptitle" style="--dot:'+col+'">'+kindLbl+' · '+esc(o.name)+'</div>';
     h+='<div class="mprow"><span class="mplbl">Élément</span><div class="mpsw" id="mp_el"></div></div>';
@@ -723,11 +940,11 @@
      8 · CALQUES
      ============================================================ */
   function eye(on){return on?'<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.2 4.2M9.9 5.2A10.9 10.9 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 3.9M6.1 6.1A17 17 0 002 12s3.5 7 10 7a10.6 10.6 0 003.4-.6"/></svg>';}
-  function buildLayers(){const L=[['pins','Marqueurs',gPins],['texts','Textes & notes',gTexts],['routes','Tracés',gRoutes],['map','Carte (fond)',gMap]],host=document.getElementById('layers');host.innerHTML='';
+  function buildLayers(){const L=[['pins','Marqueurs',gPins],['texts','Textes & notes',gTexts],['routes','Tracés',gRoutes],['shapes','Formes & images',gShapes],['map','Carte (fond)',gMap]],host=document.getElementById('layers');host.innerHTML='';
     L.forEach(([k,name,grp])=>{const el=document.createElement('div');el.className='lay'+(layerVis[k]?'':' off');
       el.innerHTML='<span class="eye">'+eye(layerVis[k])+'</span><span>'+name+'</span><span class="cnt">'+(grp?grp.getChildren().length:0)+'</span>';
       el.addEventListener('click',()=>{layerVis[k]=!layerVis[k];applyVis();buildLayers();});host.appendChild(el);});}
-  function applyVis(){if(gMap)gMap.visible(layerVis.map);if(gRoutes)gRoutes.visible(layerVis.routes);if(gTexts)gTexts.visible(layerVis.texts);if(gPins)gPins.visible(layerVis.pins);updateAnim();draw();}
+  function applyVis(){if(gMap)gMap.visible(layerVis.map);if(gShapes)gShapes.visible(layerVis.shapes);if(gRoutes)gRoutes.visible(layerVis.routes);if(gTexts)gTexts.visible(layerVis.texts);if(gPins)gPins.visible(layerVis.pins);updateAnim();draw();}
 
   /* ============================================================
      9 · OUTILS (rail latéral) + raccourcis
@@ -764,6 +981,7 @@
     // toujours émis (même vide) → supprimer le dernier tracé est bien persisté dans data.js
     out.push({name:top?'ROUTES_TOP':'ROUTES_B',text:S.routesConst(top?'ROUTES_TOP':'ROUTES_B',f.routes||[])});
     out.push({name:top?'TEXTS':'TEXTS_B',text:S.textsConst(top?'TEXTS':'TEXTS_B',f.texts||[])});
+    out.push({name:top?'SHAPES':'SHAPES_B',text:S.shapesConst(top?'SHAPES':'SHAPES_B',f.shapes||[])});
     return out;}
   // ⚠ on sérialise TOUS les étages, pas seulement celui affiché : sinon les modifications
   // faites sur l'autre étage avant de changer d'onglet étaient perdues sans le moindre avertissement.
@@ -838,10 +1056,11 @@
     return JSON.stringify({
       bosses:(f.bosses||[]).map(cleanPin),packs:(f.packs||[]).map(cleanPin),mids:(f.mids||[]).map(cleanPin),
       texts:(f.texts||[]).map(o=>Object.assign({},o)),
+      shapes:(f.shapes||[]).map(o=>Object.assign({},o)),
       routes:(f.routes||[]).map(rt=>({n:rt.n,el:rt.el,c1:rt.c1,a:rt.a,fs:rt.fs,name:rt.name,points:rt.points})),
       mobScale:mobScale,labelMargin:labelMargin});}
   function restoreState(json){const st=JSON.parse(json),f=FL[curIdx];
-    f.bosses=st.bosses;f.packs=st.packs;f.mids=st.mids;f.texts=st.texts;f.routes=st.routes;
+    f.bosses=st.bosses;f.packs=st.packs;f.mids=st.mids;f.texts=st.texts;f.routes=st.routes;f.shapes=st.shapes||[];
     mobScale=st.mobScale;labelMargin=st.labelMargin;paintGlobals();
     renderFloor(curIdx);}
   // un pas d'historique = une vraie modification → c'est le bon endroit pour lever le témoin
@@ -859,7 +1078,8 @@
   function copySel(){const d=selData();if(!d)return;clip=d;toast('Copié — Ctrl+V pour coller.','ok');}
   async function pasteObj(entry){if(!entry)return;const f=FL[curIdx],kind=entry.kind,o=cleanPin(entry.o);
     o.x=r1(S.clamp((o.x!=null?o.x:50)+2));o.y=r1(S.clamp((o.y!=null?o.y:50)+2));
-    if(kind==='text'){(f.texts=f.texts||[]).push(o);addText(o);buildLayers();pick('select');const g=textNode(o);if(g)select(g);}
+    if(kind==='shape'){(f.shapes=f.shapes||[]).push(o);await addShape(o);buildLayers();pick('select');const g=shapeNode(o);if(g)select(g);}
+    else if(kind==='text'){(f.texts=f.texts||[]).push(o);addText(o);buildLayers();pick('select');const g=textNode(o);if(g)select(g);}
     else{const MOBimg=(typeof MOB!=='undefined')?MOB:{};
       if(kind==='boss'){const maxN=(f.bosses||[]).reduce((mx,b)=>Math.max(mx,b.n||0),0);o.n=maxN+1;
         o.nx=r1(S.clamp((o.nx!=null?o.nx:o.x)+2));o.ny=r1(S.clamp((o.ny!=null?o.ny:o.y)+2));(f.bosses=f.bosses||[]).push(o);}
@@ -867,9 +1087,10 @@
       await addPin(kind,o,pinSize(kind),MOBimg);buildLayers();pick('select');const g=pinNode(o);if(g)select(g);}
     commit();toast('Collé.','ok');}
   function duplicateSel(){const d=selData();if(d)pasteObj(d);}
-  function deleteSelNow(){if(!selNode||!selNode._meta)return;const m=selNode._meta;if(m.kind==='text')deleteText(m.o);else if(m.kind!=='marker')deletePin(m.o,m.kind);}
+  function deleteSelNow(){if(!selNode||!selNode._meta)return;const m=selNode._meta;if(m.kind==='shape')deleteShape(m.o);else if(m.kind==='text')deleteText(m.o);else if(m.kind!=='marker')deletePin(m.o,m.kind);}
   function confirmDeleteSel(){if(!selNode||!selNode._meta)return;const m=selNode._meta;if(m.kind==='marker')return;
-    if(m.kind==='text')askConfirm('Supprimer ce texte ?',{title:'Supprimer le texte'}).then(v=>{if(v)deleteText(m.o);});
+    if(m.kind==='shape')askConfirm('Supprimer cette forme ?',{title:'Supprimer la forme'}).then(v=>{if(v)deleteShape(m.o);});
+    else if(m.kind==='text')askConfirm('Supprimer ce texte ?',{title:'Supprimer le texte'}).then(v=>{if(v)deleteText(m.o);});
     else askConfirm('Supprimer le marqueur <b>'+esc(m.o.name)+'</b> ? Elle sera retirée de data.js au prochain enregistrement.',{title:'Supprimer le marqueur'}).then(v=>{if(v)deletePin(m.o,m.kind);});}
   function nudgeSel(key,big){if(!selNode||!selNode._meta)return;const m=selNode._meta,step=big?2:0.4;
     let dx=0,dy=0;if(key==='arrowleft')dx=-step;else if(key==='arrowright')dx=step;else if(key==='arrowup')dy=-step;else dy=step;
@@ -895,12 +1116,15 @@
     // Échap : désarmer / désélectionner, où que soit la souris (les réglages sont hors carte)
     if(k==='escape'){
       if(tool==='pin'&&armedPin){armedPin=null;renderArmGrid();stage.container().style.cursor='default';return;}
+      if((tool==='shape'||tool==='image')&&armedShape){armedShape=null;stage.container().style.cursor='default';
+        if(tool==='image'){renderImageGrid();}else{document.querySelectorAll('#ar_k button').forEach(x=>x.classList.remove('on'));shapeHint();}return;}
       if(tool==='path'&&selHandleIdx>=0){selHandleIdx=-1;refreshPathEdit();return;}
       select(null);return;}
     // --- raccourcis d'outils : seulement quand la souris survole la carte ---
     if(!overMap)return;
     if(k===' '){if(!spaceDown){spaceDown=true;setToolMode();}e.preventDefault();}
-    else if(k==='f')fit();else if(k==='v')pick('select');else if(k==='h')pick('pan');else if(k==='p')pick('path');else if(k==='n')pick('pin');else if(k==='t')pick('text');});
+    else if(k==='f')fit();else if(k==='v')pick('select');else if(k==='h')pick('pan');else if(k==='p')pick('path');else if(k==='n')pick('pin');else if(k==='t')pick('text');
+    else if(k==='s')pick('shape');else if(k==='i')pick('image');else if(k==='k')pick('pipette');});
   // relâchement d'Espace : toujours traité (sort du mode navigation même si la souris a quitté la carte), sauf en pleine saisie
   window.addEventListener('keyup',e=>{if(inField(e))return;if(e.key===' '&&spaceDown){spaceDown=false;setToolMode();}});
 
