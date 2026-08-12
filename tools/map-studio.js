@@ -1067,6 +1067,86 @@
     out.push({name:'MOBSCALE',scalar:true,text:'const MOBSCALE='+r1(mobScale)+';'});
     out.push({name:'LBLMARGIN',scalar:true,text:'const LBLMARGIN='+r1(labelMargin)+';'});
     return out;}
+  /* ============================================================
+     10b · EXPORT — image de la carte, ou blocs data.js
+     ------------------------------------------------------------
+     L'image est rendue à l'échelle 1:1 de la carte (1024 px), pas à ce
+     qu'on voit à l'écran : on neutralise zoom et pan le temps du rendu,
+     et on masque le calque d'édition (poignées, aperçu de tracé, cadre
+     de sélection) qui n'a rien à faire dans une image livrée.
+     ============================================================ */
+  const EXP_MIME={png:'image/png',jpeg:'image/jpeg',webp:'image/webp'};
+  let expFmt='png', expEch=2, expQual=0.92;
+  function nomFichier(ext){const f=FL[curIdx];
+    return 'sortie-'+(f&&f.id==='top'?'rez-de-chaussee':'sous-sol')+'.'+ext;}
+  function telecharger(href,nom){const a=document.createElement('a');
+    a.href=href;a.download=nom;document.body.appendChild(a);a.click();a.remove();}
+  async function exportImage(){
+    if(!stage)return;
+    const sx=stage.scaleX(),sy=stage.scaleY(),px=stage.x(),py=stage.y();
+    const ringVis=[];layer.find('.selring').forEach(r=>{ringVis.push([r,r.visible()]);r.visible(false);});
+    const editVis=gEdit?gEdit.visible():null;if(gEdit)gEdit.visible(false);
+    const trVis=shTr?shTr.visible():null;if(shTr)shTr.visible(false);
+    stage.scale({x:1,y:1});stage.position({x:0,y:0});stage.draw();
+    let cv=null,err=null;
+    try{ cv=stage.toCanvas({x:0,y:0,width:MAP,height:MAP,pixelRatio:expEch}); }catch(e){err=e;}
+    // remise en état AVANT toute alerte : la vue de l'utilisateur ne doit pas rester cassée
+    stage.scale({x:sx,y:sy});stage.position({x:px,y:py});
+    ringVis.forEach(([r,v])=>r.visible(v));
+    if(gEdit&&editVis!=null)gEdit.visible(editVis);
+    if(shTr&&trVis!=null)shTr.visible(trVis);
+    updateZoom();stage.draw();
+    if(err||!cv){toast('Export impossible : '+(err?err.message:'rendu vide'),'err');return;}
+    // Blob plutôt que data-URL : en 4096 px la chaîne base64 dépasse les 25 Mo et
+    // certains navigateurs refusent de la télécharger.
+    cv.toBlob(blob=>{
+      if(!blob){toast('Export impossible : encodage refusé.','err');return;}
+      const u=URL.createObjectURL(blob);
+      telecharger(u,nomFichier(expFmt==='jpeg'?'jpg':expFmt));
+      setTimeout(()=>URL.revokeObjectURL(u),60000);   // large : un 4096 px met du temps a partir
+      toast('Image exportée en '+(MAP*expEch)+' px · '+(blob.size/1024/1024).toFixed(1)+' Mo.','ok');
+    },EXP_MIME[expFmt],expQual);}
+  // Blocs data.js : le même texte que celui écrit par Enregistrer, mais téléchargeable
+  // ou copiable — utile hors Chrome, ou pour transmettre la carte sans donner le fichier.
+  function texteBlocs(){
+    return '/* Blocs générés par Map Studio — à coller dans js/data.js en remplacement\n'
+      +'   des blocs de même nom. Le reste du fichier ne doit pas être touché. */\n\n'
+      + blocksToSave().map(b=>b.text).join('\n\n')+'\n';}
+  function exportBlocs(copier){
+    const txt=texteBlocs();
+    if(copier){
+      (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt)
+        :Promise.reject(new Error('presse-papier indisponible')))
+        .then(()=>toast('Blocs data.js copiés — colle-les dans js/data.js.','ok'))
+        .catch(e=>toast('Copie impossible : '+e.message,'err'));
+      return;}
+    telecharger(URL.createObjectURL(new Blob([txt],{type:'text/javascript'})),'data-blocs.js');
+    toast('data-blocs.js téléchargé.','ok');}
+  function openExport(){
+    const seg=(id,vals,cur)=>'<div class="mpseg wide" id="'+id+'">'+vals.map(v=>
+      '<button type="button" data-v="'+v[0]+'"'+(String(cur)===String(v[0])?' class="on"':'')+'>'+v[1]+'</button>').join('')+'</div>';
+    let h='<div class="mptitle" style="--dot:var(--gold)">Exporter</div>';
+    h+='<div class="mprow"><span class="mplbl">Format</span>'+seg('ex_f',[['png','PNG'],['jpeg','JPEG'],['webp','WebP']],expFmt)+'</div>';
+    h+='<div class="mprow"><span class="mplbl">Taille</span>'+seg('ex_e',[[1,'1024'],[2,'2048'],[4,'4096']],expEch)+'</div>';
+    h+='<div class="mprow" id="ex_qrow"><span class="mplbl">Qualité</span><input class="mprange" id="ex_q" type="range" min="50" max="100" value="'+Math.round(expQual*100)+'"><span class="mpval" id="ex_qv">'+Math.round(expQual*100)+' %</span></div>';
+    h+='<div class="mpacts"><button class="mpbtn primary" id="ex_img">Télécharger l’image</button></div>';
+    h+='<div class="mprow" style="margin-top:12px;border-top:1px solid var(--hair);padding-top:11px"><span class="mplbl">data.js</span></div>';
+    h+='<div class="mpacts"><button class="mpbtn primary" id="ex_dl">Télécharger les blocs</button>'
+      +'<button class="mpbtn" id="ex_cp">Copier</button></div>';
+    h+='<div class="mpnote">L’image est rendue à l’échelle de la carte, sans les poignées d’édition. Les blocs sont ceux qu’écrit <b>Enregistrer</b> : à coller dans <code>js/data.js</code> en remplacement de ceux du même nom.</div>';
+    openMapPanel({},()=>({x:MAP/2,y:MAP*0.42}),h,()=>{
+      const majQ=()=>{const r=document.getElementById('ex_qrow');if(r)r.style.display=(expFmt==='png')?'none':'';};
+      document.querySelectorAll('#ex_f button[data-v]').forEach(b=>b.addEventListener('click',()=>{
+        expFmt=b.dataset.v;document.querySelectorAll('#ex_f button').forEach(x=>x.classList.remove('on'));b.classList.add('on');majQ();}));
+      document.querySelectorAll('#ex_e button[data-v]').forEach(b=>b.addEventListener('click',()=>{
+        expEch=+b.dataset.v;document.querySelectorAll('#ex_e button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+      const q=document.getElementById('ex_q');q.addEventListener('input',()=>{expQual=(+q.value)/100;
+        document.getElementById('ex_qv').textContent=(+q.value)+' %';});
+      document.getElementById('ex_img').addEventListener('click',()=>{closeMapPanel();exportImage();});
+      document.getElementById('ex_dl').addEventListener('click',()=>exportBlocs(false));
+      document.getElementById('ex_cp').addEventListener('click',()=>exportBlocs(true));
+      majQ();},true);}
+
   async function save(){
     if(!window.showOpenFilePicker){toast('Utilise Chrome ou Edge pour l’enregistrement direct.','err');return;}
     // un commitSoon() en vol relèverait le témoin JUSTE APRÈS l'enregistrement (il appelle commit,
@@ -1096,6 +1176,7 @@
   document.getElementById('floorSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#floorSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderFloor(+b.dataset.i);resetHistory();});
   document.getElementById('btnFit').addEventListener('click',fit);
   document.getElementById('btnSave').addEventListener('click',save);
+  document.getElementById('btnExport').addEventListener('click',openExport);
   document.getElementById('btnSync').addEventListener('click',()=>syncFromFile(false));
   // réglages globaux — le curseur du haut et celui de l'inspecteur pilotent la même valeur
   function paintGlobals(){
