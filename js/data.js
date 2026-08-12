@@ -34,10 +34,10 @@ const BOSSES=[
  {name:'Skomora',n:2,el:'green', x:88.9,y:83.8, nx:89.1,ny:76.7, label:'<span style="color:#8affc0">Skomora</span>'},
 ];
 const PACKS=[
- {name:'Acuex', el:'red', x:29.9,y:54.7, q:'', ph:1, lp:'top', label:'<c><b><span style="color:#fd7777">Acuex</span></b>\n<c>X12'},
- {name:'Fomor', el:'gray', x:27.8,y:70.1, q:'', ph:1, label:'<c><b><u>Fomors</u></b>\n<c>WHM X5\n<c>BLM X5\n<c>RDM X5'},
- {name:'Ghost', el:'green', x:67.4,y:67.4, q:'X12', ph:2, label:'<c><u><b><span style="color:#1eff00">Ghost</span></b></u>\n<c>X12'},
- {name:'Umbril', el:'blue', x:79.8,y:29.8, q:'', ph:3, label:'<c><b><u><span style="color:#009dff">Umbril</span></u></b>\n<c>X12'},
+ {name:'Acuex', el:'red', x:29.9,y:54.7, q:'', ph:1, lp:'top', label:'<c><span style="color:#fd7777">Acuex</span>\n<c>X12'},
+ {name:'Fomor', el:'gray', x:27.8,y:70.1, q:'', ph:1, label:'<c><u>Fomors</u>\n<c>WHM X5\n<c>BLM X5\n<c>RDM X5'},
+ {name:'Ghost', el:'green', x:67.4,y:67.4, q:'X12', ph:2, label:'<c><u><span style="color:#1eff00">Ghost</span></u>\n<c>X12'},
+ {name:'Umbril', el:'blue', x:79.8,y:29.8, q:'X12', ph:3, label:'<c><u><span style="color:#009dff">Umbril</span></u>\n<c>X12'},
 ];
 
 // ---- buffs de déplacement (Trajet) ----
