@@ -22,20 +22,20 @@ const MOB={"Degei": "img/mob-degei.webp", "Skomora": "img/mob-skomora.webp", "Le
   "Slime": "img/mob-slime.webp", "Slug": "img/mob-slug.webp", "Flan": "img/mob-flan.webp",
   "Obdella": "img/mob-obdella.webp", "Porxie": "img/mob-porxie.webp", "Bhoot": "img/mob-bhoot.webp", "Deleterious": "img/mob-deleterious.webp"};
 // échelle globale des images de mobs (garde le ratio entre elles) — réglable dans Map Studio
-const MOBSCALE=0.5;
+const MOBSCALE=0.6;
 // marge des labels de mobs (px), identique partout — réglable dans Map Studio ; position par pastille via lp:'top|bottom|left|right'
 const LBLMARGIN=0;
 
 // ---- points sur la carte : boss (ordre) + packs ----
 const BOSSES=[
- {name:'Ghatjot',n:4,el:'fire', x:14.6,y:6.4, nx:20.4,ny:7.9, label:'<span style="color:#ff8f6a">Ghatjot</span>'},
- {name:'Leshonn',n:3,el:'blue', x:94.8,y:7.1, nx:89.1,ny:7.9, label:'<span style="color:#5bd6ef">Leshonn</span>'},
- {name:'Degei',n:1,el:'gray', x:20.4,y:82.4, nx:20.4,ny:76.7, label:'Degei'},
- {name:'Skomora',n:2,el:'green', x:88.9,y:82.7, nx:89.1,ny:76.7, label:'<span style="color:#8affc0">Skomora</span>'},
+ {name:'Ghatjot',n:4,el:'fire', x:13.5,y:6.4, nx:20.4,ny:7.9, label:'<span style="color:#ff8f6a">Ghatjot</span>'},
+ {name:'Leshonn',n:3,el:'blue', x:95.5,y:7.1, nx:89.1,ny:7.9, label:'<span style="color:#5bd6ef">Leshonn</span>'},
+ {name:'Degei',n:1,el:'gray', x:20.4,y:83.6, nx:20.4,ny:76.7, label:'Degei'},
+ {name:'Skomora',n:2,el:'green', x:88.9,y:83.8, nx:89.1,ny:76.7, label:'<span style="color:#8affc0">Skomora</span>'},
 ];
 const PACKS=[
  {name:'Acuex', el:'red', x:29.9,y:54.7, q:'', ph:1, lp:'top', label:'<c><b><span style="color:#fd7777">Acuex</span></b>\n<c>X12'},
- {name:'Fomor', el:'gray', x:27.8,y:70.1, q:'', ph:1, label:'<c><b><u><span style="color:#b0b0b0">Fomors</span></u></b>\n<c>WHM X5\n<c>BLM X5\n<c>RDM X5'},
+ {name:'Fomor', el:'gray', x:27.8,y:70.1, q:'', ph:1, label:'<c><b><u>Fomors</u></b>\n<c>WHM X5\n<c>BLM X5\n<c>RDM X5'},
  {name:'Ghost', el:'green', x:67.4,y:67.4, q:'X12', ph:2, label:'<c><u><b><span style="color:#1eff00">Ghost</span></b></u>\n<c>X12'},
  {name:'Umbril', el:'blue', x:79.8,y:29.8, q:'', ph:3, label:'<c><b><u><span style="color:#009dff">Umbril</span></u></b>\n<c>X12'},
 ];
