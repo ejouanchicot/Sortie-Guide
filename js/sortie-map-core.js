@@ -88,12 +88,14 @@
     if(o.hl)s+=", hl:1";
     return s;
   }
-  function bossesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(b){s+=" {name:'"+b.name+"',n:"+b.n+",el:'"+b.el+"', x:"+r1(b.x)+",y:"+r1(b.y)+", nx:"+r1(b.nx)+",ny:"+r1(b.ny)+pinMeta(b)+"},\n";});return s+'];';}
-  function packsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(p){s+=" {name:'"+p.name+"', el:'"+p.el+"', x:"+r1(p.x)+",y:"+r1(p.y)+", q:'"+(p.q||'')+"', ph:"+p.ph+pinMeta(p)+"},\n";});return s+'];';}
-  function midsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(m){s+=" {name:'"+m.name+"', el:'"+m.el+"', x:"+r1(m.x)+",y:"+r1(m.y)+pinMeta(m)+"},\n";});return s+'];';}
+  // name / q passent par escJs : une apostrophe dans un nom ou une quantité (« L'ombre ×3 »)
+  // produisait un data.js invalide — le guide ne se chargeait plus du tout.
+  function bossesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(b){s+=" {name:'"+escJs(b.name)+"',n:"+b.n+",el:'"+b.el+"', x:"+r1(b.x)+",y:"+r1(b.y)+", nx:"+r1(b.nx)+",ny:"+r1(b.ny)+pinMeta(b)+"},\n";});return s+'];';}
+  function packsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(p){s+=" {name:'"+escJs(p.name)+"', el:'"+p.el+"', x:"+r1(p.x)+",y:"+r1(p.y)+", q:'"+escJs(p.q||'')+"', ph:"+p.ph+pinMeta(p)+"},\n";});return s+'];';}
+  function midsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(m){s+=" {name:'"+escJs(m.name)+"', el:'"+m.el+"', x:"+r1(m.x)+",y:"+r1(m.y)+pinMeta(m)+"},\n";});return s+'];';}
   // routesConst lit rt.points (chaîne à jour) + les champs optionnels name/c1/a/fs
   function routesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(rt){var ex='';
-    if(rt.name)ex+=", name:'"+String(rt.name).replace(/'/g,"\\'")+"'";
+    if(rt.name)ex+=", name:'"+escJs(rt.name)+"'";
     if(rt.c1)ex+=", c1:'"+rt.c1+"'";
     if(rt.a!=null&&Math.abs(rt.a-BAND_KONVA.ALPHA)>0.001)ex+=", a:"+(Math.round(rt.a*100)/100);
     if(rt.fs!=null&&Math.abs(rt.fs-1)>0.001)ex+=", fs:"+(Math.round(rt.fs*100)/100);
