@@ -534,15 +534,19 @@ body::before{
     <div class="inspector"><button id="inspClose" class="insp-close" aria-label="Fermer le panneau">✕</button>
       <div class="ipane"><div class="ititle"><span class="dot" id="inspDot"></span><span id="inspTitle">Inspecteur</span></div><div id="inspBody"><div class="empty">Sélectionne un marqueur sur la carte (clic), puis <b>glisse-la</b> ou édite ses champs ici.</div></div></div>
       <div class="ipane"><div class="ititle"><span class="dot" style="background:var(--violet)"></span>Calques</div><div id="layers"></div></div>
-      <div class="ipane"><div class="hintbox"><b>Astuce :</b> clique <b>Recharger</b> avant d'éditer si tu viens de changer <code>data.js</code> ailleurs. <b>Enregistrer</b> écrit tes positions dans <code>data.js</code> (le guide se met à jour).</div></div>
+      <div class="ipane"><div class="ititle"><span class="dot" style="background:var(--gold)"></span>Réglages globaux</div>
+        <div class="fld"><label>Taille des mobs · <span id="gsMobVal">100 %</span></label><input id="gsMob" type="range" min="0.5" max="1.8" step="0.05" style="accent-color:var(--gold);padding:0"></div>
+        <div class="fld"><label>Marge des labels · <span id="gsLblVal">0</span></label><input id="gsLbl" type="range" min="0" max="24" step="1" style="accent-color:var(--gold);padding:0"></div>
+        <div class="hintbox">Ces deux réglages valent pour <b>les deux étages et le guide</b> (<code>MOBSCALE</code> et <code>LBLMARGIN</code> dans <code>data.js</code>).</div></div>
+      <div class="ipane"><div class="hintbox"><b>Astuce :</b> clique <b>Recharger</b> avant d'éditer si tu viens de changer <code>data.js</code> ailleurs. <b>Enregistrer</b> écrit les deux étages dans <code>data.js</code> (le guide se met à jour).</div></div>
     </div>
   </div>
 
   <div class="statusbar">
     <span id="coords">x —  ·  y —</span>
     <span class="z" id="zoomLbl">Zoom 100 %</span>
-    <span>V déplacer · H/Espace naviguer · F ajuster · Ctrl+S enregistrer</span>
-    <span class="badge" id="badge">Phase 3 · création + tracés</span>
+    <span>V déplacer · N marqueur · T texte · P tracé · H/Espace naviguer · F ajuster · Échap désarmer · Ctrl+S enregistrer</span>
+    <span class="badge" id="badge">Réglages sur la carte</span>
   </div>
 <div id="mBackdrop"></div>
 <button id="inspFab" class="mfab" aria-label="Ouvrir l'inspecteur"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
@@ -840,8 +844,7 @@ body::before{
       const rc=n.findOne('Circle'); if(kind==='mid'&&rc)rc.radius(MAP*base*mobScale*.75);
     });
     if(selNode)drawRing(selNode); draw();
-    const v=document.getElementById('mobScaleVal'); if(v)v.textContent=Math.round(mobScale*100)+'%';
-    commitSoon();
+    commitSoon();   // l'affichage des valeurs est à paintGlobals (deux curseurs à tenir synchronisés)
   }
 
   /* ============================================================
@@ -1392,7 +1395,7 @@ body::before{
     if(dirty&&!silent&&!(await askConfirm('Tu as des modifications <b>non enregistrées</b>. Recharger depuis le disque va les <b>perdre définitivement</b>.',{title:'Recharger data.js',ok:'Recharger quand même'})))return;
     try{if(!(await verifyPerm(h)))return;const text=await(await h.getFile()).text();
       const fresh=new Function(text+'\n; return {F:(typeof FLOORS!=="undefined")?FLOORS:null,M:(typeof MOBSCALE!=="undefined")?MOBSCALE:1};')();
-      if(fresh&&fresh.F&&fresh.F.length){FL=fresh.F;mobScale=fresh.M||1;const sl=document.getElementById('mobScale');if(sl){sl.value=mobScale;document.getElementById('mobScaleVal').textContent=Math.round(mobScale*100)+'%';}renderFloor(curIdx);resetHistory();setDirty(false);if(!silent)toast('Rechargé depuis le disque.','ok');}
+      if(fresh&&fresh.F&&fresh.F.length){FL=fresh.F;mobScale=fresh.M||1;paintGlobals();renderFloor(curIdx);resetHistory();setDirty(false);if(!silent)toast('Rechargé depuis le disque.','ok');}
     }catch(e){if(!silent)toast('Lecture échouée : '+e.message,'err');}}
 
   /* ============================================================
@@ -1402,8 +1405,20 @@ body::before{
   document.getElementById('btnFit').addEventListener('click',fit);
   document.getElementById('btnSave').addEventListener('click',save);
   document.getElementById('btnSync').addEventListener('click',()=>syncFromFile(false));
-  (function(){const sl=document.getElementById('mobScale');sl.value=mobScale;document.getElementById('mobScaleVal').textContent=Math.round(mobScale*100)+'%';
-    sl.addEventListener('input',()=>{mobScale=parseFloat(sl.value);applyMobScale();});})();
+  // réglages globaux — le curseur du haut et celui de l'inspecteur pilotent la même valeur
+  function paintGlobals(){
+    [['mobScale',mobScale],['gsMob',mobScale],['gsLbl',labelMargin]].forEach(p=>{
+      const el=document.getElementById(p[0]);if(el&&el.value!=String(p[1]))el.value=p[1];});
+    const t=Math.round(mobScale*100)+' %';
+    const av=document.getElementById('mobScaleVal'),bv=document.getElementById('gsMobVal'),lv=document.getElementById('gsLblVal');
+    if(av)av.textContent=t;if(bv)bv.textContent=t;if(lv)lv.textContent=labelMargin;}
+  function setMobScale(v){mobScale=v;paintGlobals();applyMobScale();}
+  function setLabelMargin(v){labelMargin=v;paintGlobals();replaceAllLabels();commitSoon();}
+  (function(){
+    document.getElementById('mobScale').addEventListener('input',e=>setMobScale(parseFloat(e.target.value)));
+    document.getElementById('gsMob').addEventListener('input',e=>setMobScale(parseFloat(e.target.value)));
+    document.getElementById('gsLbl').addEventListener('input',e=>setLabelMargin(parseInt(e.target.value,10)));
+    paintGlobals();})();
   document.getElementById('zoomLbl').addEventListener('click',fit);
   document.addEventListener('visibilitychange',updateAnim); // libère le CPU quand l'onglet est caché
   // panneau inspecteur repliable (mobile/tablette) — la carte garde tout l'espace
@@ -1432,8 +1447,7 @@ body::before{
       mobScale:mobScale,labelMargin:labelMargin});}
   function restoreState(json){const st=JSON.parse(json),f=FL[curIdx];
     f.bosses=st.bosses;f.packs=st.packs;f.mids=st.mids;f.texts=st.texts;f.routes=st.routes;
-    mobScale=st.mobScale;labelMargin=st.labelMargin;
-    const sl=document.getElementById('mobScale');if(sl){sl.value=mobScale;const mv=document.getElementById('mobScaleVal');if(mv)mv.textContent=Math.round(mobScale*100)+'%';}
+    mobScale=st.mobScale;labelMargin=st.labelMargin;paintGlobals();
     renderFloor(curIdx);}
   // un pas d'historique = une vraie modification → c'est le bon endroit pour lever le témoin
   function commit(){const s=snapState();if(hidx>=0&&hist[hidx]===s)return;hist=hist.slice(0,hidx+1);hist.push(s);hidx=hist.length-1;
