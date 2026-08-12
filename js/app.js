@@ -1,11 +1,13 @@
+/* ============================================================
+   app.js — MOTEUR (rendu + interactions)
+   ------------------------------------------------------------
+   Les DONNÉES de la strat sont dans data.js (chargé AVANT).
+   Ici : i18n, colorisation, rendu des cartes, filtres, thème…
+   Gère 2 étages (Top Floor / Sous-sol) via FLOORS.
+   ============================================================ */
 
-const JOBS=["MNK","BRD","COR","GEO","RDM","PLD","DNC"];
-const ROLE={MNK:"dd",DNC:"dd",WAR:"dd",BRD:"buff",COR:"buff",GEO:"buff",RDM:"heal",WHM:"heal",PLD:"tank",RUN:"tank",ALL:"all"};
 const RCOL={dd:"var(--r-dd)",buff:"var(--r-buff)",heal:"var(--r-heal)",tank:"var(--r-tank)",all:"var(--r-all)"};
 function jcol(j){return RCOL[ROLE[j]||"all"];}
-
-// helper lignes
-function ln(r,t,opt){opt=opt||{};return {r:r,t:t,cond:opt.cond,warn:opt.warn,comp:opt.comp};}
 
 // ---- i18n FR / EN ----
 const LANG=(function(){try{var l=localStorage.getItem('sortie_lang');return l==='en'?'en':'fr';}catch(e){return 'fr';}})();
@@ -86,201 +88,20 @@ const TR={
  "Pack de mobs":"Mob pack",
  "Déplacement :":"Route:",
  "Tous":"All",
- "N'afficher que mon rôle":"Show only my role"
+ "N'afficher que mon rôle":"Show only my role",
+ "Carte à venir":"Map coming soon",
+ "on la placera avec l'éditeur":"we'll place it with the editor",
+ "SECTEUR":"SECTOR",
+ "à venir":"coming soon",
+ "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
+ "Étage":"Floor",
+ "À compléter en run":"To fill in during runs"
 };
 function tr(s){ return (LANG==='en' && s!=null && TR[s]!==undefined) ? TR[s] : s; }
-const OVINTRO = LANG==='en'
- ? '<p><b>Sortie \u00b7 linear run, 4 phases.</b> Follow the <b>right wall</b> from Start to the last boss: Degei \u2192 Skomora \u2192 Leshonn \u2192 Ghatjot. Each phase: a <b>farm</b> (pop the chests) then the <b>boss</b>.</p><p class="ovi-tip">Click your job in <b>My role</b> (or <b>Solo</b> to see only your actions), pick the <b>comp</b> at the top, then scroll down the rail.</p>'
- : '<p><b>Sortie \u00b7 run lin\u00e9aire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu\'au dernier boss, en encha\u00eenant Degei \u2192 Skomora \u2192 Leshonn \u2192 Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class="ovi-tip">Clique ton job dans <b>Mon r\u00f4le</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p>';
-
-const BUFFS_P1=[
-  ln(["ALL"],"Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
-  ln(["ALL"],"Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
-  ln(["COR"],"Bolter's + Tactician's"),
-  ln(["BRD"],"Mazurka"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
-];
-const BUFFS_STD=[
-  ln(["COR"],"Bolter's (Tactician's déjà posé)"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
-];
-
-const PHASES=[
-{n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:BUFFS_P1,cards:[
-  {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
-    {label:"Setup · au camp Fomor",cls:"tank",lines:[
-      ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"],{comp:"PLD"}),
-      ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
-    ]},
-    {label:"Buff · farm",cls:"buff",lines:[
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["GEO"],["Acumen","Malaise"]),
-      ln(["BRD"],["Honor March","Victory March"])
-    ]},
-    {label:"Fomor ×3 · SC Step 4",cls:"dd",img:"Fomor",lines:[
-      ln(["MNK"],"Shijin Spiral → Tornado Kick (SC Step 4) ×3",{comp:"PLD"}),
-      ln(["DNC"],"Dancing Edge ×4",{comp:"DNC"})
-    ]},
-    {label:"Acuex ×3 → SC mono-cible + MB Fire (×3 kills)",cls:"mb",img:"Acuex",lines:[
-      ln(["PLD","RDM"],"Chant du Cygne > Chant du Cygne"),
-      ln(["PLD","COR","BRD"],"Savage Blade > Last Stand  (PLD+COR ou BRD+COR)"),
-      ln(["MNK"],"Victory Smite ×2  (Light)",{comp:"DNC"}),
-      ln(["RDM","GEO"],"MB Fire sur le SC")
-    ]}
-  ]},
-  {kind:"boss",name:"Boss · Degei",tag:"on spam pour tuer · le proc (mages) ne fait pas de dégât",groups:[
-    {label:"Règle",cls:"rules",lines:[
-      ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
-      ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
-      ln(["ALL"],"Setup : PLD fixe l'aggro · RDM pose Gravity II · GEO pose Geo-Gravity"),
-      ln(["ALL"],"JA de Degei pendant le setup → le BRD proc si possible"),
-      ln(["ALL"],"RDM libre → BRD + RDM procent ensemble"),
-      ln(["ALL"],"1 proc suffit en général (2 max) · sous ~20 % pas la peine")
-    ]},
-    {label:"Procs · contre par (fait par les mages)",cls:"rules proc",lines:[
-      ln(["ALL"],"Flaming Kick → WATER"),
-      ln(["ALL"],"Flashflood → THUNDER"),
-      ln(["ALL"],"Icy Grasp → FIRE"),
-      ln(["ALL"],"Eroding Flesh → WIND"),
-      ln(["ALL"],"Fulminous Smash → EARTH")
-    ]},
-    {label:"PLD",cls:"tank",note:"kite en gérant la distance : rester à +30 yalm au max, plonger sous 30 juste pour build l'aggro / heal, puis ressortir.",lines:[
-      ln(["PLD"],"+30 yalm = safe (pas de moves du boss)"),
-      ln(["PLD"],"sous 30 yalm : build l'aggro (JA magie : Flash, Foil)"),
-      ln(["PLD"],"heal la party à ~21 yalm")
-    ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",note:"COR et BRD déjà en place depuis le farm. Seul le GEO change sur le boss.",lines:[
-      ln(["GEO"],"Geo-Gravity"),
-      ln(["GEO"],"Indi-Frailty",{cond:"déjà OK si Acuex avant Fomor"}),
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["BRD"],["Honor March","Victory March","Minuet V","Aria"],{cond:"set anti-slow"})
-    ]},
-    {label:"RDM",cls:"heal",lines:[
-      ln(["RDM"],["Saboteur → Gravity II","Dia III","Distract III"])
-    ]},
-    {label:"DD · on spam",cls:"dd",lines:[
-      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
-      ln(["MNK"],"WS libres (spam)"),
-      ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"],{comp:"DNC"})
-    ]}
-  ]}
-]},
-{n:2,boss:"Skomora",map:"",title:"Ghost → Skomora",route:"Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).",buffs:BUFFS_STD,cards:[
-  {kind:"pack",name:"Pack · Ghost ×3",tag:"weak Fire · SC → MB Fire",groups:[
-    {label:"Buff · farm",cls:"buff",lines:[
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["GEO"],["Acumen","Malaise"]),
-      ln(["BRD"],["Honor March","Victory March"]),
-      ln(["COR"],"tape (DPS)")
-    ]},
-    {label:"DD · SC",cls:"dd",lines:[
-      ln(["MNK"],"Victory Smite ×2"),
-      ln(["DNC"],"Ruthless Stroke ×2 = Fusion",{comp:"DNC"})
-    ]},
-    {label:"MB Fire",cls:"mb",lines:[
-      ln(["RDM","GEO"],"MB Fire sur le SC")
-    ]}
-  ]},
-  {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
-    {label:"PLD",cls:"tank",lines:[
-      ln(["PLD"],"tank sur place"),
-      ln(["PLD"],"Holy Circle + Sepulcher",{comp:"PLD"})
-    ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
-      ln(["BRD"],["Honor March","Minuet ×2","Aria"],{cond:"sans RDM : Honor + Minuet ×2 + Victory"})
-    ]},
-    {label:"RDM",cls:"heal",lines:[
-      ln(["RDM"],["Dia III","Distract III · plus dur à land (Skomora est Darkness)"])
-    ]},
-    {label:"DD",cls:"dd",lines:[
-      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
-      ln(["MNK"],"Victory Smite ×2  (ou Victory → Shijin)"),
-      ln(["DNC"],"spam Ruthless Stroke",{comp:"DNC"})
-    ]}
-  ]}
-]},
-{n:3,boss:"Leshonn",map:"",title:"Umbril → Leshonn",route:"Mur de droite, plein NORD → coin haut-droite (Umbril ×5, puis Leshonn).",buffs:BUFFS_STD,cards:[
-  {kind:"pack",name:"Pack · Umbril ×5",tag:"≥1 WS par mob · tous tués = lock ses TP moves",groups:[
-    {label:"Buff · farm",cls:"buff",lines:[
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["BRD"],["Honor March","Victory March"])
-    ]},
-    {label:"DD · tout le monde tape",cls:"dd",lines:[
-      ln(["ALL"],"≥1 WS par mob (obligatoire) · PLD, COR, RDM, BRD, MNK",{comp:"PLD"}),
-      ln(["ALL"],"≥1 WS par mob (obligatoire) · DNC, COR, RDM, BRD, MNK",{comp:"DNC"})
-    ]}
-  ]},
-  {kind:"boss",name:"Boss · Leshonn",tag:"Thunder ↔ Wind · ~870k",groups:[
-    {label:"PLD",cls:"tank",lines:[
-      ln(["PLD"],"kite le boss")
-    ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["GEO"],["Geo-Gravity","Indi-Frailty"]),
-      ln(["BRD"],["Honor March","Minuet ×2","Aria"])
-    ]},
-    {label:"RDM",cls:"heal",lines:[
-      ln(["RDM"],["Saboteur → Gravity II","Distract III"]),
-      ln(["RDM"],"Zap copie un debuff → pas de Paralyze")
-    ]},
-    {label:"Règles",cls:"rules",lines:[
-      ln(["ALL"],"JAMAIS son élément actif (SC/nuke) → il HEAL",{warn:1}),
-      ln(["ALL"],"proc opposé = retire ses stacks DT/dmg (+5%)"),
-      ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
-      ln(["ALL"],"pas d'empilement (Counter 500+/hit)")
-    ]},
-    {label:"◈ Mains THUNDER → proc Earth",cls:"",lines:[
-      ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
-      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"}),
-      ln(["COR"],"spam Savage Blade"),
-      ln(["RDM","GEO"],"MB Earth sur le SC")
-    ]},
-    {label:"◈ Mains WIND → proc Ice",cls:"",lines:[
-      ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
-      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"}),
-      ln(["COR"],"spam Savage Blade"),
-      ln(["RDM","GEO"],"MB Ice sur le SC"),
-      ln(["ALL"],"Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)",{warn:1})
-    ]}
-  ]}
-]},
-{n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:[
-  ln(["COR"],"Bolter's + Tactician's"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
-],cards:[
-  {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
-    {label:"PLD",cls:"tank",lines:[
-      ln(["PLD"],"tank sur place")
-    ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
-      ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
-      ln(["BRD"],["Honor March","Minuet ×2","Aria"])
-    ]},
-    {label:"RDM",cls:"heal",lines:[
-      ln(["RDM"],["Dia III","Distract III"])
-    ]},
-    {label:"DD",cls:"dd",lines:[
-      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
-      ln(["MNK"],"WS libres, évite Howling Fist > Savage (+ Chakra)"),
-      ln(["DNC"],"Ruthless Stroke (jamais Darkness)",{comp:"DNC"})
-    ]},
-    {label:"Règles",cls:"rules",lines:[
-      ln(["ALL"],"absorbe Water → boost ses TP moves"),
-      ln(["ALL"],"SEUL danger : Howling Fist > Savage Blade = Distortion → à éviter",{warn:1}),
-      ln(["MNK"],"Chakra retire le Taint (poison AoE)"),
-      ln(["ALL"],"Taint stack → augmente Clobbering Wave · Ra'Kaznar Metal A = Poison retirable"),
-      ln(["ALL"],"kill avant que ça monte")
-    ]}
-  ]}
-]}
-];
 
 // ---- colorisation des éléments dans le texte ----
 const ELS=[["WATER|Water|Eau","water"],["THUNDER|Thunder|Foudre","thunder"],["FIRE|Fire|Feu","fire"],["WIND|Wind|Vent","wind"],["EARTH|Earth|Terre","earth"],["ICE|Ice|Glace","ice"],["LIGHT|Light|Lumière","light"],["DARK|Darkness|Dark|Ténèbres","dark"]];
-function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+const esc=window.SORTIE.esc; // socle partagé (js/sortie-map-core.js)
 function colorize(s){
   s=esc(s);
   ELS.forEach(([words,cls])=>{
@@ -333,167 +154,282 @@ function groupBody(g){
   return out;
 }
 
-// ---- render ----
+// ============================================================
+//  RENDU (multi-étages)
+// ============================================================
 const app=document.getElementById("app");
+// marqueur de départ "S" — même style plat que les destinations : disque bleu, liseré crème, contour encre
+function ovDot(x,y,l){return '<circle cx="'+x+'" cy="'+y+'" r="2.0" fill="#0d1218"/>'
+  +'<circle cx="'+x+'" cy="'+y+'" r="1.82" fill="#f6ead0"/>'
+  +'<circle cx="'+x+'" cy="'+y+'" r="1.48" fill="#3f86d6"/>'
+  +'<text x="'+x+'" y="'+(y+0.62)+'" text-anchor="middle" class="ovn">'+l+'</text>';}
+// couleurs des éléments + accents + constantes de bande : socle partagé (js/sortie-map-core.js, chargé avant app.js)
+const ELC=window.SORTIE.EL_VAR;
+const ZC2=window.SORTIE.EL_ZC2;
+const SB=window.SORTIE.BAND_SVG;
+// échelle globale des images de mobs + marge des labels (réglées dans Map Studio, stockées dans data.js)
+try{var _ms=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1, _lm=(typeof LBLMARGIN!=='undefined'&&LBLMARGIN!=null)?LBLMARGIN:6;
+    document.documentElement.style.setProperty('--mobscale',_ms);
+    document.documentElement.style.setProperty('--lblmargin',_lm+'px');
+    // marge du label à l'échelle de la carte (comme l'éditeur : labelMargin*1.6+4 sur 1024px)
+    document.documentElement.style.setProperty('--ovlblm',(Math.round((_lm*1.6+4)/1024*1000)/10)+'cqw');}catch(e){}
+const pqHtml=window.SORTIE.pqHtml; // socle partagé (js/sortie-map-core.js)
 
-function ovDot(x,y,l){return '<circle cx="'+x+'" cy="'+y+'" r="1.6" fill="#0d1218" stroke="url(#pg)" stroke-width="0.85"/><text x="'+x+'" y="'+(y+0.68)+'" text-anchor="middle" class="ovn">'+l+'</text>';}
-const MAPIMG="img/map.jpg";
-const ZMAP={1:'#a6b2c2',2:'var(--e-wind)',3:'var(--e-water)',4:'var(--e-fire)'};
-const OVSTEPS='<ol class="ovsteps">'+PHASES.map(function(p){return '<li style="--zc:'+ZMAP[p.n]+'"><span class="osnum">'+p.n+'</span><span class="ostxt"><b>'+esc(p.boss)+'</b><span>'+esc(tr(p.title))+'</span></span></li>';}).join('')+'</ol>';
-const OVERVIEW='<section class="overview">'
-  +'<div class="ovhead"><span class="ovtitle">'+tr("Vue d'ensemble du run")+'</span>'
-  +'<span class="ovsub"><span class="zoomhint">'+tr("cliquer sur la carte pour agrandir")+'</span></span></div>'
-  +'<div class="ovgrid">'
-  +'<div class="ovside"><div class="ovintro">'+OVINTRO+'</div></div>'
-  +'<div class="ovmapwrap">'
-  +'<div class="ovmap mapfig">'
-  +'<img src="'+MAPIMG+'" alt="Carte complète du run" loading="lazy" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
-  +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
-  +'<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true">'
-  +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'
-  +'<polyline class="ovrail" points="17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3"/>'
-  +'<polyline class="ovflow" points="17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3"/>'
-  +ovDot(17.7,42.4,'S')
-  +'</svg></div>'
-  +'</div>'
-  +'</div></section>';
-app.innerHTML=OVERVIEW;
-const MOB={"Degei": "img/mob-degei.png", "Skomora": "img/mob-skomora.png", "Leshonn": "img/mob-leshonn.png", "Ghatjot": "img/mob-ghatjot.png", "Acuex": "img/mob-acuex.png", "Fomor": "img/mob-fomor.png", "Ghost": "img/mob-ghost.png", "Umbril": "img/mob-umbril.png"};
-const ELC={fire:'var(--e-fire)',water:'var(--e-water)',ice:'var(--e-ice)',thunder:'var(--e-thunder)',wind:'var(--e-wind)',earth:'var(--e-earth)',light:'var(--e-light)',dark:'var(--e-dark)',red:'var(--e-fire)',blue:'var(--e-water)',green:'var(--e-wind)',gray:'#a6b2c2'};
-const ZC2={red:'#ff9d3a',blue:'#7ce0ff',green:'#b6ff5a',gray:'#ffffff'};
-const BOSSES=[
- {name:'Ghatjot',n:4,el:'red', x:12.5,y:5.5, nx:20.4,ny:7.9},
- {name:'Leshonn',n:3,el:'blue',x:95,  y:7.9, nx:89.1,ny:7.9},
- {name:'Degei',  n:1,el:'gray',x:20.4,y:83,  nx:20.4,ny:76.7},
- {name:'Skomora',n:2,el:'green',x:89.1,y:85, nx:89.1,ny:76.7}
-];
-const PACKS=[
- {name:'Acuex', el:'red', x:29.7,y:53.5, q:'×12', ph:1},
- {name:'Fomor', el:'gray',x:28,y:69, q:'WHM/BLM/RDM ×5', ph:1},
- {name:'Ghost', el:'green',x:67.0,y:66.1, q:'×12', ph:2},
- {name:'Umbril',el:'blue',x:78.5,y:29.0, q:'×12', ph:3}
-];
-function pqHtml(q){
-  var m=q.match(/×\d+/); var count=m?m[0]:'';
-  var rest=q.replace(/×\d+/,'').trim();
-  if(rest.indexOf('/')>=0){
-    var jobs=rest.split('/').map(function(s){return s.trim();}).filter(Boolean);
-    return '<span class="pq pqlist">'+(count?'<b>'+count+'</b>':'')+jobs.map(function(j){return '<span>'+j+'</span>';}).join('')+'</span>';
-  }
-  return '<span class="pq">'+q+'</span>';
+let curFloor=null;      // descripteur d'étage courant
+let curBossN={};        // boss par n° pour l'étage courant
+let spy=null;           // IntersectionObserver de la nav
+let curZone=-1;         // zone courante du sous-sol (-1 = Tous, 0-3 = E/F/G/H)
+
+function introHtml(f){ return LANG==='en'?f.introEn:f.introFr; }
+
+function zoneTabsHtml(floor){
+  if(!(floor&&floor.zones&&floor.zones.length)) return '';
+  var allTab='<button class="zonetab all'+(curZone<0?' on':'')+'" data-z="-1" title="Toutes les zones">'+tr("Tous")+'</button>';
+  // étage haut : onglets = n° de destination (1-4), triés dans l'ordre du run ; sous-sol : lettres de secteur
+  var useNum = floor.id==='top';
+  var items = floor.zones.map(function(z,i){ return {i:i, label: useNum?String(z.n):z.sector, sort: useNum?z.n:i, title:z.sector}; });
+  if(useNum) items.sort(function(a,b){ return a.sort-b.sort; });
+  return '<div class="zonetabs">'+allTab+items.map(function(it){
+    return '<button class="zonetab'+(it.i===curZone?' on':'')+'" data-z="'+it.i+'" title="'+esc(it.title)+'">'+it.label+'</button>';
+  }).join('')+'</div>';
 }
-(function(){
-  const ovmap=document.querySelector('.ovmap'); if(!ovmap)return;
+// annotation texte → SVG (viewBox 0..100, donc s = taille en unités = % de carte)
+// mini-éditeur : police, gras/italique/souligné/barré, alignement L/C/R, listes, contour/fond
+function txtSvg(o){
+  var S=window.SORTIE;
+  var parsed=S.parseRich(o), fs=(o.s||1.5), lh=fs*1.34, defc=o.c||'#ffffff', adv=S.textAdv(o), blockAl=S.textAlign(o), outline=S.textOutline(o);
+  var lineW=parsed.map(function(ln){var s=(ln.prefix||'');(ln.runs||[]).forEach(function(r){s+=r.t;});return s.length*fs*adv;});
+  var blockW=Math.max.apply(null,lineW.concat([fs]));
+  var x0=o.x-blockW/2, xR=o.x+blockW/2, yc=o.y-(parsed.length-1)*lh/2;
+  var box='';
+  if(o.bg){var w=blockW+fs*1.1, hh=parsed.length*lh+fs*0.5;
+    box='<rect x="'+(o.x-w/2)+'" y="'+(o.y-hh/2)+'" width="'+w+'" height="'+hh+'" rx="'+(fs*0.28)+'" style="fill:rgba(9,13,18,.82);stroke:rgba(246,234,208,.22);stroke-width:'+(fs*0.03)+'px"/>';}
+  var base='font-size:'+fs+'px;font-family:'+S.textFont(o)+';fill:'+defc+';dominant-baseline:central'
+    +(outline?';paint-order:stroke;stroke:#05080c;stroke-width:'+(fs*0.16)+'px;stroke-linejoin:round':'');
+  var texts=parsed.map(function(ln,i){
+    var al=ln.align||(ln.list?'l':blockAl), anchor=al==='l'?'start':(al==='r'?'end':'middle'), ax=al==='l'?x0:(al==='r'?xR:o.x);
+    var segs=[]; if(ln.prefix)segs.push({t:ln.prefix}); (ln.runs||[]).forEach(function(r){segs.push(r);});
+    var tspans=segs.map(function(r){ if(r.t==null||r.t==='')return '';
+      var st=''; if(r.b)st+='font-weight:700;'; if(r.i)st+='font-style:italic;';
+      var d=(r.u?'underline':'')+(r.st?' line-through':''); if(d.trim())st+='text-decoration:'+d.trim()+';';
+      if(r.c)st+='fill:'+r.c+';';
+      return '<tspan'+(st?' style="'+st+'"':'')+'>'+esc(r.t)+'</tspan>';}).join('');
+    return '<text x="'+ax+'" y="'+(yc+i*lh)+'" text-anchor="'+anchor+'" style="'+base+'">'+tspans+'</text>';}).join('');
+  return box+texts;
+}
+function textsSvg(f){ return (f.texts&&f.texts.length)?f.texts.map(txtSvg).join(''):''; }
+function buildOverview(f, floor){
+  var intro=introHtml(f);
+  var mapBlock;
+  if(f.map){
+    mapBlock='<div class="ovmap mapfig">'
+      +'<img src="'+f.map+'" alt="Carte complète du run" loading="lazy" decoding="async" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
+      +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
+      +'<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true">'
+      +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'
+      +((f.routes&&f.routes.length)
+          ? f.routes.map(function(rt){var col=rt.c1||ELC[rt.el]||SB.FALLBACK;var op=(rt.a!=null?rt.a:SB.ALPHA);var s=(rt.fs!=null?rt.fs:1);var cw=(SB.cw*s),rw=(SB.rw*s),fw=(SB.fw*s),fda=(SB.fdaA*s)+' '+(SB.fdaB*s),foff=(SB.foff*s);return '<polyline class="ovcase" points="'+rt.points+'" style="--cw:'+cw+'"/><polyline class="ovrail" points="'+rt.points+'" style="stroke:'+col+';opacity:'+op+';--rw:'+rw+'"/><polyline class="ovflow" points="'+rt.points+'" style="--fw:'+fw+';--fda:'+fda+';--foff:'+foff+'"/>';}).join('')
+          : (f.points?'<polyline class="ovcase" points="'+f.points+'"/><polyline class="ovrail" points="'+f.points+'"/><polyline class="ovflow" points="'+f.points+'"/>':''))
+      +(f.start?ovDot(f.start.x,f.start.y,f.start.l):'')
+      +textsSvg(f)
+      +'</svg></div>';
+  } else {
+    mapBlock='<div class="ovmap nomap mapsoonwrap"><div class="mapsoon"><span class="msicon">🗺️</span>'+tr("Carte à venir")+'<span class="mssub">'+tr("on la placera avec l'éditeur")+'</span></div></div>';
+  }
+  var sub = f.map ? '<span class="ovsub"><span class="zoomhint">'+tr("cliquer sur la carte pour agrandir")+'</span></span>' : '';
+  return '<section class="overview">'
+    +'<div class="ovhead"><span class="ovtitle">'+tr("Vue d'ensemble du run")+'</span>'+sub+'</div>'
+    +'<div class="ovgrid">'
+    +'<div class="ovside"><div class="ovintro">'+intro+'</div></div>'
+    +'<div class="ovmapwrap">'+mapBlock+zoneTabsHtml(floor)+'</div>'
+    +'</div></section>';
+}
+
+// label d'une pastille : masqué (hl), ou texte perso (label), sinon le nom (+ quantité pour un pack)
+function poiLabel(o,withQ){
+  if(o.hl) return '';
+  var custom=(o.label!=null && String(o.label).trim());
+  var txt;
+  if(custom){ // label enrichi → HTML inline sûr (gras/ital/soul/barré/couleur) ; alignement PAR LIGNE
+    txt=window.SORTIE.parseRich(o.label).map(function(ln){
+      var al=ln.align||'l', sty=al==='c'?'text-align:center':(al==='r'?'text-align:right':'text-align:left');
+      return '<span style="display:block;'+sty+'">'+(ln.prefix?esc(ln.prefix):'')+window.SORTIE.runsToHtml(ln.runs)+'</span>';
+    }).join('');
+  } else { txt=esc(o.name); }
+  var q=(!custom && withQ && o.q)?pqHtml(o.q):'';
+  return '<span class="plabel">'+txt+q+'</span>';
+}
+function placePOIs(f){
+  if(!f.map) return;
+  const ovmap=document.querySelector('.ovmap'); if(!ovmap) return;
+  const N=f.bosses.length;
   const wrap=document.createElement('div'); wrap.className='ovpoi'; let h='';
-  PACKS.forEach(p=>{ h+='<div class="poi pack" style="left:'+p.x+'%;top:'+p.y+'%;--pc:'+ELC[p.el]+'"><img src="'+MOB[p.name]+'" alt="'+p.name+'"><span class="plabel">'+p.name+''+pqHtml(p.q)+'</span></div>'; });
-  BOSSES.forEach(bo=>{
-    var ad=(-(4-bo.n)*0.3375)+'s'; // onde de pulsation dans le sens du chemin (1→2→3→4)
-    h+='<div class="poi boss" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+';--ad:'+ad+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'"><span class="plabel">'+bo.name+'</span></div>';
-    h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+';--ad:'+ad+'">'+bo.n+'</div>';
+  f.packs.forEach(p=>{ h+='<div class="poi pack lp-'+(p.lp||'bottom')+'" style="left:'+p.x+'%;top:'+p.y+'%;--pc:'+ELC[p.el]+'"><img src="'+MOB[p.name]+'" alt="'+p.name+'" loading="lazy" decoding="async">'+poiLabel(p,true)+'</div>'; });
+  (f.mids||[]).forEach(m=>{ h+='<div class="poi mid lp-'+(m.lp||'bottom')+'" style="left:'+m.x+'%;top:'+m.y+'%;--pc:'+ELC[m.el]+'"><img src="'+MOB[m.name]+'" alt="'+m.name+'" loading="lazy" decoding="async">'+poiLabel(m,false)+'</div>'; });
+  f.bosses.forEach(bo=>{
+    var ad=(-(N-bo.n)*0.3375)+'s'; // onde de pulsation dans le sens du chemin (1→N)
+    var pc2=ZC2[bo.el]||ELC[bo.el];
+    h+='<div class="poi boss lp-'+(bo.lp||'bottom')+'" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'" loading="lazy" decoding="async">'+poiLabel(bo,false)+'</div>';
+    h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'">'+bo.n+'</div>';
   });
   wrap.innerHTML=h; ovmap.appendChild(wrap);
-})();
-const BOSSN={};BOSSES.forEach(b=>BOSSN[b.n]=b);
-const SEG={"1":"17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4","2":"23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5","3":"85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2","4":"85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3"};
-function phaseMapHtml(p){
-  var seg=SEG[p.n], bo=BOSSN[p.n];
-  var packs=PACKS.filter(function(x){return x.ph===p.n;});
-  var poi='';
-  packs.forEach(function(pk){ poi+='<div class="poi pack" style="left:'+pk.x+'%;top:'+pk.y+'%;--pc:'+ELC[pk.el]+'"><img src="'+MOB[pk.name]+'" alt="'+pk.name+'"><span class="plabel">'+pk.name+''+pqHtml(pk.q)+'</span></div>'; });
-  poi+='<div class="poi boss" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'"><span class="plabel">'+bo.name+'</span></div>';
-  poi+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+ZC2[bo.el]+'">'+bo.n+'</div>';
-  var startDot='';
-  if(p.n===1){ startDot=ovDot(17.7,42.4,'S'); }
-  else { var pb=BOSSN[p.n-1]; poi+='<div class="ovnum" style="left:'+pb.nx+'%;top:'+pb.ny+'%;--pc:'+ELC[pb.el]+';--pc2:'+ZC2[pb.el]+'">'+pb.n+'</div>'; }
-  var svg='<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true"><polyline class="ovrail" points="'+seg+'"/><polyline class="ovflow" points="'+seg+'"/>'+startDot+'</svg>';
-  return '<div class="ovmap phasemap mapfig"><img src="'+MAPIMG+'" alt="Carte Phase '+p.n+'" loading="lazy">'+svg+'<div class="ovpoi">'+poi+'</div></div>';
 }
 
-
-
-const TL=document.createElement('div');TL.className='timeline';app.appendChild(TL);
-const startNode=document.createElement('div');startNode.className='tlstart';startNode.innerHTML='<span class="tldot">S</span><span class="tllab">Start · Device</span>';TL.appendChild(startNode);
-PHASES.forEach(p=>{
-  const sec=document.createElement("section");
-  sec.className="phase"; sec.id="phase"+p.n;
-  let cards="";
-  p.cards.forEach(c=>{
-    let groups="";
-    c.groups.forEach(g=>{
-      var gthumb='';
-      if(g.img && MOB[g.img]){ var gpk=PACKS.find(function(x){return x.name===g.img;}); var gac=gpk?ELC[gpk.el]:'var(--r-buff)';
-        gthumb='<span class="gthumb" style="--ac:'+gac+'"><img src="'+MOB[g.img]+'" alt="'+g.img+'"></span>'; }
-      var glabelHtml='<div class="glabel '+(g.cls||"")+'">'+colorize(tr(g.label))+'</div>';
-      var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
-      groups+='<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+'">'+headHtml+(g.note?'<div class="gnote">'+esc(tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
-    });
-    // portrait(s) du/des mob(s) + couleur d'accent
-    var mks=[], acc='var(--r-buff)';
-    if(c.kind==="boss"){ var bb=BOSSN[p.n]; if(bb){ mks=[bb.name]; acc=ELC[bb.el]; } }
-    else { var nm=tr(c.name)+" "+c.name; mks=Object.keys(MOB).filter(function(k){return nm.indexOf(k)>=0;});
-      var pk=PACKS.find(function(x){return mks.indexOf(x.name)>=0;}); if(pk) acc=ELC[pk.el]; }
-    if(c.noHeadImg) mks=[];
-    var thumbHtml = mks.length ? '<span class="cthumbs'+(mks.length>1?' multi':'')+'">'+mks.map(function(k){return '<span class="cthumb"><img src="'+MOB[k]+'" alt="'+k+'"></span>';}).join('')+'</span>' : '';
-    cards+='<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+acc+'">'
-      +'<div class="chead">'+thumbHtml
-      +'<div class="chmeta"><div class="chtop"><span class="ckind '+c.kind+'">'+(c.kind==="boss"?"BOSS":"FARM")+'</span>'
-      +'<span class="cname">'+esc(tr(c.name))+'</span></div>'
-      +'<span class="ctag">'+colorize(tr(c.tag))+'</span></div></div>'
-      +'<div class="cbody">'+groups+'</div></div>';
+function cardHtml(c,p,f,bossByN){
+  let groups="";
+  c.groups.forEach(g=>{
+    var gthumb='';
+    if(g.img && MOB[g.img]){ var gpk=f.packs.find(function(x){return x.name===g.img;}); var gac=gpk?ELC[gpk.el]:'var(--r-buff)';
+      gthumb='<span class="gthumb" style="--ac:'+gac+'"><img src="'+MOB[g.img]+'" alt="'+g.img+'" loading="lazy" decoding="async"></span>'; }
+    var glabelHtml='<div class="glabel '+(g.cls||"")+'">'+colorize(tr(g.label))+'</div>';
+    var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
+    groups+='<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+'">'+headHtml+(g.note?'<div class="gnote">'+esc(tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
   });
-  const buffsHtml='<div class="buffs"><span class="bhead">'+tr("Trajet · buffs de déplacement")+'</span>'
-    + p.buffs.map(b=>'<span class="bl'+(b.warn?' warn':'')+'" data-r="'+(b.r||['ALL']).join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'+roleChip(b.r[0])+'<span>'+(Array.isArray(b.t)?'<ul class="acts">'+b.t.map(function(it){return '<li>'+colorize(tr(it))+'</li>';}).join('')+'</ul>':colorize(tr(b.t)))+'</span></span>').join("")+'</div>';
-  const mapHtml = p.map ? '<figure class="mapfig" data-full="'+p.map+'">'
-      +'<img src="'+p.map+'" alt="Carte Phase '+p.n+' · '+esc(p.boss)+'" loading="lazy" onerror="this.closest(\'.mapfig\').classList.add(\'missing\')">'
-      +'<div class="mapmiss">Carte non trouvée · ajoute <code>'+esc(p.map)+'</code> dans le dépôt (dossier <code>maps/</code>).</div>'
-      +'<figcaption>Carte · Phase '+p.n+' · '+esc(p.boss)+'<span class="zoomhint"> · cliquer pour agrandir</span></figcaption>'
-      +'</figure>' : '';
-  const numPill=(k)=>{const bb=BOSSN[k];return '<span class="segpill" style="--sc:'+ELC[bb.el]+'">'+k+'</span>';};
-  const fromHtml=p.n===1?'<span class="segstart">Start</span>':numPill(p.n-1);
-  const segHtml='<span class="pseg">'+fromHtml+'<span class="segar">→</span>'+numPill(p.n)+'</span>';
-  const bz=BOSSN[p.n];
-  sec.style.setProperty('--pc',ELC[bz.el]); sec.style.setProperty('--pc2',ZC2[bz.el]);
-  sec.innerHTML='<div class="tlnode" style="--pc:'+ELC[bz.el]+';--pc2:'+ZC2[bz.el]+'">'+p.n+'</div>'
-    +'<div class="phcard">'
-    +'<div class="phhead">'
-    +'<div class="phtop"><span class="phtag">PHASE '+p.n+'</span>'+segHtml+'</div>'
-    +'<h2 class="phtitle">'+esc(tr(p.title))+'</h2>'
-    +'<div class="phroute"><span class="rk">'+tr("Déplacement :")+'</span> '+esc(tr(p.route))+'</div>'
-    +'</div>'
-    +'<div class="pgrid"><div class="pleft">'
-    +buffsHtml
-    +'<div class="cards">'+cards+'</div>'
-    +'</div></div>'
-    +'</div>';
-  TL.appendChild(sec);
-});
-
-// nav phases
-const nav=document.getElementById("nav");
-PHASES.forEach(p=>{
-  const a=document.createElement("a");a.href="#phase"+p.n;a.className="chip";
-  a.innerHTML='<b>'+p.n+'</b>'+esc(p.boss);
-  nav.appendChild(a);
-});
-const navLinks=[...nav.querySelectorAll('.chip')];
-if('IntersectionObserver' in window){
-  const spy=new IntersectionObserver((ents)=>{ents.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navLinks.forEach(a=>a.classList.toggle('navactive',a.getAttribute('href')==='#'+id));}});},{rootMargin:'-45% 0px -50% 0px'});
-  document.querySelectorAll('.phase').forEach(s=>spy.observe(s));
+  var mks=[], acc='var(--r-buff)';
+  if(c.kind==="boss"){ var bb=bossByN[p.n]; if(bb){ mks=[bb.name]; acc=ELC[bb.el]; } }
+  else { var nm=tr(c.name)+" "+c.name; mks=Object.keys(MOB).filter(function(k){return nm.indexOf(k)>=0;});
+    var pk=f.packs.find(function(x){return mks.indexOf(x.name)>=0;}); if(pk) acc=ELC[pk.el]; }
+  if(c.noHeadImg) mks=[];
+  var thumbHtml = mks.length ? '<span class="cthumbs'+(mks.length>1?' multi':'')+'">'+mks.map(function(k){return '<span class="cthumb"><img src="'+MOB[k]+'" alt="'+k+'" loading="lazy" decoding="async"></span>';}).join('')+'</span>' : '';
+  return '<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+acc+'">'
+    +'<div class="chead">'+thumbHtml
+    +'<div class="chmeta"><div class="chtop"><span class="ckind '+c.kind+'">'+(c.kind==="boss"?"BOSS":(c.klabel||"FARM"))+'</span>'
+    +'<span class="cname">'+esc(tr(c.name))+'</span></div>'
+    +'<span class="ctag">'+colorize(tr(c.tag))+'</span></div></div>'
+    +'<div class="cbody">'+groups+'</div></div>';
 }
+
+function buildTimeline(f){
+  const TL=document.createElement('div');TL.className='timeline';app.appendChild(TL);
+  if(f.startNode){
+    const startNode=document.createElement('div');startNode.className='tlstart';
+    startNode.innerHTML='<span class="tldot">S</span><span class="tllab">'+esc(f.startNode)+'</span>';TL.appendChild(startNode);
+  }
+  const bossByN={}; f.bosses.forEach(b=>bossByN[b.n]=b); curBossN=bossByN;
+  const idpfx=(f.id==='top'?'phase':'bphase');
+  f.phases.forEach(p=>{
+    const sec=document.createElement("section");
+    sec.className="phase"+(p.soon?" soon":""); sec.id=idpfx+p.n;
+    const ptag = p.sector ? tr("SECTEUR")+' '+p.sector : 'PHASE '+p.n;
+    if(p.soon){
+      sec.innerHTML='<div class="tlnode soon">'+p.n+'</div>'
+        +'<div class="phcard sooncard">'
+        +'<div class="phhead"><div class="phtop"><span class="phtag">'+ptag+'</span><span class="soonbadge">'+tr("à venir")+'</span></div>'
+        +'<h2 class="phtitle">'+esc(tr(p.title||p.boss))+' 👑</h2>'
+        +'<div class="phroute">'+tr("Pas encore fait — on le prépare plus tard.")+'</div>'
+        +'</div></div>';
+      TL.appendChild(sec); return;
+    }
+    let cards=""; p.cards.forEach(c=>{ cards+=cardHtml(c,p,f,bossByN); });
+    const buffsHtml= p.buffs ? '<div class="buffs"><span class="bhead">'+tr("Trajet · buffs de déplacement")+'</span>'
+      + p.buffs.map(b=>'<span class="bl'+(b.warn?' warn':'')+'" data-r="'+(b.r||['ALL']).join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'+roleChip(b.r[0])+'<span>'+(Array.isArray(b.t)?'<ul class="acts">'+b.t.map(function(it){return '<li>'+colorize(tr(it))+'</li>';}).join('')+'</ul>':colorize(tr(b.t)))+'</span></span>').join("")+'</div>' : '';
+    const numPill=(k)=>{const bb=bossByN[k];return '<span class="segpill" style="--sc:'+(bb?ELC[bb.el]:'var(--dim)')+'">'+k+'</span>';};
+    const fromHtml=p.n===1?'<span class="segstart">Start</span>':numPill(p.n-1);
+    const segHtml='<span class="pseg">'+fromHtml+'<span class="segar">→</span>'+numPill(p.n)+'</span>';
+    const bz=bossByN[p.n]; const pc=bz?ELC[bz.el]:'var(--r-buff)'; const pc2=bz?(ZC2[bz.el]||ELC[bz.el]):'var(--r-buff)';
+    sec.style.setProperty('--pc',pc); sec.style.setProperty('--pc2',pc2);
+    sec.innerHTML='<div class="tlnode" style="--pc:'+pc+';--pc2:'+pc2+'">'+p.n+'</div>'
+      +'<div class="phcard">'
+      +'<div class="phhead">'
+      +'<div class="phtop"><span class="phtag">'+ptag+'</span>'+segHtml+'</div>'
+      +'<h2 class="phtitle">'+esc(tr(p.title))+'</h2>'
+      +(p.route?'<div class="phroute"><span class="rk">'+tr("Déplacement :")+'</span> '+esc(tr(p.route))+'</div>':'')
+      +'</div>'
+      +'<div class="pgrid"><div class="pleft">'
+      +buffsHtml
+      +'<div class="cards">'+cards+'</div>'
+      +'</div></div>'
+      +'</div>';
+    TL.appendChild(sec);
+  });
+}
+
+function buildNav(f){
+  const nav=document.getElementById("nav");
+  [...nav.querySelectorAll('.chip')].forEach(c=>c.remove());
+  const idpfx=(f.id==='top'?'phase':'bphase');
+  f.phases.forEach(p=>{
+    const a=document.createElement("a");a.href="#"+idpfx+p.n;a.className="chip"+(p.soon?" soonchip":"");
+    a.innerHTML='<b>'+(p.sector||p.n)+'</b>'+esc(p.boss);
+    nav.appendChild(a);
+  });
+}
+
 function placeNodes(){
+  var nodes=[];
   document.querySelectorAll('.phase').forEach(function(ph){
     var node=ph.querySelector('.tlnode'), head=ph.querySelector('.phhead');
     if(node&&head){ var pr=ph.getBoundingClientRect(), hr=head.getBoundingClientRect();
-      node.style.top=Math.max(0,(hr.top-pr.top)+(hr.height/2)-19)+'px'; }
+      node.style.top=Math.max(0,(hr.top-pr.top)+(hr.height/2)-19)+'px'; nodes.push(node); }
   });
+  // cale le rail animé pile entre le 1er et le dernier nœud (ou le nœud "S" s'il existe)
+  var tl=document.querySelector('.timeline'); if(!tl||!nodes.length) return;
+  var tlr=tl.getBoundingClientRect();
+  var startDot=tl.querySelector('.tlstart .tldot');
+  var topRef=startDot?startDot.getBoundingClientRect():nodes[0].getBoundingClientRect();
+  var topY=(topRef.top-tlr.top)+topRef.height/2;
+  var botY;
+  if(nodes.length>1){ // plusieurs boss : le rail relie le 1er au dernier nœud
+    var lastRef=nodes[nodes.length-1].getBoundingClientRect();
+    botY=(lastRef.top-tlr.top)+lastRef.height/2;
+  } else { // vue par-zone (un seul boss) : le rail descend depuis la pastille jusqu'au bas de la strat
+    var ph=document.querySelector('.phase');
+    botY=ph?((ph.getBoundingClientRect().bottom-tlr.top)-30):(tlr.height-40);
+  }
+  tl.style.setProperty('--rail-top', topY+'px');
+  tl.style.setProperty('--rail-bottom', Math.max(0,tlr.height-botY)+'px');
 }
-placeNodes();
+
+// vue "zone" du sous-sol : on ne garde que la zone courante (sa carte, son boss, son midboss, son chemin, sa card)
+function effectiveFloor(f){
+  const z=f.zones[curZone]||f.zones[0];
+  const boss=f.bosses.find(b=>b.n===z.n);
+  const mid=(f.mids||[]).find(m=>m.name===z.mid);
+  const route=(f.routes||[]).find(r=>r.n===z.n);
+  const phase=f.phases.find(p=>p.n===z.n);
+  const zoneMap=!!z.map; // carte propre à la zone (sous-sol) vs carte entière filtrée (étage haut)
+  const showWhole = !zoneMap && !route; // ni carte-zone ni tronçon d'étape → chemin complet
+  return {id:f.id, map:z.map||f.map,
+    // les annotations sont posées sur la carte entière → seulement quand on l'affiche en entier
+    texts: showWhole ? (f.texts||[]) : [],
+    // avec un tronçon d'étape (routes) on n'affiche QUE ce tronçon ; le "S" seulement sur l'étape 1
+    points: showWhole ? (f.points||'') : '',
+    start: showWhole ? (f.start||null) : (route && z.n===1 ? (f.start||null) : null),
+    startNode:'', routes:route?[route]:[],
+    introFr:f.introFr, introEn:f.introEn,
+    bosses:boss?[boss]:[], packs:(f.packs||[]).filter(function(pk){return pk.ph===z.n;}), mids:mid?[mid]:[], phases:phase?[phase]:[]};
+}
+function buildZoneSwitcher(f){
+  const hasZones=!!(f.zones&&f.zones.length);
+  const nav=document.getElementById('nav'); if(nav) nav.style.display=hasZones?'none':'';
+  const zbar=document.getElementById('zone'); if(zbar) zbar.style.display='none'; // remplacé par les tabs sur la carte
+}
+function renderFloor(f){
+  curFloor=f;
+  const ef=(f.zones&&f.zones.length&&curZone>=0)?effectiveFloor(f):f;
+  app.innerHTML=buildOverview(ef, f);
+  placePOIs(ef);
+  buildTimeline(ef);
+  buildNav(ef);
+  buildZoneSwitcher(f);
+  // nav spy
+  if(spy) spy.disconnect();
+  const navLinks=[...document.querySelectorAll('#nav .chip')];
+  if('IntersectionObserver' in window && navLinks.length){
+    spy=new IntersectionObserver((ents)=>{ents.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navLinks.forEach(a=>a.classList.toggle('navactive',a.getAttribute('href')==='#'+id));}});},{rootMargin:'-45% 0px -50% 0px'});
+    document.querySelectorAll('.phase').forEach(s=>spy.observe(s));
+  }
+  if(typeof curJob!=='undefined' && curJob) applyMatch(curJob);
+  applyFilter();
+  requestAnimationFrame(placeNodes);
+}
+
 window.addEventListener('resize',placeNodes);
 window.addEventListener('load',function(){placeNodes();setTimeout(placeNodes,300);});
 if(document.fonts&&document.fonts.ready){document.fonts.ready.then(placeNodes);}
 setTimeout(placeNodes,600);
 
-// filtre par job
+// ---- filtre par job ----
 const jobsEl=document.getElementById("jobs");
 const allBtn=document.createElement("button");allBtn.className="chip on";allBtn.id="jobAll";allBtn.textContent=tr("Tous");
 jobsEl.appendChild(allBtn);
@@ -508,7 +444,6 @@ let curJob=null;
 function lineHidden(el){
   const comp=document.body.getAttribute("data-comp");
   const roles=(el.dataset.r||"").split(" ");
-  // comp flex : PLD et DNC s'excluent — on cache le job flex absent
   const other = comp==="PLD" ? "DNC" : "PLD";
   if(roles.indexOf(other)>=0) return true;
   const dc=el.dataset.comp;
@@ -528,6 +463,8 @@ function applyFilter(){
     g.classList.toggle("emptyhide", ![...g.querySelectorAll(".line")].some(l=>!lineHidden(l)));
   });
   document.querySelectorAll(".card").forEach(c=>{
+    // les cartes boss restent toujours visibles (marqueur de fin de secteur, même sans strat encore écrite)
+    if(c.classList.contains("boss")){ c.classList.remove("emptyhide"); return; }
     c.classList.toggle("emptyhide", ![...c.querySelectorAll(".line")].some(l=>!lineHidden(l)));
   });
   document.querySelectorAll(".buffs .bl").forEach(el=>{
@@ -539,15 +476,18 @@ function applyFilter(){
   });
   if(typeof placeNodes==='function') requestAnimationFrame(placeNodes);
 }
+function applyMatch(j){
+  document.querySelectorAll(".line").forEach(el=>{
+    const roles=(el.dataset.r||"").split(" ");
+    el.classList.toggle("match", !!j && roles.indexOf(j)>=0);
+  });
+}
 function setJob(j){
   curJob=j;
   document.querySelectorAll("#jobs .jobchip").forEach(b=>b.classList.remove("on"));allBtn.classList.remove("on");
   if(!j){allBtn.classList.add("on");document.body.classList.remove("jobsel");}
   else{const bb=document.querySelector('#jobs .jobchip[data-j="'+j+'"]');if(bb)bb.classList.add("on");document.body.classList.add("jobsel");}
-  document.querySelectorAll(".line").forEach(el=>{
-    const roles=(el.dataset.r||"").split(" ");
-    el.classList.toggle("match", !!j && roles.indexOf(j)>=0);
-  });
+  applyMatch(j);
   try{localStorage.setItem("sortie_role", j||"");}catch(e){}
   applyFilter();
 }
@@ -564,7 +504,7 @@ jobsEl.addEventListener("click",e=>{
   else setJob(b.dataset.j===curJob?null:b.dataset.j);
 });
 
-// sélecteur de comp (flex PLD / DNC)
+// ---- sélecteur de comp (flex PLD / DNC) ----
 const compEl=document.getElementById("comp");
 function setComp(c){
   document.body.setAttribute("data-comp",c);
@@ -575,53 +515,86 @@ function setComp(c){
   applyFilter();
 }
 compEl.addEventListener("click",e=>{const b=e.target.closest(".compchip");if(b)setComp(b.dataset.c);});
-let initComp="PLD";try{const s=localStorage.getItem("sortie_comp");if(s==="PLD"||s==="DNC")initComp=s;}catch(e){}
-setComp(initComp);
-try{if(localStorage.getItem("sortie_solo")==="1"){document.body.classList.add("solo");soloBtn.classList.add("on");}}catch(e){}
-try{var savedRole=localStorage.getItem("sortie_role");
-  if(savedRole){ if(savedRole==="PLD"||savedRole==="DNC"){ if(savedRole===initComp) setJob(savedRole); else applyFilter(); } else if(JOBS.indexOf(savedRole)>=0){ setJob(savedRole); } else applyFilter(); }
-  else applyFilter();
-}catch(e){applyFilter();}
 
-// lightbox pour agrandir les cartes
+// ---- sélecteur d'étage (Top Floor / Sous-sol) ----
+const FLOOR_MAP={}; FLOORS.forEach(f=>FLOOR_MAP[f.id]=f);
+const floorEl=document.getElementById("floor");
+function floorLabel(f){ return LANG==='en'?f.en:f.fr; }
+function buildFloorSwitcher(){
+  if(!floorEl) return;
+  FLOORS.forEach(f=>{
+    const b=document.createElement("button");
+    b.className="chip floorchip"; b.dataset.f=f.id;
+    b.innerHTML='<b>'+f.sub+'</b>'+floorLabel(f);
+    floorEl.appendChild(b);
+  });
+}
+function setFloor(id){
+  const f=FLOOR_MAP[id]||FLOORS[0];
+  if(floorEl) floorEl.querySelectorAll(".floorchip").forEach(b=>b.classList.toggle("on",b.dataset.f===f.id));
+  try{localStorage.setItem("sortie_floor",f.id);}catch(e){}
+  renderFloor(f);
+  window.scrollTo({top:0,behavior:'auto'});
+}
+if(floorEl) floorEl.addEventListener("click",e=>{const b=e.target.closest(".floorchip");if(b)setFloor(b.dataset.f);});
+
+// ---- sélecteur de zone (sous-sol : E / F / G / H) ----
+const zoneEl=document.getElementById("zone");
+function setZone(i){ curZone=i; try{localStorage.setItem("sortie_zone",i);}catch(e){} renderFloor(curFloor); window.scrollTo({top:0,behavior:'auto'}); }
+if(zoneEl) zoneEl.addEventListener("click",e=>{const b=e.target.closest(".zonechip"); if(b) setZone(+b.dataset.z);});
+app.addEventListener("click",e=>{const zt=e.target.closest(".zonetab"); if(zt){ e.stopPropagation(); setZone(+zt.dataset.z); }});
+
+// ---- lightbox pour agrandir les cartes ----
 const lb=document.createElement("div");lb.className="lightbox hide";lb.innerHTML='<div class="lbstage"></div>';
 document.body.appendChild(lb);
 const lbStage=lb.querySelector(".lbstage");
 function closeLb(){lb.classList.add("hide");lbStage.innerHTML="";}
+// (re)construit la carte agrandie + les onglets de zone (All/A-D ou E-H) à côté
+function buildLbOv(){
+  const wrap=document.querySelector('.ovmapwrap'); if(!wrap) return false;
+  const ov=wrap.querySelector('.ovmap'); if(!ov) return false;
+  const box=document.createElement('div'); box.className='lbovbox';
+  const clone=ov.cloneNode(true);
+  clone.classList.remove('mapfig'); clone.classList.add('lbov');
+  box.appendChild(clone);
+  const tabs=wrap.querySelector('.zonetabs');
+  if(tabs){ const tc=tabs.cloneNode(true); tc.classList.add('lbtabs'); box.appendChild(tc); }
+  lbStage.innerHTML=''; lbStage.appendChild(box);
+  return true;
+}
 document.getElementById("app").addEventListener("click",e=>{
+  if(e.target.closest(".zonetab")) return; // clic onglet géré ailleurs, pas de zoom
   const fig=e.target.closest(".mapfig");if(!fig)return;
   if(fig.classList.contains("ovmap")){
-    // carte d'ensemble : on clone tout le bloc (fond + pointillé animé + pastilles)
-    const clone=fig.cloneNode(true);
-    clone.classList.remove("mapfig");clone.classList.add("lbov");
-    lbStage.innerHTML="";lbStage.appendChild(clone);
+    if(!buildLbOv()) return;
   }else{
     const img=e.target.closest(".mapfig img")||fig.querySelector("img");if(!img)return;
     lbStage.innerHTML='<img alt="Carte agrandie" src="'+img.src+'">';
   }
   lb.classList.remove("hide");
 });
-lb.addEventListener("click",closeLb);
+lb.addEventListener("click",e=>{
+  const zt=e.target.closest('.zonetab');
+  if(zt){ e.stopPropagation(); setZone(+zt.dataset.z); buildLbOv(); return; } // change de zone sans fermer
+  closeLb();
+});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLb();});
 
-// (animation d'apparition des cartes retirée — affichage direct)
-
+// ---- barre de progression du scroll ----
 const sbar=document.getElementById("sbar");
 function upbar(){const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;sbar.style.width=(max>0?(h.scrollTop/max*100):0)+"%";}
 window.addEventListener("scroll",upbar,{passive:true});
 window.addEventListener("resize",upbar);
-upbar();
 
-// ---- contr\u00f4les : th\u00e8me + langue ----
+// ---- contrôles : thème + langue ----
 document.documentElement.lang=LANG;
 (function(){
   const host=document.getElementById("topctl")||jobsEl;
-  // th\u00e8me clair / sombre
   const themeBtn=document.createElement("button");
   themeBtn.className="chip ctlbtn"; themeBtn.id="themeToggle";
   function paintTheme(){
     var cur=document.documentElement.getAttribute("data-theme")||"dark";
-    themeBtn.textContent = cur==="light" ? "\u263e" : "\u2600";
+    themeBtn.textContent = cur==="light" ? "☾" : "☀";
     themeBtn.title = cur==="light" ? (LANG==='en'?"Dark mode":"Passer en sombre") : (LANG==='en'?"Light mode":"Passer en clair");
   }
   paintTheme();
@@ -634,11 +607,10 @@ document.documentElement.lang=LANG;
     if(typeof placeNodes==='function') requestAnimationFrame(placeNodes);
   });
   host.appendChild(themeBtn);
-  // langue FR / EN
   const langBtn=document.createElement("button");
   langBtn.className="chip ctlbtn"; langBtn.id="langToggle";
   langBtn.textContent = LANG==='en' ? 'FR' : 'EN';
-  langBtn.title = LANG==='en' ? 'Passer en fran\u00e7ais' : 'Switch to English';
+  langBtn.title = LANG==='en' ? 'Passer en français' : 'Switch to English';
   langBtn.addEventListener("click",function(){ try{localStorage.setItem("sortie_lang", LANG==='en'?'fr':'en');}catch(e){} location.reload(); });
   host.appendChild(langBtn);
 })();
@@ -650,10 +622,33 @@ document.documentElement.lang=LANG;
   if(document.fonts&&document.fonts.ready){document.fonts.ready.then(measure);}
 })();
 if(LANG==='en'){
-  document.title="SORTIE \u00b7 Run guide";
-  document.querySelectorAll(".rlabel").forEach(function(el){ if(el.textContent.trim()==="Mon r\u00f4le") el.textContent="My role"; });
+  document.title="SORTIE · Run guide";
+  document.querySelectorAll(".rlabel").forEach(function(el){
+    var t=el.textContent.trim();
+    if(t==="Mon rôle") el.textContent="My role";
+    else if(t==="Étage") el.textContent="Floor";
+  });
   var bsub=document.querySelector(".bsub");
-  if(bsub) bsub.innerHTML='Run \u00b7 4 phases \u00b7 fixed <span class="jc" style="color:var(--r-dd)">MNK</span><span class="jc" style="color:var(--r-buff)">BRD</span><span class="jc" style="color:var(--r-buff)">COR</span><span class="jc" style="color:var(--r-buff)">GEO</span><span class="jc" style="color:var(--r-heal)">RDM</span> + 1 flex (<span class="jc" style="color:var(--r-tank)">PLD</span> or <span class="jc" style="color:var(--r-dd)">DNC</span>)';
+  if(bsub) bsub.innerHTML='Run · 4 phases · fixed <span class="jc" style="color:var(--r-dd)">MNK</span><span class="jc" style="color:var(--r-buff)">BRD</span><span class="jc" style="color:var(--r-buff)">COR</span><span class="jc" style="color:var(--r-buff)">GEO</span><span class="jc" style="color:var(--r-heal)">RDM</span> + 1 flex (<span class="jc" style="color:var(--r-tank)">PLD</span> or <span class="jc" style="color:var(--r-dd)">DNC</span>)';
   var foot=document.querySelector(".foot");
-  if(foot) foot.textContent="Run strategy \u00b7 interactive layout \u00b7 click your job to highlight your actions.";
+  if(foot) foot.textContent="Run strategy · interactive layout · click your job to highlight your actions.";
 }
+
+// ============================================================
+//  INIT
+// ============================================================
+buildFloorSwitcher();
+let initComp="PLD";try{const s=localStorage.getItem("sortie_comp");if(s==="PLD"||s==="DNC")initComp=s;}catch(e){}
+document.body.setAttribute("data-comp",initComp);
+compEl.querySelectorAll(".compchip").forEach(b=>b.classList.toggle("on",b.dataset.c===initComp));
+
+let initFloor="top";try{const s=localStorage.getItem("sortie_floor");if(s==="top"||s==="bottom")initFloor=s;}catch(e){}
+try{const z=localStorage.getItem("sortie_zone");if(z!=null&&!isNaN(+z))curZone=+z;}catch(e){}
+setFloor(initFloor);
+
+try{if(localStorage.getItem("sortie_solo")==="1"){document.body.classList.add("solo");soloBtn.classList.add("on");}}catch(e){}
+try{var savedRole=localStorage.getItem("sortie_role");
+  if(savedRole){ if(savedRole==="PLD"||savedRole==="DNC"){ if(savedRole===initComp) setJob(savedRole); else applyFilter(); } else if(JOBS.indexOf(savedRole)>=0){ setJob(savedRole); } else applyFilter(); }
+  else applyFilter();
+}catch(e){applyFilter();}
+upbar();

@@ -171,7 +171,7 @@ body[data-comp="DNC"] #jobs .jobchip[data-j="PLD"]{display:none}
    TIMELINE / FIL CONDUCTEUR
    ========================================================================== */
 .timeline{position:relative}
-.timeline::before{content:"";position:absolute;left:17px;top:18px;bottom:40px;width:6px;z-index:0;
+.timeline::before{content:"";position:absolute;left:17px;top:var(--rail-top,18px);bottom:var(--rail-bottom,40px);width:6px;z-index:0;
   background:radial-gradient(circle at 50% 6px,#ffe14a 0 2px,#e5342b 2px 3px,transparent 3.3px);
   background-size:100% 12px;background-repeat:repeat-y;filter:drop-shadow(0 0 2.5px rgba(255,170,50,.55));animation:railflow 1s linear infinite}
 @keyframes railflow{to{background-position:0 12px}}
@@ -311,23 +311,65 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .poi{position:absolute;transform:translate(-50%,-50%);z-index:2}
 .poi img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;background:transparent!important;cursor:default;animation:poipulse 1.9s ease-in-out infinite;filter:drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 5px var(--pc))}
 @keyframes poipulse{0%,100%{filter:drop-shadow(0 0 1px var(--pc)) drop-shadow(0 0 3px var(--pc))}50%{filter:drop-shadow(0 0 3px var(--pc)) drop-shadow(0 0 10px var(--pc))}}
-.poi.boss{width:10%;aspect-ratio:1}
+.poi.boss{width:calc(13.5% * var(--mobscale,1));aspect-ratio:1}
 .poi.boss img{animation:bossflash 1.35s ease-in-out infinite;animation-delay:var(--ad,0s)}
 @keyframes bossflash{0%,100%{filter:drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 6px var(--pc))}50%{filter:drop-shadow(0 0 3px var(--pc2)) drop-shadow(0 0 13px var(--pc2))}}
 .poi.boss .plabel{animation:lblflash 1.35s ease-in-out infinite;animation-delay:var(--ad,0s)}
 @keyframes lblflash{0%,100%{border-color:var(--pc);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 5px var(--pc)}50%{border-color:var(--pc2);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 11px var(--pc2)}}
-.poi.pack{width:6.5%;aspect-ratio:1}
-.poi .plabel{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;text-align:center;font:800 11px var(--mono);letter-spacing:.02em;color:#fff;text-shadow:0 1px 2px #000;white-space:nowrap;background:rgba(9,13,18,.85);padding:1.5px 7px;border-radius:6px;border:1.5px solid var(--pc);box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.poi.pack{width:calc(9.5% * var(--mobscale,1));aspect-ratio:1}
+/* midboss (NM mineur) : roame aléatoirement → petit, dérive douce, cercle pointillé */
+.poi.mid{width:calc(7% * var(--mobscale,1));aspect-ratio:1;z-index:1;opacity:.7;animation:midwander 11s linear infinite}
+/* déplacement circulaire doux et discret (rayon ~11% de la pastille), vitesse constante */
+@keyframes midwander{
+  0%   {transform:translate(-39%,-50%)}
+  12.5%{transform:translate(-42%,-42%)}
+  25%  {transform:translate(-50%,-39%)}
+  37.5%{transform:translate(-58%,-42%)}
+  50%  {transform:translate(-61%,-50%)}
+  62.5%{transform:translate(-58%,-58%)}
+  75%  {transform:translate(-50%,-61%)}
+  87.5%{transform:translate(-42%,-58%)}
+  100% {transform:translate(-39%,-50%)}
+}
+.poi.mid img{animation:none!important;opacity:1;filter:drop-shadow(0 0 2px var(--pc))}
+.poi.mid::before{content:"";position:absolute;left:50%;top:50%;width:210%;height:210%;transform:translate(-50%,-50%);border:1.5px dashed var(--pc);border-radius:50%;opacity:.4}
+.poi.mid .plabel{font-size:8px;padding:0 5px;opacity:.82;border-style:dashed}
+.poi.mid .plabel::before{content:"\21ad ";color:var(--pc)}
+.poi .plabel{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:var(--lblmargin,4px);text-align:center;font:800 11px var(--mono);letter-spacing:.02em;color:#fff;text-shadow:0 1px 2px #000;white-space:nowrap;background:rgba(9,13,18,.85);padding:1.5px 7px;border-radius:6px;border:1.5px solid var(--pc);box-shadow:0 2px 5px rgba(0,0,0,.5)}
+/* placement du label autour de la pastille (défaut = bas) */
+.poi.lp-top .plabel{top:auto;bottom:100%;margin:0 0 var(--lblmargin,4px)}
+.poi.lp-left .plabel{top:50%;left:auto;right:100%;transform:translateY(-50%);margin:0 var(--lblmargin,4px) 0 0}
+.poi.lp-right .plabel{top:50%;left:100%;transform:translateY(-50%);margin:0 0 0 var(--lblmargin,4px)}
 .poi.pack .plabel{font-size:9.5px;padding:1px 6px}
 .poi .pq{display:block;text-align:center;font-weight:800;font-size:8.5px;color:var(--pc);text-shadow:0 1px 2px #000}
+
+/* ===== Aperçu = reflet fidèle de Map Studio : pastilles & labels À L'ÉCHELLE DE LA CARTE =====
+   cqw = 1% de la largeur de la carte ; mêmes ratios que l'éditeur sur sa carte 1024px
+   (pastilles déjà en % ci-dessus : boss 13.5 / pack 9.5 / mid 7, comme l'éditeur) */
+.ovmap{container-type:inline-size}
+.ovmap .poi .plabel{font:800 1.465cqw var(--mono);letter-spacing:.02em;padding:.586cqw;border-width:.14cqw;border-radius:.586cqw;
+  margin-top:var(--ovlblm,1.33cqw);text-shadow:0 .1cqw .2cqw #000;box-shadow:0 .2cqw .5cqw rgba(0,0,0,.5)}
+.ovmap .poi.pack .plabel,.ovmap .poi.mid .plabel{font-size:1.465cqw;padding:.586cqw}
+.ovmap .poi.lp-top .plabel{margin:0 0 var(--ovlblm,1.33cqw)}
+.ovmap .poi.lp-left .plabel{margin:0 var(--ovlblm,1.33cqw) 0 0}
+.ovmap .poi.lp-right .plabel{margin:0 0 0 var(--ovlblm,1.33cqw)}
+.ovmap .poi .pq{font-size:1.1cqw}
 .poi .pq.pqlist{display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.25}
 .poi .pq.pqlist b{color:#fff;font-size:9px}
 .poi .pq.pqlist span{color:var(--pc)}
-.ovnum{position:absolute;transform:translate(-50%,-50%);z-index:4;width:5%;aspect-ratio:1;min-width:22px;min-height:22px;border-radius:50%;background:var(--pc);color:#0d1218;font:800 12px var(--mono);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0d1218,0 2px 5px rgba(0,0,0,.55);animation:onumflash 1.35s ease-in-out infinite;animation-delay:var(--ad,0s)}
-@keyframes onumflash{0%,100%{background:var(--pc);box-shadow:0 0 0 2px #0d1218,0 0 5px 1px var(--pc)}50%{background:var(--pc2);box-shadow:0 0 0 2px #0d1218,0 0 13px 5px var(--pc2)}}
-.ovroute .ovrail{stroke:#e5342b;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:1.3 1.7;animation:ovflow 1s linear infinite}
-.ovroute .ovflow{stroke:#ffe14a;stroke-width:.6;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:1.3 1.7;filter:drop-shadow(0 0 1.5px rgba(255,210,90,.85));animation:ovflow 1s linear infinite}
-@keyframes ovflow{to{stroke-dashoffset:-3}}
+/* marqueur de destination boss — plat, façon carte : disque couleur, liseré crème, contour encre */
+.ovnum{position:absolute;transform:translate(-50%,-50%);z-index:4;width:4.2%;aspect-ratio:1;min-width:19px;min-height:19px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font:800 11px/1 var(--mono);color:#fff;letter-spacing:-.3px;
+  background:var(--pc);
+  border:2px solid #f6ead0;
+  box-shadow:0 0 0 1.4px rgba(13,18,24,.92),0 1px 3px rgba(0,0,0,.4),0 0 5px color-mix(in srgb,var(--pc) 55%,transparent);
+  text-shadow:0 1px 1.5px rgba(0,0,0,.5)}
+/* tracé lisible sur tout fond : liseré sombre + trait couleur boss + pointillés blancs qui défilent */
+.ovroute .ovcase{stroke:rgba(9,13,18,.5);stroke-width:var(--cw,2.25);stroke-linecap:round;stroke-linejoin:round;fill:none}
+.ovroute .ovrail{stroke:#e5342b;stroke-width:var(--rw,1.5);stroke-linecap:round;stroke-linejoin:round;fill:none}
+.ovroute .ovflow{stroke:#fff;stroke-width:var(--fw,.62);stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:var(--fda,1.0 2.05);opacity:.95;filter:drop-shadow(0 0 .5px rgba(0,0,0,.6));animation:ovflow .9s linear infinite}
+@keyframes ovflow{to{stroke-dashoffset:var(--foff,-3.05)}}
 .ovroute .ovn{fill:#fff;font:800 2px var(--mono)}
 
 .mapfig{margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow)}
@@ -343,8 +385,43 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .lightbox .lbstage{display:flex;align-items:center;justify-content:center;max-width:100%;max-height:100%}
 .lightbox .lbov{position:relative;width:min(92vw,92vh);height:min(92vw,92vh);aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.6);cursor:zoom-out}
 .lightbox .lbov .poi img{box-shadow:none!important;border-radius:0!important;background:transparent!important}
+/* zoom + onglets de zone cliquables à côté de la carte agrandie */
+.lightbox .lbovbox{display:flex;gap:10px;align-items:stretch;max-width:100%;max-height:100%;cursor:default}
+.lightbox .lbovbox .lbov{width:min(84vw,84vh);height:min(84vw,84vh)}
+.lightbox .lbtabs{display:flex;flex-direction:column;gap:8px;flex:0 0 58px}
+.lightbox .lbtabs .zonetab{min-height:0;cursor:pointer}
 
 .foot{color:var(--dim);font-size:11.5px;text-align:center;padding:24px 16px 0;max-width:var(--wrapw);margin:0 auto;line-height:1.6}
+
+/* ==== sélecteur d'étage (Top Floor / Sous-sol) ==== */
+.floorchip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:7px;font-size:11px;letter-spacing:.03em}
+.floorchip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+.floorchip.on b{color:rgba(255,255,255,.9)}
+.zonechip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:7px;font-size:13px}
+.zonechip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+.zonechip.on b{color:rgba(255,255,255,.9)}
+/* tabs de zone collés à droite de la carte (sous-sol) */
+.ovmapwrap{display:flex;gap:10px;align-items:stretch}
+.ovmapwrap > .ovmap{flex:1 1 auto;width:auto;min-width:0}
+.zonetabs{display:flex;flex-direction:column;gap:7px;flex:0 0 48px}
+.zonetab{flex:1;min-height:46px;border:1px solid var(--line2);background:var(--panel);color:var(--dim);border-radius:10px;font:800 19px/1 var(--mono);cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+.zonetab.all{font-size:11.5px;letter-spacing:.02em}
+.zonetab:hover{border-color:var(--accent);color:var(--txt)}
+.zonetab.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 14px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+
+/* ==== cartes / sections "à venir" (Aminon, etc.) ==== */
+.phase.soon{opacity:.72}
+.tlnode.soon{background:var(--line2,#3a4657);color:var(--dim);box-shadow:0 0 0 4px var(--bg);animation:none}
+.phcard.sooncard{border-style:dashed;background:color-mix(in srgb,var(--panel) 70%,transparent)}
+.soonbadge{display:inline-block;font-family:var(--mono);font-weight:800;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);border:1px dashed var(--line2,#3a4657);border-radius:var(--r-pill);padding:2px 9px;margin-left:8px}
+.nav .chip.soonchip{opacity:.6;border-style:dashed}
+.nav .chip.soonchip b{color:var(--dim)}
+
+/* ==== placeholder carte (étage sans carte) ==== */
+.ovmap.mapsoonwrap{display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--panel) 80%,transparent),color-mix(in srgb,var(--panel) 80%,transparent) 12px,color-mix(in srgb,var(--line) 30%,transparent) 12px,color-mix(in srgb,var(--line) 30%,transparent) 24px);cursor:default}
+.mapsoon{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--dim);font-weight:700;font-size:14px;padding:20px}
+.mapsoon .msicon{font-size:34px;filter:grayscale(.2) opacity(.9)}
+.mapsoon .mssub{font-size:11.5px;font-weight:500;opacity:.8}
 
 /* ==========================================================================
    RESPONSIVE
@@ -359,6 +436,8 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
   .pgrid{padding:18px}
   /* cartes empilées (Farm → Boss), pleine largeur ; les groupes coulent sur 2 colonnes à l'intérieur */
   .cbody{column-count:2;column-gap:20px}
+  /* une carte à un seul groupe garde une colonne pleine largeur (sinon le texte casse trop tôt) */
+  .cbody:has(> .grp:only-child){column-count:1}
   .grp{break-inside:avoid}
   .grp:first-child{margin-top:0}
 }

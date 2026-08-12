@@ -16,7 +16,8 @@ serveur — tout tourne dans le navigateur.
 ```
 index.html        page principale (structure)
 css/style.css     tout le style
-js/app.js         données de la strat + rendu + interactions
+js/data.js        CONTENU de la strat (phases, boss, packs, buffs) — c'est ici qu'on édite
+js/app.js         MOTEUR : rendu + interactions (rarement touché)
 img/              carte + portraits des mobs et boss
 og.png            aperçu Discord / réseaux sociaux
 ```
@@ -45,7 +46,7 @@ C'est un site **statique** : un simple dépôt GitHub avec **GitHub Pages** acti
 1. Copie **tout le contenu** (`index.html`, `og.png`, `css/`, `js/`, `img/`) à la racine du dépôt.
 2. **Settings → Pages** → Source : branche `main`, dossier `/(root)` → *Save*.
 3. Pour une nouvelle version, remplace le(s) fichier(s) concerné(s) — l'URL ne change pas.
-   (contenu de la strat = `js/app.js`, style = `css/style.css`.)
+   (contenu de la strat = `js/data.js`, moteur = `js/app.js`, style = `css/style.css`.)
 
 > Si tu utilises un autre nom de dépôt que `Sortie-Guide`, pense à mettre à jour les URLs
 > `og:image` et `og:url` dans le `<head>` de `index.html` (sinon l'aperçu Discord pointe au mauvais endroit).

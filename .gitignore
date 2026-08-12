@@ -1,0 +1,18 @@
+# aperçus / builds locaux (ne pas versionner)
+apercu-local.html
+preview.html
+*.zip
+
+# exports bruts d'images (Photoshop) — on ne garde que les .webp finaux
+img/_[0-9]*.png
+img/Map Sortie*.png
+
+# sources Photoshop : trop lourdes pour le dépôt (13 Mo+), à garder en sauvegarde à part
+*.psd
+*.psb
+
+# dépendances / système
+node_modules/
+.DS_Store
+Thumbs.db
+.vscode/
