@@ -11,6 +11,11 @@ img/Map Sortie*.png
 *.psd
 *.psb
 
+# images sources brutes déposées à la racine (générations, exports) : on ne versionne
+# que le webp recadré et redimensionné qui en sort, dans img/
+/ChatGPT Image*.png
+/*_source.png
+
 # dépendances / système
 node_modules/
 .DS_Store
