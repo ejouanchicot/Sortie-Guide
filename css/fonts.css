@@ -1,0 +1,45 @@
+/* ============================================================
+   fonts.css — POLICES AUTO-HÉBERGÉES
+   ------------------------------------------------------------
+   Le site ne doit dépendre d'aucune origine tierce pour s'afficher :
+   même logique que tools/vendor/konva.min.js, vendu en local. Avant,
+   index.html et map-studio.html attendaient fonts.googleapis.com puis
+   fonts.gstatic.com avant de peindre quoi que ce soit.
+
+   Ce sont des polices VARIABLES : un seul fichier par famille couvre
+   toute la plage de graisses (Inter 100-900, Space Grotesk 300-700,
+   JetBrains Mono 100-800). Inutile d'en télécharger une par graisse —
+   les 10 URL servies par Google pointaient sur 3 fichiers identiques.
+
+   Sous-ensemble « latin » (U+0000-00FF) : couvre le français et
+   l'anglais, accents compris (é è à ç ù …). 104 Ko au total.
+
+   Pour régénérer après un changement de famille : récupérer le CSS de
+   fonts.googleapis.com avec un User-Agent Chrome, garder les blocs
+   commentés « latin », télécharger les .woff2 dans fonts/.
+   ============================================================ */
+
+@font-face{
+  font-family:'Inter';
+  font-style:normal;
+  font-weight:100 900;          /* variable : couvre 400/500/600/700/800 utilisés ici */
+  font-display:swap;            /* texte visible tout de suite, re-rendu à l'arrivée de la police */
+  src:url('../fonts/inter.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:'Space Grotesk';
+  font-style:normal;
+  font-weight:300 700;
+  font-display:swap;
+  src:url('../fonts/space-grotesk.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:'JetBrains Mono';
+  font-style:normal;
+  font-weight:100 800;
+  font-display:swap;
+  src:url('../fonts/jetbrains-mono.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
