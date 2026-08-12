@@ -436,5 +436,7 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 /* ═══════════ Carte flottante du trace ═══════════ */
 #mappanel .mprange{flex:1;min-width:96px;accent-color:var(--cyan);cursor:pointer}
 #mappanel .mpval{font-family:var(--mono);font-size:10px;color:var(--tx2);min-width:34px;text-align:right}
+#mappanel .mpsize{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:8px;padding:4px 9px}
+#mappanel .mprot{font-family:var(--mono);font-size:11px;color:var(--gold);margin-left:auto}
 #mappanel .mpcol{flex:none;width:42px;height:26px;padding:2px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:8px;cursor:pointer}
 

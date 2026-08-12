@@ -121,6 +121,7 @@
        a       opacité 0–1                                  défaut .35 (rect/ell), 1 (img)
        sw      épaisseur du contour en % de carte           défaut .25 · 0 = sans contour
        r       rayon des coins en % (rect seulement)        défaut 0
+       rot     rotation en degrés autour du centre          défaut 0
        src     chemin de l'image depuis la racine (img)                                  */
   var SHAPE_DEF = {a:0.35, aImg:1, sw:0.25, c:'#5bd6ef'};
   function shapeAlpha(o){ return (o && o.a != null) ? o.a : (o && o.k === 'img' ? SHAPE_DEF.aImg : SHAPE_DEF.a); }
@@ -134,6 +135,7 @@
       if(o.k==='rect'&&o.r)ex+=", r:"+(Math.round(o.r*100)/100);
     }
     if(o.a!=null&&Math.abs(o.a-def)>0.001)ex+=", a:"+(Math.round(o.a*100)/100);
+    if(o.rot)ex+=", rot:"+r1(o.rot);
     s+=" {k:'"+o.k+"', x:"+r1(o.x)+",y:"+r1(o.y)+", w:"+r1(o.w)+",h:"+r1(o.h)+ex+"},\n";});
     return s+'];';}
 

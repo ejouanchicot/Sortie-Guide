@@ -147,13 +147,15 @@ function textsSvg(f){ return (f.texts&&f.texts.length)?f.texts.map(txtSvg).join(
 function shapeSvg(o){
   var S=window.SORTIE, a=S.shapeAlpha(o), sw=S.shapeStroke(o), c=o.c||S.SHAPE_DEF.c;
   var x=o.x-o.w/2, y=o.y-o.h/2;
+  // rotation autour du centre, comme dans l'éditeur
+  var rot = o.rot ? ' transform="rotate('+o.rot+' '+o.x+' '+o.y+')"' : '';
   if(o.k==='img') return o.src
     ? '<image href="'+esc(o.src)+'" x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'"'
-      +' preserveAspectRatio="none" opacity="'+a+'"/>'
+      +' preserveAspectRatio="none" opacity="'+a+'"'+rot+'/>'
     : '';
   var trait = sw ? ';stroke:'+c+';stroke-width:'+sw+'px' : '';
-  if(o.k==='ell') return '<ellipse cx="'+o.x+'" cy="'+o.y+'" rx="'+(o.w/2)+'" ry="'+(o.h/2)+'" style="fill:'+c+';opacity:'+a+trait+'"/>';
-  return '<rect x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'" rx="'+(o.r||0)+'" style="fill:'+c+';opacity:'+a+trait+'"/>';
+  if(o.k==='ell') return '<ellipse cx="'+o.x+'" cy="'+o.y+'" rx="'+(o.w/2)+'" ry="'+(o.h/2)+'" style="fill:'+c+';opacity:'+a+trait+'"'+rot+'/>';
+  return '<rect x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'" rx="'+(o.r||0)+'" style="fill:'+c+';opacity:'+a+trait+'"'+rot+'/>';
 }
 function shapesSvg(f){ return (f.shapes&&f.shapes.length)?f.shapes.map(shapeSvg).join(''):''; }
 function buildOverview(f, floor){

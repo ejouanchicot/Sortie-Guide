@@ -71,12 +71,43 @@
       if(mapEd){closeMapEdit();return;}          // clic ailleurs = valide l'édition, garde la sélection
       if(tool==='select')select(null); });
     stage.on('dragmove',()=>{if(mapEd)positionMapEdit();if(mapPanel)positionMapPanel();}); // suit le pan pendant l'édition sur carte
+    /* ---- tracé au glisser : on dessine la forme à sa taille, comme dans un logiciel de dessin.
+       Un simple clic (déplacement sous le seuil) pose la taille par défaut, pour ne pas obliger
+       à viser. Maj contraint au carré / cercle. ---- */
+    let trace=null,traceGhost=null;
+    const pointCarte=()=>{const p=stage.getPointerPosition();if(!p)return null;
+      return {x:U((p.x-stage.x())/stage.scaleX()),y:U((p.y-stage.y())/stage.scaleY())};};
+    stage.on('mousedown touchstart',e=>{
+      if(spaceDown||!(tool==='shape'||tool==='image')||!armedShape)return;
+      const q=pointCarte();if(!q||q.x<0||q.x>100||q.y<0||q.y>100)return;
+      trace={x0:q.x,y0:q.y,x1:q.x,y1:q.y};
+      traceGhost=new Konva.Rect({x:C(q.x),y:C(q.y),width:0,height:0,
+        stroke:'#54d1c4',strokeWidth:2,dash:[7,5],fill:'rgba(84,209,196,.10)',listening:false});
+      gEdit.add(traceGhost);draw();});
+    stage.on('mousemove touchmove',e=>{
+      if(!trace)return;const q=pointCarte();if(!q)return;
+      trace.x1=S.clamp(q.x);trace.y1=S.clamp(q.y);
+      let w=trace.x1-trace.x0,h=trace.y1-trace.y0;
+      if(e.evt&&e.evt.shiftKey){const m=Math.max(Math.abs(w),Math.abs(h));w=Math.sign(w||1)*m;h=Math.sign(h||1)*m;}
+      traceGhost.position({x:C(Math.min(trace.x0,trace.x0+w)),y:C(Math.min(trace.y0,trace.y0+h))});
+      traceGhost.size({width:C(Math.abs(w)),height:C(Math.abs(h))});
+      const hint=document.getElementById('ar_hint');
+      if(hint)hint.innerHTML='<b>'+r1(Math.abs(w))+' × '+r1(Math.abs(h))+' %</b> — relâche pour poser. <b>Maj</b> contraint au carré.';
+      draw();});
+    stage.on('mouseup touchend',e=>{
+      if(!trace)return;const t=trace,g=traceGhost;trace=null;traceGhost=null;
+      if(g)g.destroy();draw();
+      let w=t.x1-t.x0,h=t.y1-t.y0;
+      if(e.evt&&e.evt.shiftKey){const m=Math.max(Math.abs(w),Math.abs(h));w=Math.sign(w||1)*m;h=Math.sign(h||1)*m;}
+      const cx=t.x0+w/2, cy=t.y0+h/2;
+      const petit=Math.abs(w)<1.5||Math.abs(h)<1.5;      // simple clic : taille par défaut
+      const dims=petit?null:{w:r1(Math.abs(w)),h:r1(Math.abs(h))};
+      if(tool==='image')createShape('img',petit?t.x0:cx,petit?t.y0:cy,armedShape.src,dims);
+      else createShape(armedShape,petit?t.x0:cx,petit?t.y0:cy,null,dims);});
     stage.on('click tap',e=>{ if(spaceDown)return; const nm=e.target.name&&e.target.name();
       const p=stage.getPointerPosition();if(!p)return;const mx=U((p.x-stage.x())/stage.scaleX()),my=U((p.y-stage.y())/stage.scaleY());
       if(tool==='path'){ if(nm==='phandle'||nm==='phit')return; if(mx<0||mx>100||my<0||my>100)return; addRoutePoint(mx,my); return; }
       if(tool==='pin'&&armedPin){ if(nm==='pin'||nm==='marker')return; if(mx<0||mx>100||my<0||my>100)return; placePin(armedPin.kind,armedPin.name,mx,my); return; }
-      if((tool==='shape'||tool==='image')&&armedShape){ if(mx<0||mx>100||my<0||my>100)return;
-        if(tool==='image')createShape('img',mx,my,armedShape.src); else createShape(armedShape,mx,my); return; }
       if(tool==='pipette'){ pickColorAt(p); return; }
       if(tool==='text'){ if(nm==='text')return; if(mx<0||mx>100||my<0||my>100)return; createText(mx,my); } });
     // pinch-zoom + pan à deux doigts (tactile mobile/tablette)
@@ -200,6 +231,7 @@
     if(gPins){gPins.getChildren().forEach(n=>{if(n.name()==='pin'||n.name()==='marker')n.draggable(drag);});gPins.listening(tool==='select'||tool==='pan');}
     if(gTexts){gTexts.getChildren().forEach(n=>{if(n.name()==='text')n.draggable(drag);});gTexts.listening(tool==='select'||tool==='pan'||tool==='text');}
     if(gShapes){gShapes.getChildren().forEach(n=>n.draggable(drag));gShapes.listening(tool==='select'||tool==='pan');}
+    if(!drag)detachTransformer(); else if(selNode&&selNode._meta&&selNode._meta.kind==='shape')attachTransformer(selNode);
     setPanMode(tool==='pan'||spaceDown);
     if((tool==='path'||tool==='text')&&!spaceDown)stage.container().style.cursor='crosshair';
     else if(tool==='pipette'&&!spaceDown)stage.container().style.cursor='cell';
@@ -251,33 +283,79 @@
     g.add(node);g._body.push(node);node.moveToBottom();
     // zone de saisie : toujours pleine, meme si la forme est presque transparente
     g._hit.width(w);g._hit.height(h);g._hit.offsetX(w/2);g._hit.offsetY(h/2);g._hit.moveToTop();
+    g.rotation(o.rot||0);
     draw();}
   async function addShape(o){
-    const g=new Konva.Group({x:C(o.x),y:C(o.y),name:'shape'});g._meta={kind:'shape',o};g._body=[];
+    const g=new Konva.Group({x:C(o.x),y:C(o.y),rotation:o.rot||0,name:'shape'});g._meta={kind:'shape',o};g._body=[];
     const hit=new Konva.Rect({fill:'transparent'});g._hit=hit;g.add(hit);
     wireHover(g);
     g.on('click tap',e=>{e.cancelBubble=true;select(g);});
     g.on('dragmove',()=>{o.x=r1(U(g.x()));o.y=r1(U(g.y()));liveUpdate();});
     g.on('dragend',commit);
     gShapes.add(g);await paintShape(g);return g;}
-  function refreshShape(o){const g=shapeNode(o);if(g)paintShape(g).then(()=>{if(selNode===g)drawRing(g);});}
-  async function createShape(k,x,y,src){const f=FL[curIdx];
-    const o={k:k,x:r1(S.clamp(x)),y:r1(S.clamp(y)),w:lastShape.w,h:lastShape.h};
-    if(k==='img'){o.src=src||'';}else{o.c=lastShape.c;}
+  function refreshShape(o){const g=shapeNode(o);if(g)paintShape(g).then(()=>{if(selNode===g){drawRing(g);if(shTr)shTr.forceUpdate();}});}
+
+  /* ---------- manipulation directe : poignees de redimensionnement et de rotation ----------
+     Konva.Transformer plutot qu'une pastille maison : 8 poignees, rotation, contraintes et
+     bornes gerees par la bibliotheque. La conversion echelle -> w/h se fait au RELACHEMENT :
+     appliquee en direct, elle se battrait avec le transformer a chaque image. Pendant le geste
+     on se contente de rafraichir la taille affichee dans la carte. */
+  let shTr=null;
+  function detachTransformer(){if(shTr){const n=shTr.nodes()[0];if(n)n.off('.tr');shTr.destroy();shTr=null;draw();}}
+  function attachTransformer(g){
+    detachTransformer();
+    if(!g||tool!=='select'||!g._meta||g._meta.kind!=='shape')return;
+    const o=g._meta.o;
+    shTr=new Konva.Transformer({nodes:[g],
+      padding:3, anchorSize:9, anchorCornerRadius:3, anchorStrokeWidth:2, borderStrokeWidth:1.5,
+      anchorFill:'#0b1019', anchorStroke:'#54d1c4', borderStroke:'#54d1c4', borderDash:[6,4],
+      rotateAnchorOffset:26, rotationSnaps:[0,45,90,135,180,225,270,315], rotationSnapTolerance:4,
+      keepRatio:false, shiftBehavior:'keepRatio',       // Maj = proportions conservees, comme partout ailleurs
+      ignoreStroke:true, flipEnabled:false,
+      boundBoxFunc:(vieux,neuf)=>(Math.abs(neuf.width)<8||Math.abs(neuf.height)<8)?vieux:neuf});
+    gEdit.add(shTr);
+    g.on('transform.tr',()=>{
+      const wv=document.getElementById('sh_size');
+      if(wv)wv.textContent=r1(o.w*Math.abs(g.scaleX()))+' × '+r1(o.h*Math.abs(g.scaleY()))+' %';});
+    g.on('transformend.tr',()=>{
+      o.w=Math.max(0.5,r1(o.w*Math.abs(g.scaleX())));
+      o.h=Math.max(0.5,r1(o.h*Math.abs(g.scaleY())));
+      g.scale({x:1,y:1});
+      o.x=r1(S.clamp(U(g.x())));o.y=r1(S.clamp(U(g.y())));
+      const rot=r1(((g.rotation()%360)+360)%360);o.rot=rot||undefined;if(!o.rot)delete o.rot;
+      lastShape.w=o.w;lastShape.h=o.h;
+      paintShape(g).then(()=>{if(shTr)shTr.forceUpdate();syncShapePanel(o);});
+      commit();});
+    draw();}
+  async function createShape(k,x,y,src,dims){const f=FL[curIdx];
+    const o={k:k,x:r1(S.clamp(x)),y:r1(S.clamp(y)),w:(dims?dims.w:lastShape.w),h:(dims?dims.h:lastShape.h)};
+    if(k==='img'){o.src=src||'';
+      // posée d'un simple clic : on respecte le rapport naturel de l'image plutôt que de l'écraser
+      if(!dims&&o.src){const im=await loadImg(BASE+o.src);
+        if(im&&im.width&&im.height)o.h=r1(o.w*im.height/im.width);}}
+    else{o.c=lastShape.c;}
+    lastShape.w=o.w;lastShape.h=o.h;
     (f.shapes=f.shapes||[]).push(o);
     await addShape(o);buildLayers();
-    openShapePanel(o);commit();
-    toast((k==='img'?'Image posée':(k==='ell'?'Ellipse posée':'Rectangle posé'))+' — clique encore pour en poser un autre.','ok');}
+    // Comme dans un logiciel de dessin : tracer rend la main a la Selection, la forme prete a
+    // etre ajustee (poignees + carte de reglages). On ne pose pas dix rectangles identiques a la
+    // suite comme des marqueurs ; et l'outil reste memorise, une touche suffit a y revenir.
+    pick('select');const g=shapeNode(o);if(g)select(g);
+    commit();
+    toast((k==='img'?'Image posée':(k==='ell'?'Ellipse posée':'Rectangle posé'))+' — S ou I pour en tracer une autre.','ok');}
   function deleteShape(o){const f=FL[curIdx],arr=f.shapes,i=arr?arr.indexOf(o):-1;if(i>=0)arr.splice(i,1);
     const g=shapeNode(o);if(g)g.destroy();select(null);buildLayers();draw();commit();}
   // valeurs reprises d'une forme a la suivante
   let lastShape={w:14,h:10,c:SH_DEF.c};
-  function syncShapePanel(o){const wv=document.getElementById('sh_wv'),hv=document.getElementById('sh_hv');
-    if(wv)wv.textContent=r1(o.w)+' %';if(hv)hv.textContent=r1(o.h)+' %';
-    const wi=document.getElementById('sh_w'),hi=document.getElementById('sh_h');
-    if(wi&&document.activeElement!==wi)wi.value=o.w;if(hi&&document.activeElement!==hi)hi.value=o.h;}
+  function syncShapePanel(o){const sz=document.getElementById('sh_size');
+    if(sz)sz.textContent=r1(o.w)+' × '+r1(o.h)+' %';
+    const rv=document.getElementById('sh_rotv');if(rv)rv.textContent=r1(o.rot||0)+'°';}
   function openShapePanel(o){const g=shapeNode(o);if(!g)return;
-    const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y,y2:bb.y+bb.height};};
+    // On écarte l'ancre de la hauteur des poignées : au-dessus il y a le manche de rotation
+    // (rotateAnchorOffset), en dessous les poignées de redimensionnement. Sans cette marge la
+    // carte se posait dessus et les poignées devenaient inatteignables.
+    const anchor=()=>{const bb=g.getClientRect({relativeTo:layer}),sc=stage.scaleX()||1;
+      return {x:bb.x+bb.width/2, y:bb.y-40/sc, y2:bb.y+bb.height+12/sc};};
     const nom={rect:'Rectangle',ell:'Ellipse',img:'Image'}[o.k]||'Forme';
     const al=Math.round(S.shapeAlpha(o)*100), sw=S.shapeStroke(o);
     let h='<div class="mptitle" style="--dot:'+(o.k==='img'?'#8b7cff':shColor(o))+'">'+nom+'</div>';
@@ -289,11 +367,11 @@
       if(o.k==='rect')h+='<div class="mprow"><span class="mplbl">Coins</span><input class="mprange" id="sh_r" type="range" min="0" max="600" value="'+Math.round((o.r||0)*100)+'"><span class="mpval" id="sh_rv">'+r1(o.r||0)+' %</span></div>';
     }
     h+='<div class="mprow"><span class="mplbl">Opacité</span><input class="mprange" id="sh_a" type="range" min="0" max="100" value="'+al+'"><span class="mpval" id="sh_av">'+al+' %</span></div>';
-    h+='<div class="mprow"><span class="mplbl">Largeur</span><input class="mprange" id="sh_w" type="range" min="0.5" max="100" step="0.5" value="'+o.w+'"><span class="mpval" id="sh_wv">'+r1(o.w)+' %</span></div>';
-    h+='<div class="mprow"><span class="mplbl">Hauteur</span><input class="mprange" id="sh_h" type="range" min="0.5" max="100" step="0.5" value="'+o.h+'"><span class="mpval" id="sh_hv">'+r1(o.h)+' %</span></div>';
+    h+='<div class="mprow"><span class="mplbl">Taille</span><span class="mpsize" id="sh_size">'+r1(o.w)+' × '+r1(o.h)+' %</span>'+
+       (o.rot?'<span class="mprot" id="sh_rotv">'+r1(o.rot)+'°</span>':'')+'</div>';
     h+='<div class="mpacts"><button class="mpbtn primary" id="sh_fit">'+RESET_SVG+' Carrer</button>'+
        '<button class="mpbtn danger" id="sh_del" title="Supprimer cette forme">'+TRASH_SVG+'</button></div>';
-    h+='<div class="mpnote">Glisse la forme sur la carte pour la déplacer · les curseurs Largeur et Hauteur la redimensionnent.</div>';
+    h+='<div class="mpnote">Glisse la forme pour la déplacer · les <b>poignées</b> la redimensionnent · celle du dessus la fait pivoter.<br><b>Maj</b> conserve les proportions · <b>S</b> ou <b>I</b> pour en tracer une autre.</div>';
     openMapPanel(o,anchor,h,()=>{
       mapPanel.node=g;
       const maj=()=>{refreshShape(o);commitSoon();};
@@ -313,12 +391,8 @@
       }
       const aa=document.getElementById('sh_a');aa.addEventListener('input',()=>{o.a=(+aa.value)/100;
         document.getElementById('sh_av').textContent=(+aa.value)+' %';maj();});
-      const wi=document.getElementById('sh_w');wi.addEventListener('input',()=>{o.w=lastShape.w=+wi.value;
-        document.getElementById('sh_wv').textContent=r1(o.w)+' %';maj();});
-      const hi=document.getElementById('sh_h');hi.addEventListener('input',()=>{o.h=lastShape.h=+hi.value;
-        document.getElementById('sh_hv').textContent=r1(o.h)+' %';maj();});
       document.getElementById('sh_fit').addEventListener('click',()=>{const m=Math.max(o.w,o.h);o.w=o.h=lastShape.w=lastShape.h=m;
-        syncShapePanel(o);maj();});
+        syncShapePanel(o);maj();if(shTr)shTr.forceUpdate();});
       const del=document.getElementById('sh_del');del.addEventListener('click',()=>{del.blur();
         askConfirm('Supprimer cette '+nom.toLowerCase()+' ? Elle sera retirée de data.js au prochain enregistrement.',{title:'Supprimer la forme'})
           .then(v=>{if(v){closeMapPanel();deleteShape(o);}});});
@@ -395,8 +469,8 @@
     document.getElementById('ar_col').addEventListener('input',e=>{lastShape.c=e.target.value;shapeHint();});
     shapeHint();}
   function shapeHint(){const h=document.getElementById('ar_hint');if(!h)return;
-    h.innerHTML=armedShape?('<b>'+(armedShape==='ell'?'Ellipse':'Rectangle')+'</b> armé — clique sur la carte pour le poser. La forme se pose <b>sous</b> les tracés et les marqueurs. <b>Échap</b> désarme.')
-      :'Choisis une forme, puis clique sur la carte.';}
+    h.innerHTML=armedShape?('<b>'+(armedShape==='ell'?'Ellipse':'Rectangle')+'</b> armé — <b>glisse sur la carte</b> pour la tracer à sa taille, ou clique pour la taille par défaut. <b>Maj</b> contraint au carré.')
+      :'Choisis une forme, puis glisse sur la carte pour la tracer.';}
   function openImageBar(){
     const w=armShell('image',IMAGE_SVG,'Poser une image',
       '<input class="arsearch" id="ar_q" placeholder="chercher une image…" value="'+esc(armSearch)+'">',
@@ -425,15 +499,15 @@
   function imageHint(){const w=document.getElementById('armbar'),h=document.getElementById('ar_hint');if(!h)return;
     if(w)w.classList.toggle('armed',!!(armedShape&&armedShape.src)&&document.activeElement!==document.getElementById('ar_q'));
     if(!imageRoster().length){h.innerHTML='Aucune image'+(armSearch.trim()?' pour « '+esc(armSearch)+' »':'')+'.';return;}
-    h.innerHTML=(armedShape&&armedShape.src)?'<b>Image armée</b> — clique sur la carte, autant de fois que tu veux. <b>Échap</b> désarme.'
-      :'Choisis une image, puis clique sur la carte.';}
+    h.innerHTML=(armedShape&&armedShape.src)?'<b>Image armée</b> — <b>glisse</b> pour la cadrer, ou clique pour la poser à son rapport naturel.'
+      :'Choisis une image, puis glisse sur la carte pour la cadrer.';}
   function showShapeHint(){
     setInspTitle(tool==='image'?'Nouvelle image':'Nouvelle forme','var(--cyan)');
     document.getElementById('inspBody').innerHTML='<div class="hintbox">'+
       (tool==='image'
-        ? 'Choisis une image dans la barre du haut puis <b>clique sur la carte</b>. Elle se pose <b>sous</b> les tracés et les marqueurs — pratique pour illustrer une zone sans masquer la strat.'
-        : 'Choisis <b>Rectangle</b> ou <b>Ellipse</b> et sa couleur dans la barre du haut, puis <b>clique sur la carte</b>. La forme se pose <b>sous</b> les tracés et les marqueurs.')+
-      '<br><br>Sa carte de réglages s\u2019ouvre à côté (couleur, opacité, contour, taille) et l\u2019outil <b>reste armé</b>. En <b>Sélection</b>, glisse la forme pour la déplacer.</div>';
+        ? 'Choisis une image dans la barre du haut, puis <b>glisse sur la carte</b> pour la cadrer — un simple clic la pose à son rapport naturel. Elle se pose <b>sous</b> les tracés et les marqueurs.'
+        : 'Choisis <b>Rectangle</b> ou <b>Ellipse</b> et sa couleur dans la barre du haut, puis <b>glisse sur la carte</b> pour tracer la forme à sa taille. <b>Maj</b> contraint au carré. Elle se pose <b>sous</b> les tracés et les marqueurs.')+
+      '<br><br>Le tracé terminé, tu repasses en <b>Sélection</b> avec la forme prête : <b>poignées</b> pour la redimensionner et la faire pivoter, carte flottante pour la couleur et l\u2019opacité.</div>';
     if(tool==='image')openImageBar();else openShapeBar();}
 
   /* ---------- pipette : prélève une couleur sur la carte ---------- */
@@ -713,11 +787,14 @@
     if(mapPanel&&node!==mapPanel.node)closeMapPanel();
     layer.find('.selring').forEach(r=>r.destroy());selNode=node;const body=document.getElementById('inspBody');
     if(!node){body.innerHTML='<div class="empty">Sélectionne un objet sur la carte (clic), puis <b>glisse-le</b> ou règle-le dans sa carte flottante.</div>';setInspTitle('Inspecteur');closeInsp();
-      draw();return;}
+      detachTransformer();draw();return;}
     drawRing(node);renderInspector(node._meta);openInsp();
+    attachTransformer(node&&node._meta&&node._meta.kind==='shape'?node:null);
     draw();
   }
-  function drawRing(node){layer.find('.selring').forEach(r=>r.destroy());const bb=node.getClientRect({relativeTo:layer});
+  function drawRing(node){layer.find('.selring').forEach(r=>r.destroy());
+    if(node._meta&&node._meta.kind==='shape')return;      // les poignees du transformer tiennent lieu de cadre
+    const bb=node.getClientRect({relativeTo:layer});
     gPins.add(new Konva.Rect({x:bb.x-6,y:bb.y-6,width:bb.width+12,height:bb.height+12,stroke:'#54d1c4',strokeWidth:2,dash:[6,4],cornerRadius:8,listening:false,name:'selring'}));}
   function liveUpdate(){if(selNode)drawRing(selNode);
     if(selNode){const o=selNode._meta.o,mk=selNode._meta.kind;
