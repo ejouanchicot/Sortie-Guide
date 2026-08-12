@@ -6,8 +6,6 @@
    Gère 2 étages (Top Floor / Sous-sol) via FLOORS.
    ============================================================ */
 
-const RCOL={dd:"var(--r-dd)",buff:"var(--r-buff)",heal:"var(--r-heal)",tank:"var(--r-tank)",all:"var(--r-all)"};
-function jcol(j){return RCOL[ROLE[j]||"all"];}
 
 // ---- i18n FR / EN ----
 const LANG=(function(){try{var l=localStorage.getItem('sortie_lang');return l==='en'?'en':'fr';}catch(e){return 'fr';}})();
@@ -15,59 +13,14 @@ const LANG=(function(){try{var l=localStorage.getItem('sortie_lang');return l===
 function tr(s){ return (LANG==='en' && s!=null && TR[s]!==undefined) ? TR[s] : s; }
 
 // ---- colorisation des éléments dans le texte ----
-const ELS=[["WATER|Water|Eau","water"],["THUNDER|Thunder|Foudre","thunder"],["FIRE|Fire|Feu","fire"],["WIND|Wind|Vent","wind"],["EARTH|Earth|Terre","earth"],["ICE|Ice|Glace","ice"],["LIGHT|Light|Lumière","light"],["DARK|Darkness|Dark|Ténèbres","dark"]];
-const esc=window.SORTIE.esc; // socle partagé (js/sortie-map-core.js)
-function colorize(s){
-  s=esc(s);
-  ELS.forEach(([words,cls])=>{
-    s=s.replace(new RegExp("\\b("+words+")\\b","g"),'<span class="el '+cls+'">$1</span>');
-  });
-  // flèche plus visible
-  s=s.replace(/→/g,'<span style="color:var(--dim)">→</span>');
-  return s;
-}
-function roleChip(r){return '<span class="role" style="--jc:'+jcol(r)+'">'+r+'</span>';}
-function lineHtml(l,g){
-  const roles=(l.r||["ALL"]);
-  const chips=roles.map(roleChip).join("");
-  const isProc = g && /\bproc\b/.test(g.cls||"") && typeof l.t==="string" && /→/.test(l.t);
-  var body;
-  if(isProc){
-    const parts=l.t.split("→");
-    body='<span class="pcja">'+esc(parts[0].trim())+'</span><span class="pcsep">›</span><span class="pcel">'+colorize(parts[1].trim())+'</span>';
-  }
-  else if(Array.isArray(l.t)){ body='<ul class="acts">'+l.t.map(function(it){return '<li>'+colorize(tr(it))+'</li>';}).join("")+'</ul>'; }
-  else { body=colorize(tr(l.t)); }
-  return '<div class="line'+(l.warn?' warn':'')+(isProc?' proc':'')+(Array.isArray(l.t)?' stack':'')+'" data-r="'+roles.join(" ")+'"'+(l.comp?' data-comp="'+l.comp+'"':'')+'>'
-    +'<span class="roles" style="display:flex;gap:3px;flex:none">'+chips+'</span>'
-    +'<span class="txt">'+body+(l.cond?' <span class="cond">'+esc(tr(l.cond))+'</span>':'')+'</span></div>';
-}
-// plusieurs actions d'un même job → label une fois + liste à puces
-function runHtml(run){
-  const roles=(run[0].r||["ALL"]);
-  const chips=roles.map(roleChip).join("");
-  const comp=run[0].comp;
-  var lis="";
-  run.forEach(function(l){
-    if(Array.isArray(l.t)){ l.t.forEach(function(it){ lis+='<li>'+colorize(tr(it))+'</li>'; }); }
-    else { lis+='<li'+(l.warn?' class="warn"':'')+'>'+colorize(tr(l.t))+(l.cond?' <span class="cond">'+esc(tr(l.cond))+'</span>':'')+'</li>'; }
-  });
-  return '<div class="line stack" data-r="'+roles.join(" ")+'"'+(comp?' data-comp="'+comp+'"':'')+'>'
-    +'<span class="roles" style="display:flex;gap:3px;flex:none">'+chips+'</span>'
-    +'<span class="txt"><ul class="acts">'+lis+'</ul></span></div>';
-}
-function groupBody(g){
-  if(/\bproc\b/.test(g.cls||"")) return g.lines.map(function(l){return lineHtml(l,g);}).join("");
-  var out="",i=0,L=g.lines;
-  while(i<L.length){
-    var key=(L[i].r||["ALL"]).join(" ")+"|"+(L[i].comp||"");
-    var j=i+1;
-    while(j<L.length && ((L[j].r||["ALL"]).join(" ")+"|"+(L[j].comp||""))===key) j++;
-    if(j-i>1) out+=runHtml(L.slice(i,j)); else out+=lineHtml(L[i],g);
-    i=j;
-  }
-  return out;
-}
+// Rendu d'une carte de strat : js/strat-render.js, partagé avec l'outil d'écriture
+// (tools/strat-studio.html) pour que l'aperçu y soit le VRAI rendu, pas une imitation.
+const esc=window.SORTIE.esc;
+STRATR.config({tr:tr, MOB:MOB, ELC:window.SORTIE.EL_VAR, ROLE:ROLE});
+const jcol=STRATR.jcol, colorize=STRATR.colorize, roleChip=STRATR.roleChip;
+const lineHtml=STRATR.lineHtml, runHtml=STRATR.runHtml, groupBody=STRATR.groupBody;
+const cardHtml=STRATR.cardHtml;
+
 
 // ============================================================
 //  RENDU (multi-étages)
@@ -217,30 +170,6 @@ function placePOIs(f){
     h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'">'+bo.n+'</div>';
   });
   wrap.innerHTML=h; ovmap.appendChild(wrap);
-}
-
-function cardHtml(c,p,f,bossByN){
-  let groups="";
-  c.groups.forEach(g=>{
-    var gthumb='';
-    if(g.img && MOB[g.img]){ var gpk=f.packs.find(function(x){return x.name===g.img;}); var gac=gpk?ELC[gpk.el]:'var(--r-buff)';
-      gthumb='<span class="gthumb" style="--ac:'+gac+'"><img src="'+MOB[g.img]+'" alt="'+g.img+'" loading="lazy" decoding="async"></span>'; }
-    var glabelHtml='<div class="glabel '+(g.cls||"")+'">'+colorize(tr(g.label))+'</div>';
-    var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
-    groups+='<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+'">'+headHtml+(g.note?'<div class="gnote">'+esc(tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
-  });
-  var mks=[], acc='var(--r-buff)';
-  if(c.kind==="boss"){ var bb=bossByN[p.n]; if(bb){ mks=[bb.name]; acc=ELC[bb.el]; } }
-  else { var nm=tr(c.name)+" "+c.name; mks=Object.keys(MOB).filter(function(k){return nm.indexOf(k)>=0;});
-    var pk=f.packs.find(function(x){return mks.indexOf(x.name)>=0;}); if(pk) acc=ELC[pk.el]; }
-  if(c.noHeadImg) mks=[];
-  var thumbHtml = mks.length ? '<span class="cthumbs'+(mks.length>1?' multi':'')+'">'+mks.map(function(k){return '<span class="cthumb"><img src="'+MOB[k]+'" alt="'+k+'" loading="lazy" decoding="async"></span>';}).join('')+'</span>' : '';
-  return '<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+acc+'">'
-    +'<div class="chead">'+thumbHtml
-    +'<div class="chmeta"><div class="chtop"><span class="ckind '+c.kind+'">'+(c.kind==="boss"?"BOSS":(c.klabel||"FARM"))+'</span>'
-    +'<span class="cname">'+esc(tr(c.name))+'</span></div>'
-    +'<span class="ctag">'+colorize(tr(c.tag))+'</span></div></div>'
-    +'<div class="cbody">'+groups+'</div></div>';
 }
 
 function buildTimeline(f){
