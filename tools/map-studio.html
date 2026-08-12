@@ -441,6 +441,11 @@ body::before{
 @keyframes unsavedpulse{0%,100%{opacity:1}50%{opacity:.35}}
 @media (max-width:820px){#unsaved{font-size:0;padding:6px;gap:0}}
 
+/* ═══════════ V11 · avertissement dans la carte flottante (n° de boss déjà pris) ═══════════ */
+#mappanel .mpwarn{font-family:var(--mono);font-size:10px;line-height:1.35;color:var(--gold);margin-top:7px;display:none}
+#mappanel .mpwarn.on{display:block}
+#mappanel .mpnote{font-family:var(--mono);font-size:9.5px;line-height:1.4;color:var(--dim);margin-top:7px}
+
 </style>
 </head>
 <body>
@@ -544,6 +549,7 @@ body::before{
   const layerVis={map:true,routes:true,texts:true,pins:true};
   // Phase 3 : création de marqueurs depuis une palette d'images
   let armedPin=null,palCat='boss';
+  let lastPh=1;   // dernière phase choisie pour un pack — reprise à la création suivante
   // rosters par étage : les NM (boss/midboss) diffèrent entre rez-de-chaussée et sous-sol
   const BOSS_TOP=['Degei','Skomora','Leshonn','Ghatjot'],BOSS_BOT=['Dhartok','Triboulex','Aita','Gartell','Aminon'];
   const MID_TOP=['Obdella','Porxie','Bhoot','Deleterious'],MID_BOT=['Botulus','Ixion','Naraka','Tulittia'];
@@ -731,7 +737,7 @@ body::before{
   async function placePin(kind,name,x,y){const f=FL[curIdx];x=r1(S.clamp(x));y=r1(S.clamp(y));let o;
     if(kind==='boss'){const maxN=(f.bosses||[]).reduce((m,b)=>Math.max(m,b.n||0),0);o={name,n:maxN+1,el:'gray',x,y,nx:x,ny:r1(S.clamp(y+6))};(f.bosses=f.bosses||[]).push(o);}
     else if(kind==='mid'){o={name,el:'gray',x,y};(f.mids=f.mids||[]).push(o);}
-    else{o={name,el:'gray',x,y,q:'×1',ph:1};(f.packs=f.packs||[]).push(o);}
+    else{o={name,el:'gray',x,y,q:'×1',ph:lastPh};(f.packs=f.packs||[]).push(o);}
     const MOBimg=(typeof MOB!=='undefined')?MOB:{};
     await addPin(kind,o,pinSize(kind),MOBimg);
     armedPin=null;buildLayers();pick('select');const g=pinNode(o);if(g)select(g);
@@ -1052,6 +1058,12 @@ body::before{
     o[field]=lines.join('\n');ed.innerHTML=richToEditableHtml(o[field]);if(onDone)onDone();ed.focus();_setCaretLine(ed,idx);}
   function bindNum(id,fn){const el=document.getElementById('f_'+id);if(!el)return;el.addEventListener('input',()=>{const v=parseFloat(el.value);if(!isNaN(v))fn(r1(v));});}
   function pinNode(o){return gPins.getChildren().find(n=>n.name()==='pin'&&n._meta&&n._meta.o===o);}
+  // n° d'ordre disponibles sur l'étage courant = ceux des boss (c'est la clé qui relie
+  // un pack à sa phase (ph) et un tracé à son boss (n) dans data.js).
+  function phaseChoices(){const f=FL[curIdx];const ns=[...new Set((f.bosses||[]).map(b=>b.n).filter(n=>n!=null))].sort((a,b)=>a-b);
+    return ns.length?ns:[1,2,3,4];}
+  // PHASES / PHASES_B sont écrits à la main : l'éditeur ne peut que signaler le décalage
+  function phaseExists(n){const f=FL[curIdx];return (f.phases||[]).some(p=>p.n===n);}
   function relabel(o){const g=pinNode(o);if(!g||!g._lbl)return;buildLabelContent(g._lbl,o);g._lbl.visible(!o.hl);placeLabel(g);draw();commitSoon();}
   function recolor(o){const g=pinNode(o),col=elc(o.el);if(g){const im=g.findOne('Image');if(im)im.shadowColor(col);const c=g.findOne('Circle');if(c)c.stroke(col);const tag=g._lbl&&g._lbl._bg;if(tag)tag.stroke(col);}
     if(o._mk){const inner=o._mk.getChildren()[2];inner.fill(col);inner.shadowColor(col);}draw();commitSoon();}
@@ -1138,7 +1150,15 @@ body::before{
     const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[kind]||'Marqueur';
     let h='<div class="mptitle" style="--dot:'+col+'">'+kindLbl+' · '+esc(o.name)+'</div>';
     h+='<div class="mprow"><span class="mplbl">Élément</span><div class="mpsw" id="mp_el"></div></div>';
-    if(kind==='pack')h+='<div class="mprow"><span class="mplbl">Quantité</span><input class="mpin" id="mp_q" type="text" value="'+esc(o.q||'')+'"></div>';
+    // n° d'ordre du boss : c'est lui qui relie le marqueur à sa phase, son onglet et son tracé
+    if(kind==='boss')h+='<div class="mprow"><span class="mplbl">N° d’ordre</span><input class="mpin" id="mp_n" type="number" min="1" step="1" style="flex:none;width:62px" value="'+(o.n!=null?o.n:1)+'"></div>'+
+      '<div class="mpwarn" id="mp_nwarn"></div>';
+    if(kind==='pack'){
+      h+='<div class="mprow"><span class="mplbl">Quantité</span><input class="mpin" id="mp_q" type="text" value="'+esc(o.q||'')+'"></div>';
+      // sans ce réglage, tout pack créé restait sur ph:1 et n'apparaissait que dans la phase 1 du guide
+      h+='<div class="mprow"><span class="mplbl">Phase</span><div class="mpseg" id="mp_ph">'+
+         phaseChoices().map(n=>'<button data-ph="'+n+'"'+((o.ph||1)===n?' class="on"':'')+'>'+n+'</button>').join('')+'</div></div>';
+    }
     h+='<div class="mprow"><span class="mplbl">Label</span><div class="mpseg" id="mp_lp">'+
        ['top','left','bottom','right'].map(d=>'<button data-lp="'+d+'" title="Label en '+({top:'haut',left:'gauche',bottom:'bas',right:'droite'}[d])+'"'+((o.lp||'bottom')===d?' class="on"':'')+'>'+({top:'↑',left:'←',bottom:'↓',right:'→'}[d])+'</button>').join('')+'</div></div>';
     h+='<div class="mprow"><label class="mpchk"><input type="checkbox" id="mp_hl"'+(o.hl?' checked':'')+'> Masquer le label</label></div>';
@@ -1148,7 +1168,20 @@ body::before{
       mapPanel.node=g;
       const sw=document.getElementById('mp_el');S.EL_KEYS.forEach(k=>{const b=document.createElement('div');b.className='sw'+(o.el===k?' on':'');b.style.background=elc(k);b.title=k;
         b.addEventListener('click',()=>{o.el=k;recolor(o);const t=document.querySelector('#mappanel .mptitle');if(t)t.style.setProperty('--dot',elc(k));[...sw.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');});sw.appendChild(b);});
-      if(kind==='pack'){const qi=document.getElementById('mp_q');if(qi)qi.addEventListener('input',()=>{o.q=qi.value;relabel(o);positionMapPanel();});}
+      if(kind==='boss'){const ni=document.getElementById('mp_n'),wn=document.getElementById('mp_nwarn');
+        const checkN=()=>{if(!wn)return;const f=FL[curIdx];const dup=(f.bosses||[]).some(b=>b!==o&&b.n===o.n);
+          const orphan=!phaseExists(o.n);
+          wn.classList.toggle('on',dup||orphan);
+          wn.innerHTML=dup?('⚠ le n° '+o.n+' est déjà pris par un autre boss de cet étage.')
+            :(orphan?('⚠ aucune phase n°'+o.n+' dans data.js : le boss s’affichera sur la carte mais sans strat ni onglet.'):'');};
+        if(ni)ni.addEventListener('input',()=>{const v=parseInt(ni.value,10);if(isNaN(v)||v<1)return;o.n=v;
+          if(o._mk){const t=o._mk.findOne('Text');if(t){t.text(String(v));draw();}}
+          checkN();commitSoon();});
+        checkN();}
+      if(kind==='pack'){const qi=document.getElementById('mp_q');if(qi)qi.addEventListener('input',()=>{o.q=qi.value;relabel(o);positionMapPanel();});
+        document.querySelectorAll('#mp_ph button[data-ph]').forEach(btn=>btn.addEventListener('click',()=>{
+          o.ph=+btn.dataset.ph;lastPh=o.ph;   // mémorisé : poser une série de packs pour la même phase
+          document.querySelectorAll('#mp_ph button[data-ph]').forEach(x=>x.classList.remove('on'));btn.classList.add('on');commitSoon();}));}
       document.querySelectorAll('#mp_lp button[data-lp]').forEach(btn=>btn.addEventListener('click',()=>{o.lp=btn.dataset.lp;placeLabel(pinNode(o));draw();document.querySelectorAll('#mp_lp button[data-lp]').forEach(x=>x.classList.remove('on'));btn.classList.add('on');commitSoon();}));
       const hi=document.getElementById('mp_hl');if(hi)hi.addEventListener('change',()=>{if(hi.checked)o.hl=1;else delete o.hl;relabel(o);});
       document.getElementById('mp_edlbl').addEventListener('click',()=>editLabelOnMap(o));
