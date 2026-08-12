@@ -394,8 +394,12 @@ function effectiveFloor(f){
   const zoneMap=!!z.map; // carte propre à la zone (sous-sol) vs carte entière filtrée (étage haut)
   const showWhole = !zoneMap && !route; // ni carte-zone ni tronçon d'étape → chemin complet
   return {id:f.id, map:z.map||f.map,
-    // les annotations sont posées sur la carte entière → seulement quand on l'affiche en entier
-    texts: showWhole ? (f.texts||[]) : [],
+    // Les annotations sont posées sur la carte ENTIÈRE de l'étage : elles restent donc valables
+    // sur tous les onglets qui affichent cette même carte (rez-de-chaussée), et sont masquées
+    // seulement quand la zone a sa propre carte (sous-sol), où leurs coordonnées ne veulent
+    // plus rien dire. Avant, `showWhole` les cachait aussi dès qu'un tronçon existait, donc
+    // elles n'apparaissaient QUE sur l'onglet « Tous » — l'outil Texte était invisible partout ailleurs.
+    texts: zoneMap ? [] : (f.texts||[]),
     // avec un tronçon d'étape (routes) on n'affiche QUE ce tronçon ; le "S" seulement sur l'étape 1
     points: showWhole ? (f.points||'') : '',
     start: showWhole ? (f.start||null) : (route && z.n===1 ? (f.start||null) : null),
