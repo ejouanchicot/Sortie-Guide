@@ -417,6 +417,20 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 #mapedit,#mappanel{pointer-events:none}
 #mapedit .mecard,#mappanel .mecard{pointer-events:auto}
 
+/* ═══════════ Poignee de deplacement des boites flottantes ═══════════
+   La carte de reglages et la barre d'armement se posent sur la carte : il faut pouvoir les
+   ecarter du chemin. La poignee deplace LA BOITE (pas l'objet, contrairement a celle du texte),
+   et l'ecart choisi est conserve. Double-clic dessus = retour a la position d'origine. */
+.boxgrip{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin:-2px 1px -2px -3px;
+  padding:0;border:0;border-radius:6px;background:none;color:var(--dim);cursor:grab;touch-action:none;transition:.14s var(--ease)}
+.boxgrip:hover{color:#fff;background:rgba(150,180,225,.12)}
+.boxgrip.grabbing{cursor:grabbing;color:var(--cyan);background:color-mix(in srgb,var(--cyan) 16%,transparent)}
+.boxgrip svg{width:14px;height:14px;pointer-events:none}
+/* deplacee : la fleche qui pointait l'objet n'a plus de sens */
+#mappanel.moved .mecard::after{display:none}
+#mappanel.moved .mecard{box-shadow:0 26px 60px -16px rgba(0,0,0,.8),var(--hi),0 0 0 1px color-mix(in srgb,var(--cyan) 22%,transparent)}
+#armbar.moved{left:0;top:0;transform:none;width:min(560px,92%)}
+
 /* ═══════════ Carte flottante du trace ═══════════ */
 #mappanel .mprange{flex:1;min-width:96px;accent-color:var(--cyan);cursor:pointer}
 #mappanel .mpval{font-family:var(--mono);font-size:10px;color:var(--tx2);min-width:34px;text-align:right}

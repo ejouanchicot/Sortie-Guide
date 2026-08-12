@@ -227,7 +227,8 @@
   function openArmBar(){const w=ensureArmEl();
     if(w.classList.contains('on')){renderArmGrid();return;}   // déjà ouverte : ne pas casser la frappe en cours
     const cats=[['boss','Boss'],['mid','Midboss'],['pack','Pack']];
-    w.innerHTML='<div class="arcard"><div class="arhead"><span class="artitle">'+MOBPIN_SVG+'Poser un marqueur</span>'+
+    w.innerHTML='<div class="arcard"><div class="arhead">'+GRIPBTN('Glisser pour déplacer la barre · double-clic pour la recentrer')+
+      '<span class="artitle">'+MOBPIN_SVG+'Poser un marqueur</span>'+
       '<div class="arseg" id="ar_cat">'+cats.map(c=>'<button type="button" data-pc="'+c[0]+'"'+(palCat===c[0]?' class="on"':'')+'>'+c[1]+'</button>').join('')+'</div>'+
       '<input class="arsearch" id="ar_q" placeholder="chercher une créature…" value="'+esc(armSearch)+'">'+
       '<button type="button" class="arclose" id="ar_x" title="Fermer (revenir en Sélection)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
@@ -244,7 +245,23 @@
     qi.addEventListener('keydown',e=>{if(e.key!=='Escape')return;e.preventDefault();e.stopPropagation();
       if(armSearch){armSearch='';qi.value='';renderArmGrid();}else pick('select');});
     document.getElementById('ar_x').addEventListener('click',()=>pick('select'));
+    // la barre n'a pas d'objet auquel s'ancrer : on la déplace elle, en pixels du cadre de la carte
+    const g=w.querySelector('.boxgrip');
+    wireBoxDrag(g,()=>{const r=w.getBoundingClientRect(),wr=stageWrap.getBoundingClientRect();
+        return {x:r.left-wr.left,y:r.top-wr.top};},
+      (base,dx,dy)=>placeArmBar(base.x+dx,base.y+dy));
+    g.addEventListener('dblclick',e=>{e.preventDefault();armPos=null;placeArmBar();});
+    placeArmBar();
     renderArmGrid();qi.focus();}
+  // position libre de la barre (null = centrée en haut, son comportement par défaut)
+  let armPos=null;
+  function placeArmBar(x,y){const w=document.getElementById('armbar');if(!w)return;
+    if(x!=null)armPos={x:x,y:y};
+    if(!armPos){w.classList.remove('moved');w.style.left='';w.style.top='';return;}
+    const wr=stageWrap.getBoundingClientRect(),bw=w.offsetWidth,bh=w.offsetHeight;
+    const cx=Math.max(6,Math.min(armPos.x,wr.width-bw-6));      // bornée dans le cadre de la carte
+    const cy=Math.max(6,Math.min(armPos.y,wr.height-bh-6));
+    w.classList.add('moved');w.style.left=cx+'px';w.style.top=cy+'px';}
   function renderArmGrid(){const w=document.getElementById('armbar');if(!w||!w.classList.contains('on'))return;
     const grid=document.getElementById('ar_grid'),MOBimg=MOBOF(),names=armRoster();
     grid.style.display=names.length?'':'none';
@@ -543,17 +560,46 @@
   function placeCaretEnd(el){const r=document.createRange();r.selectNodeContents(el);r.collapse(false);const s=window.getSelection();s.removeAllRanges();s.addRange(r);}
   // ancre le popover au texte + le garde dans les bords (bascule au-dessus/dessous, décalage horizontal)
   // positionne un popover flottant (édition texte OU carte de propriétés) : ancre + bascule dessus/dessous + clamp horizontal
-  function positionFloat(w,anchorFn){const s=stage.scaleX(),a=anchorFn();
-    const sx=stage.x()+a.x*s, sy=stage.y()+a.y*s, card=w.firstElementChild;
+  //   off = écart choisi à la poignée. Tant qu'il est nul, la boîte est collée à son objet et
+  //   bascule dessus/dessous selon la place. Dès qu'on l'a déplacée, elle garde cet écart (donc
+  //   elle suit toujours l'objet au zoom et au pan), on fige la bascule pour qu'elle ne saute pas
+  //   en plein glisser, on la borne dans le cadre, et la flèche qui pointait l'objet disparaît.
+  function positionFloat(w,anchorFn,off){const s=stage.scaleX(),a=anchorFn();
+    const dx=(off&&off.x)||0, dy=(off&&off.y)||0, bouge=!!(dx||dy);
+    const sx=stage.x()+a.x*s+dx, sy=stage.y()+a.y*s+dy, card=w.firstElementChild;
     w.style.left=sx+'px';w.style.top=sy+'px';if(!card)return;const wr=stageWrap.getBoundingClientRect();
+    w.classList.toggle('moved',bouge);
+    if(bouge){
+      w.classList.remove('below');card.style.transform='translate(-50%,-100%)';
+      const r=card.getBoundingClientRect();let mx=0,my=0;
+      if(r.left<wr.left+6)mx=(wr.left+6)-r.left;else if(r.right>wr.right-6)mx=(wr.right-6)-r.right;
+      if(r.top<wr.top+6)my=(wr.top+6)-r.top;else if(r.bottom>wr.bottom-6)my=(wr.bottom-6)-r.bottom;
+      if(mx||my)card.style.transform='translate(calc(-50% + '+mx+'px),calc(-100% + '+my+'px))';
+      return;}
     w.classList.remove('below');if(card.getBoundingClientRect().top<wr.top+6)w.classList.add('below');
     card.style.transform=w.classList.contains('below')?'translate(-50%,0)':'translate(-50%,-100%)';
     const r=card.getBoundingClientRect();let sh=0;
     if(r.left<wr.left+6)sh=(wr.left+6)-r.left;else if(r.right>wr.right-6)sh=(wr.right-6)-r.right;
     if(sh){card.style.transform='translate(calc(-50% + '+sh+'px),'+(w.classList.contains('below')?'0':'-100%')+')';
       card.style.setProperty('--arrow','calc(50% - '+sh+'px)');}else card.style.setProperty('--arrow','50%');}
+  // écart de la carte de propriétés : conservé d'un objet à l'autre — une fois écartée du chemin,
+  // elle doit le rester pour le marqueur suivant, sinon on la repousse à chaque pose.
+  let panelOff={x:0,y:0};
   function positionMapEdit(){if(!mapEd)return;positionFloat(mapEd.wrap,mapEd.cfg.anchor);}
-  function positionMapPanel(){if(!mapPanel)return;positionFloat(mapPanel.wrap,mapPanel.anchor);}
+  function positionMapPanel(){if(!mapPanel)return;positionFloat(mapPanel.wrap,mapPanel.anchor,panelOff);}
+  /* ---- glisser une boîte flottante par sa poignée ---- */
+  const GRIPBTN=t=>'<button type="button" class="boxgrip" title="'+t+'">'+GRIP_SVG+'</button>';
+  // suit le pointeur et rend le déplacement cumulé depuis le début du glisser
+  function wireBoxDrag(poignee,debut,pendant,fin){if(!poignee)return;
+    poignee.addEventListener('pointerdown',e=>{if(e.button!==0)return;
+      e.preventDefault();e.stopPropagation();
+      const sx=e.clientX,sy=e.clientY,base=debut();
+      try{poignee.setPointerCapture(e.pointerId);}catch(_){}
+      poignee.classList.add('grabbing');
+      const mv=ev=>pendant(base,ev.clientX-sx,ev.clientY-sy);
+      const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);
+        poignee.classList.remove('grabbing');if(fin)fin();};
+      document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});}
   // poignée : glisser déplace le texte (annotations : o.x/o.y libres)
   function wireGrip(grip){if(!grip)return;
     grip.addEventListener('pointerdown',e=>{e.preventDefault();if(!mapEd)return;const o=mapEd.cfg.o,sx=e.clientX,sy=e.clientY,ox=o.x,oy=o.y,sc=stage.scaleX();
@@ -618,7 +664,13 @@
   /* ---- Carte flottante de propriétés (marqueurs) : même ergonomie que l'édition de texte ---- */
   function closeMapPanel(){if(!mapPanel)return;const w=mapPanel.wrap;mapPanel=null;w.classList.remove('on','below');w.innerHTML='';}
   function openMapPanel(o,anchorFn,html,wire){closeMapPanel();const w=ensurePanelEl();mapPanel={wrap:w,anchor:anchorFn,o:o};
-    w.innerHTML='<div class="mecard">'+html+'</div>';w.classList.add('on');positionMapPanel();if(wire)wire(w);}
+    w.innerHTML='<div class="mecard">'+html+'</div>';w.classList.add('on');positionMapPanel();if(wire)wire(w);
+    // poignée de déplacement, posée dans le titre de la carte quel qu'en soit le contenu
+    const ttl=w.querySelector('.mptitle');
+    if(ttl){ttl.insertAdjacentHTML('afterbegin',GRIPBTN('Glisser pour déplacer cette carte · double-clic pour la remettre en place'));
+      const g=ttl.querySelector('.boxgrip');
+      wireBoxDrag(g,()=>({x:panelOff.x,y:panelOff.y}),(base,dx,dy)=>{panelOff={x:base.x+dx,y:base.y+dy};positionMapPanel();});
+      g.addEventListener('dblclick',e=>{e.preventDefault();panelOff={x:0,y:0};positionMapPanel();});}}
   const TRASH_SVG='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7v13a1 1 0 001 1h10a1 1 0 001-1V7M10 11v6M14 11v6"/></svg>';
   const PENCIL_SVG='<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
   const RESET_SVG='<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>';
