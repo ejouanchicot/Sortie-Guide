@@ -819,6 +819,9 @@
     return out;}
   async function save(){
     if(!window.showOpenFilePicker){toast('Utilise Chrome ou Edge pour l’enregistrement direct.','err');return;}
+    // un commitSoon() en vol relèverait le témoin JUSTE APRÈS l'enregistrement (il appelle commit,
+    // qui marque modifié) : on le vide d'abord, sinon on se retrouve « modifié » à peine sauvegardé.
+    clearTimeout(histTimer);commit();
     try{const h=(await getHandle())||await pickFile();if(!(await verifyPerm(h))){toast('Permission refusée.','err');return;}
       let text=await(await h.getFile()).text();
       for(const blk of blocksToSave()){const re=blk.scalar?new RegExp('const '+blk.name+'\\s*=\\s*[^;]*;'):new RegExp('const '+blk.name+'\\s*=\\s*\\[[\\s\\S]*?\\];');
@@ -967,6 +970,9 @@
     if(!FL.length){loadmsg.textContent='data.js introuvable ou vide.';return;}
     initStage();getHandle().then(h=>{if(h)setFname(h.name);});renderFloor(0);resetHistory();setDirty(false);}
   // dernier filet : fermer l'onglet avec du travail en mémoire
-  window.addEventListener('beforeunload',e=>{if(!dirty)return;e.preventDefault();e.returnValue='';});
+  // Pas de garde beforeunload : le dialogue de fermeture est IMPOSÉ par le navigateur, aucune page
+  // ne peut le remplacer par sa propre modale. Et en Live Server, enregistrer fait recharger la page,
+  // donc il se déclenchait à chaque sauvegarde. Le témoin « non enregistré » et la confirmation sur
+  // Recharger suffisent. (Pour le remettre : window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}}))
   if(document.readyState!=='loading')boot();else window.addEventListener('DOMContentLoaded',boot);
 })();
