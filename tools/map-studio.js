@@ -227,7 +227,7 @@
   function openArmBar(){const w=ensureArmEl();
     if(w.classList.contains('on')){renderArmGrid();return;}   // déjà ouverte : ne pas casser la frappe en cours
     const cats=[['boss','Boss'],['mid','Midboss'],['pack','Pack']];
-    w.innerHTML='<div class="arcard"><div class="arhead">'+GRIPBTN('Glisser pour déplacer la barre · double-clic pour la recentrer')+
+    w.innerHTML='<div class="arcard"><div class="arhead" title="Glisser pour déplacer la barre · double-clic pour la recentrer">'+
       '<span class="artitle">'+MOBPIN_SVG+'Poser un marqueur</span>'+
       '<div class="arseg" id="ar_cat">'+cats.map(c=>'<button type="button" data-pc="'+c[0]+'"'+(palCat===c[0]?' class="on"':'')+'>'+c[1]+'</button>').join('')+'</div>'+
       '<input class="arsearch" id="ar_q" placeholder="chercher une créature…" value="'+esc(armSearch)+'">'+
@@ -246,11 +246,11 @@
       if(armSearch){armSearch='';qi.value='';renderArmGrid();}else pick('select');});
     document.getElementById('ar_x').addEventListener('click',()=>pick('select'));
     // la barre n'a pas d'objet auquel s'ancrer : on la déplace elle, en pixels du cadre de la carte
-    const g=w.querySelector('.boxgrip');
-    wireBoxDrag(g,()=>{const r=w.getBoundingClientRect(),wr=stageWrap.getBoundingClientRect();
+    const tete=w.querySelector('.arhead');
+    wireBoxDrag(tete,()=>{const r=w.getBoundingClientRect(),wr=stageWrap.getBoundingClientRect();
         return {x:r.left-wr.left,y:r.top-wr.top};},
       (base,dx,dy)=>placeArmBar(base.x+dx,base.y+dy));
-    g.addEventListener('dblclick',e=>{e.preventDefault();armPos=null;placeArmBar();});
+    tete.addEventListener('dblclick',e=>{if(e.target.closest(CMD))return;e.preventDefault();armPos=null;placeArmBar();});
     placeArmBar();
     renderArmGrid();qi.focus();}
   // position libre de la barre (null = centrée en haut, son comportement par défaut)
@@ -587,18 +587,21 @@
   let panelOff={x:0,y:0};
   function positionMapEdit(){if(!mapEd)return;positionFloat(mapEd.wrap,mapEd.cfg.anchor);}
   function positionMapPanel(){if(!mapPanel)return;positionFloat(mapPanel.wrap,mapPanel.anchor,panelOff);}
-  /* ---- glisser une boîte flottante par sa poignée ---- */
-  const GRIPBTN=t=>'<button type="button" class="boxgrip" title="'+t+'">'+GRIP_SVG+'</button>';
-  // suit le pointeur et rend le déplacement cumulé depuis le début du glisser
-  function wireBoxDrag(poignee,debut,pendant,fin){if(!poignee)return;
-    poignee.addEventListener('pointerdown',e=>{if(e.button!==0)return;
+  /* ---- glisser une boîte flottante par sa barre de titre (comme une fenêtre) ---- */
+  // Toute la zone haute déplace la boîte, sauf les commandes qu'elle contient (segments,
+  // recherche, fermeture) : sur celles-là on laisse l'événement suivre son cours, sans quoi
+  // le champ de recherche ne prendrait plus le focus.
+  const CMD='button,input,select,textarea,label,.sw,a';
+  function wireBoxDrag(barre,debut,pendant,fin){if(!barre)return;
+    barre.classList.add('boxdrag');
+    barre.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest(CMD))return;
       e.preventDefault();e.stopPropagation();
       const sx=e.clientX,sy=e.clientY,base=debut();
-      try{poignee.setPointerCapture(e.pointerId);}catch(_){}
-      poignee.classList.add('grabbing');
+      try{barre.setPointerCapture(e.pointerId);}catch(_){}
+      barre.classList.add('grabbing');
       const mv=ev=>pendant(base,ev.clientX-sx,ev.clientY-sy);
       const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);
-        poignee.classList.remove('grabbing');if(fin)fin();};
+        barre.classList.remove('grabbing');if(fin)fin();};
       document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});}
   // poignée : glisser déplace le texte (annotations : o.x/o.y libres)
   function wireGrip(grip){if(!grip)return;
@@ -665,12 +668,11 @@
   function closeMapPanel(){if(!mapPanel)return;const w=mapPanel.wrap;mapPanel=null;w.classList.remove('on','below');w.innerHTML='';}
   function openMapPanel(o,anchorFn,html,wire){closeMapPanel();const w=ensurePanelEl();mapPanel={wrap:w,anchor:anchorFn,o:o};
     w.innerHTML='<div class="mecard">'+html+'</div>';w.classList.add('on');positionMapPanel();if(wire)wire(w);
-    // poignée de déplacement, posée dans le titre de la carte quel qu'en soit le contenu
+    // la barre de titre déplace la carte, quel qu'en soit le contenu
     const ttl=w.querySelector('.mptitle');
-    if(ttl){ttl.insertAdjacentHTML('afterbegin',GRIPBTN('Glisser pour déplacer cette carte · double-clic pour la remettre en place'));
-      const g=ttl.querySelector('.boxgrip');
-      wireBoxDrag(g,()=>({x:panelOff.x,y:panelOff.y}),(base,dx,dy)=>{panelOff={x:base.x+dx,y:base.y+dy};positionMapPanel();});
-      g.addEventListener('dblclick',e=>{e.preventDefault();panelOff={x:0,y:0};positionMapPanel();});}}
+    if(ttl){ttl.title='Glisser pour déplacer cette carte · double-clic pour la remettre en place';
+      wireBoxDrag(ttl,()=>({x:panelOff.x,y:panelOff.y}),(base,dx,dy)=>{panelOff={x:base.x+dx,y:base.y+dy};positionMapPanel();});
+      ttl.addEventListener('dblclick',e=>{if(e.target.closest(CMD))return;e.preventDefault();panelOff={x:0,y:0};positionMapPanel();});}}
   const TRASH_SVG='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7v13a1 1 0 001 1h10a1 1 0 001-1V7M10 11v6M14 11v6"/></svg>';
   const PENCIL_SVG='<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
   const RESET_SVG='<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>';

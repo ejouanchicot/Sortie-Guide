@@ -417,15 +417,16 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 #mapedit,#mappanel{pointer-events:none}
 #mapedit .mecard,#mappanel .mecard{pointer-events:auto}
 
-/* ═══════════ Poignee de deplacement des boites flottantes ═══════════
+/* ═══════════ Barre de titre : deplacer la boite comme une fenetre ═══════════
    La carte de reglages et la barre d'armement se posent sur la carte : il faut pouvoir les
-   ecarter du chemin. La poignee deplace LA BOITE (pas l'objet, contrairement a celle du texte),
-   et l'ecart choisi est conserve. Double-clic dessus = retour a la position d'origine. */
-.boxgrip{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin:-2px 1px -2px -3px;
-  padding:0;border:0;border-radius:6px;background:none;color:var(--dim);cursor:grab;touch-action:none;transition:.14s var(--ease)}
-.boxgrip:hover{color:#fff;background:rgba(150,180,225,.12)}
-.boxgrip.grabbing{cursor:grabbing;color:var(--cyan);background:color-mix(in srgb,var(--cyan) 16%,transparent)}
-.boxgrip svg{width:14px;height:14px;pointer-events:none}
+   ecarter du chemin. Toute la zone haute deplace LA BOITE (pas l'objet, contrairement a la
+   poignee du popover de texte). Double-clic dessus = retour a la position d'origine.
+   Les commandes qu'elle contient (segments, recherche, fermeture) gardent leur comportement. */
+/* padding + marge negative de meme valeur : la zone cliquable deborde sans decaler la mise en page,
+   et le 6px du bas restitue l'ecart d'origine (9px) une fois le padding compte */
+.boxdrag{cursor:grab;touch-action:none;border-radius:8px;margin:-3px -4px 6px;padding:3px 4px;transition:background .14s var(--ease)}
+.boxdrag:hover{background:rgba(150,180,225,.07)}
+.boxdrag.grabbing{cursor:grabbing;background:color-mix(in srgb,var(--cyan) 12%,transparent)}
 /* deplacee : la fleche qui pointait l'objet n'a plus de sens */
 #mappanel.moved .mecard::after{display:none}
 #mappanel.moved .mecard{box-shadow:0 26px 60px -16px rgba(0,0,0,.8),var(--hi),0 0 0 1px color-mix(in srgb,var(--cyan) 22%,transparent)}
