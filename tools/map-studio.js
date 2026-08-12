@@ -49,7 +49,7 @@
     const base=(top?PACK_TOP:PACK_BOT).filter(n=>MOBimg[n]);
     const generic=Object.keys(MOBimg).filter(n=>!NAMED.has(n)); // filet : image non classée → visible partout plutôt qu'invisible
     return base.concat(generic);}
-  const pinSize=k=>k==='boss'?.135:(k==='mid'?.07:.095);
+  const pinSize=S.poiSize;                        // tailles des marqueurs : socle partagé
 
   const imgCache={};
   function loadImg(src){return new Promise(res=>{if(imgCache[src])return res(imgCache[src]);const im=new Image();im.onload=()=>{imgCache[src]=im;res(im);};im.onerror=()=>res(null);im.src=src;});}
@@ -116,8 +116,8 @@
     if(f.start)gPins.add(startMarker(f.start));
 
     const MOBimg=(typeof MOB!=='undefined')?MOB:{};
-    const jobs=[];(f.packs||[]).forEach(o=>jobs.push({kind:'pack',o,size:.095}));(f.mids||[]).forEach(o=>jobs.push({kind:'mid',o,size:.07}));(f.bosses||[]).forEach(o=>jobs.push({kind:'boss',o,size:.135}));
-    for(const j of jobs){await addPin(j.kind,j.o,j.size,MOBimg);}
+    const jobs=[];(f.packs||[]).forEach(o=>jobs.push({kind:'pack',o}));(f.mids||[]).forEach(o=>jobs.push({kind:'mid',o}));(f.bosses||[]).forEach(o=>jobs.push({kind:'boss',o}));
+    for(const j of jobs){await addPin(j.kind,j.o,pinSize(j.kind),MOBimg);}
     (f.texts||[]).forEach(o=>addText(o));
 
     applyVis();
@@ -173,7 +173,7 @@
       row.rr.nodes.forEach(t=>{t.position({x:cx,y:pad+i*lh+(lh-fs)/2});l.add(t);l._runs.push(t);cx+=t._w;});});
     const bw=w+pad*2,bh=totalH+pad*2;l._bg.width(bw);l._bg.height(bh);l._w=bw;l._h=bh;l._bg.moveToBottom();}
   // place le label autour de l'image selon o.lp (top/bottom/left/right) avec la marge globale
-  function placeLabel(g){const lbl=g._lbl;if(!lbl)return;const w=lbl._w||lbl.width(),h=lbl._h||lbl.height(),iw=g._iw||30,ih=g._ih||30,m=labelMargin*1.6+4,lp=(g._meta.o.lp||'bottom');
+  function placeLabel(g){const lbl=g._lbl;if(!lbl)return;const w=lbl._w||lbl.width(),h=lbl._h||lbl.height(),iw=g._iw||30,ih=g._ih||30,m=S.labelGap(labelMargin),lp=(g._meta.o.lp||'bottom');
     if(lp==='top'){lbl.position({x:0,y:-(ih/2+m)});lbl.offset({x:w/2,y:h});}
     else if(lp==='left'){lbl.position({x:-(iw/2+m),y:0});lbl.offset({x:w,y:h/2});}
     else if(lp==='right'){lbl.position({x:iw/2+m,y:0});lbl.offset({x:0,y:h/2});}

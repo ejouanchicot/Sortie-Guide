@@ -311,14 +311,14 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .poi{position:absolute;transform:translate(-50%,-50%);z-index:2}
 .poi img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;background:transparent!important;cursor:default;animation:poipulse 1.9s ease-in-out infinite;filter:drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 5px var(--pc))}
 @keyframes poipulse{0%,100%{filter:drop-shadow(0 0 1px var(--pc)) drop-shadow(0 0 3px var(--pc))}50%{filter:drop-shadow(0 0 3px var(--pc)) drop-shadow(0 0 10px var(--pc))}}
-.poi.boss{width:calc(13.5% * var(--mobscale,1));aspect-ratio:1}
+.poi.boss{width:calc(var(--poi-boss,13.5%) * var(--mobscale,1));aspect-ratio:1}
 .poi.boss img{animation:bossflash 1.35s ease-in-out infinite;animation-delay:var(--ad,0s)}
 @keyframes bossflash{0%,100%{filter:drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 6px var(--pc))}50%{filter:drop-shadow(0 0 3px var(--pc2)) drop-shadow(0 0 13px var(--pc2))}}
 .poi.boss .plabel{animation:lblflash 1.35s ease-in-out infinite;animation-delay:var(--ad,0s)}
 @keyframes lblflash{0%,100%{border-color:var(--pc);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 5px var(--pc)}50%{border-color:var(--pc2);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 11px var(--pc2)}}
-.poi.pack{width:calc(9.5% * var(--mobscale,1));aspect-ratio:1}
+.poi.pack{width:calc(var(--poi-pack,9.5%) * var(--mobscale,1));aspect-ratio:1}
 /* midboss (NM mineur) : roame aléatoirement → petit, dérive douce, cercle pointillé */
-.poi.mid{width:calc(7% * var(--mobscale,1));aspect-ratio:1;z-index:1;opacity:.7;animation:midwander 11s linear infinite}
+.poi.mid{width:calc(var(--poi-mid,7%) * var(--mobscale,1));aspect-ratio:1;z-index:1;opacity:.7;animation:midwander 11s linear infinite}
 /* déplacement circulaire doux et discret (rayon ~11% de la pastille), vitesse constante */
 @keyframes midwander{
   0%   {transform:translate(-39%,-50%)}

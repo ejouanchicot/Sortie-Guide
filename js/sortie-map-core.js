@@ -28,6 +28,16 @@
   var GRAY = '#a6b2c2';
   function elHex(el){ return EL_HEX[el] || GRAY; }
 
+  // ---- géométrie des marqueurs (modèle, pas rendu) ----
+  // Taille d'un marqueur en FRACTION de la carte. Ces trois nombres étaient recopiés à trois
+  // endroits — pinSize() et renderFloor() dans map-studio, .poi.* dans le CSS du guide — et
+  // rien ne garantissait qu'ils restent d'accord. Le CSS les reçoit via des variables posées
+  // par app.js, en gardant les valeurs littérales en repli.
+  var POI_SIZE = {boss:0.135, mid:0.07, pack:0.095};
+  function poiSize(kind){ return POI_SIZE[kind] != null ? POI_SIZE[kind] : POI_SIZE.pack; }
+  // Écart entre l'icône et son label, en pixels d'une carte de 1024 (LBLMARGIN vient de data.js).
+  function labelGap(m){ return (m == null ? 0 : m) * 1.6 + 4; }
+
   // ---- nombres ----
   function r1(v){ return Math.round(v*10)/10; }            // arrondi 1 décimale (coordonnées %)
   function clamp(v,lo,hi){ lo=(lo==null?0:lo); hi=(hi==null?100:hi); return Math.max(lo,Math.min(hi,v)); }
@@ -200,6 +210,7 @@
   global.SORTIE = {
     EL_KEYS:EL_KEYS, EL_HEX:EL_HEX, EL_VAR:EL_VAR, EL_ZC2:EL_ZC2,
     elHex:elHex,
+    POI_SIZE:POI_SIZE, poiSize:poiSize, labelGap:labelGap,
     r1:r1, clamp:clamp,
     parsePts:parsePts, ptsStr:ptsStr,
     segDist:segDist, projectOnSeg:projectOnSeg, midpoint:midpoint, axisLock:axisLock,

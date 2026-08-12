@@ -11,92 +11,7 @@ function jcol(j){return RCOL[ROLE[j]||"all"];}
 
 // ---- i18n FR / EN ----
 const LANG=(function(){try{var l=localStorage.getItem('sortie_lang');return l==='en'?'en':'fr';}catch(e){return 'fr';}})();
-const TR={
- "Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre":"At Start: wait for Mazurka (BRD) and/or Bolter's (COR) · do NOT go through the door until you have one or the other",
- "Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed":"At Start: wait for Mazurka (BRD), Bolter's (COR) and/or Chocobo Jig (DNC) · do NOT go through the door until you have move speed",
- "Bolter's (Tactician's déjà posé)":"Bolter's (Tactician's already up)",
- "Trajet · buffs de déplacement":"Route · movement buffs",
- "Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.":"From Start (center-left) · right wall, straight SOUTH → bottom-left corner.",
- "le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres":"PLD brings the Acuex to the Fomor camp, tanks everything · 3 Acuex + 3 Fomor → pop the chests",
- "Setup · au camp Fomor":"Setup · at the Fomor camp",
- "prend les Acuex → les amène au camp Fomor":"grab the Acuex → bring them to the Fomor camp",
- "tank tout (Acuex + Fomor)":"tank everything (Acuex + Fomor)",
- "on buff au camp Fomor · on farm les deux en même temps":"buff at the Fomor camp · farm both at once",
- "Acuex ×3 → SC mono-cible + MB Fire (×3 kills)":"Acuex ×3 → single-target SC + MB Fire (×3 kills)",
- "Savage Blade > Last Stand  (PLD+COR ou BRD+COR)":"Savage Blade > Last Stand  (PLD+COR or BRD+COR)",
- "MB Fire sur le SC":"MB Fire on the SC",
- "on spam pour tuer · le proc (mages) ne fait pas de dégât":"just spam to kill · the proc (mages) deals no damage",
- "Règle":"Rule",
- "NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…":"Do NOT close a Light SC if Degei is Fire / Wind / Thunder…",
- "NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…":"Do NOT close a Dark SC if Degei is Ice / Earth / Water…",
- "Setup : PLD fixe l'aggro · RDM pose Gravity II · GEO pose Geo-Gravity":"Setup: PLD holds hate · RDM applies Gravity II · GEO applies Geo-Gravity",
- "JA de Degei pendant le setup → le BRD proc si possible":"Degei JA during setup → BRD procs if possible",
- "RDM libre → BRD + RDM procent ensemble":"RDM free → BRD + RDM proc together",
- "1 proc suffit en général (2 max) · sous ~20 % pas la peine":"1 proc is usually enough (2 max) · below ~20% don't bother",
- "Procs · contre par (fait par les mages)":"Procs · countered by (done by the mages)",
- "kite en gérant la distance : rester à +30 yalm au max, plonger sous 30 juste pour build l'aggro / heal, puis ressortir.":"kite while managing distance: stay at +30 yalm as much as possible, dip under 30 only to build enmity / heal, then back out.",
- "+30 yalm = safe (pas de moves du boss)":"+30 yalm = safe (no boss moves)",
- "sous 30 yalm : build l'aggro (JA magie : Flash, Foil)":"under 30 yalm: build enmity (magic JA: Flash, Foil)",
- "heal la party à ~21 yalm":"heal the party at ~21 yalm",
- "COR et BRD déjà en place depuis le farm. Seul le GEO change sur le boss.":"COR and BRD already up from the farm. Only GEO changes on the boss.",
- "déjà OK si Acuex avant Fomor":"already OK if Acuex before Fomor",
- "set anti-slow":"anti-slow set",
- "DD · on spam":"DD · spam",
- "WS libres (spam)":"free WS (spam)",
- "spam Ruthless Stroke · le DNC ne peut pas proc":"spam Ruthless Stroke · DNC can't proc",
- "Switch Rudra's Storm si Degei est Fire / Wind / Thunder":"Switch to Rudra's Storm if Degei is Fire / Wind / Thunder",
- "Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).":"Right wall, straight EAST → bottom-right corner (Ghost ×3, then Skomora, cell N).",
- "tape (DPS)":"melee (DPS)",
- "SC Light à mort":"Light SC until dead",
- "tank sur place":"tank in place",
- "sans RDM : Honor + Minuet ×2 + Victory":"no RDM: Honor + Minuet ×2 + Victory",
- "Distract III · plus dur à land (Skomora est Darkness)":"Distract III · harder to land (Skomora is Darkness)",
- "Victory Smite ×2  (ou Victory → Shijin)":"Victory Smite ×2  (or Victory → Shijin)",
- "Mur de droite, plein NORD → coin haut-droite (Umbril ×5, puis Leshonn).":"Right wall, straight NORTH → top-right corner (Umbril ×5, then Leshonn).",
- "≥1 WS par mob · tous tués = lock ses TP moves":"≥1 WS per mob · all killed = locks its TP moves",
- "≥1 WS par mob (obligatoire)":"≥1 WS per mob (mandatory)",
- "DD · tout le monde tape":"DD · everyone hits",
- "≥1 WS par mob (obligatoire) · PLD, COR, RDM, BRD, MNK":"≥1 WS per mob (mandatory) · PLD, COR, RDM, BRD, MNK",
- "≥1 WS par mob (obligatoire) · DNC, COR, RDM, BRD, MNK":"≥1 WS per mob (mandatory) · DNC, COR, RDM, BRD, MNK",
- "kite le boss":"kite the boss",
- "Zap copie un debuff → pas de Paralyze":"Zap copies a debuff → no Paralyze",
- "Règles":"Rules",
- "JAMAIS son élément actif (SC/nuke) → il HEAL":"NEVER its active element (SC/nuke) → it HEALS",
- "proc opposé = retire ses stacks DT/dmg (+5%)":"opposite proc = removes its DT/dmg stacks (+5%)",
- "alterne SC > MB, varie la source (anti-résist)":"alternate SC > MB, vary the source (anti-resist)",
- "pas d'empilement (Counter 500+/hit)":"don't stack up (Counter 500+/hit)",
- "◈ Mains THUNDER → proc Earth":"◈ THUNDER active → proc Earth",
- "◈ Mains WIND → proc Ice":"◈ WIND active → proc Ice",
- "MB Earth sur le SC":"MB Earth on the SC",
- "MB Ice sur le SC":"MB Ice on the SC",
- "Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)":"Chokehold steals buffs = wipe → opposite proc / kill fast (Asylum if WHM)",
- "DD (varie la source)":"DD (vary the source)",
- "SC selon le mode":"SC depending on the mode",
- "Ghatjot (pas de farm)":"Ghatjot (no farm)",
- "Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.":"Right wall, straight WEST → top-left corner (Ghatjot). No farm.",
- "absorbe Water · porte verrouillée à l'engage":"absorbs Water · door locks on engage",
- "WS libres, évite Howling Fist > Savage (+ Chakra)":"free WS, avoid Howling Fist > Savage (+ Chakra)",
- "Ruthless Stroke (jamais Darkness)":"Ruthless Stroke (never Darkness)",
- "absorbe Water → boost ses TP moves":"absorbs Water → boosts its TP moves",
- "SEUL danger : Howling Fist > Savage Blade = Distortion → à éviter":"ONLY danger: Howling Fist > Savage Blade = Distortion → avoid",
- "Chakra retire le Taint (poison AoE)":"Chakra removes the Taint (AoE poison)",
- "Taint stack → augmente Clobbering Wave · Ra'Kaznar Metal A = Poison retirable":"Taint stacks → boosts Clobbering Wave · Ra'Kaznar Metal A = removable Poison",
- "kill avant que ça monte":"kill before it stacks up",
- "Vue d'ensemble du run":"Run overview",
- "cliquer sur la carte pour agrandir":"click the map to zoom",
- "Trajet":"Route",
- "Pack de mobs":"Mob pack",
- "Déplacement :":"Route:",
- "Tous":"All",
- "N'afficher que mon rôle":"Show only my role",
- "Carte à venir":"Map coming soon",
- "on la placera avec l'éditeur":"we'll place it with the editor",
- "SECTEUR":"SECTOR",
- "à venir":"coming soon",
- "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
- "Étage":"Floor",
- "À compléter en run":"To fill in during runs"
-};
+// TR (traductions) vit dans js/i18n.js — contenu, pas moteur
 function tr(s){ return (LANG==='en' && s!=null && TR[s]!==undefined) ? TR[s] : s; }
 
 // ---- colorisation des éléments dans le texte ----
@@ -171,8 +86,13 @@ const SB=window.SORTIE.BAND_SVG;
 try{var _ms=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1, _lm=(typeof LBLMARGIN!=='undefined'&&LBLMARGIN!=null)?LBLMARGIN:6;
     document.documentElement.style.setProperty('--mobscale',_ms);
     document.documentElement.style.setProperty('--lblmargin',_lm+'px');
-    // marge du label à l'échelle de la carte (comme l'éditeur : labelMargin*1.6+4 sur 1024px)
-    document.documentElement.style.setProperty('--ovlblm',(Math.round((_lm*1.6+4)/1024*1000)/10)+'cqw');}catch(e){}
+    // marge du label à l'échelle de la carte — même formule que l'éditeur, tenue par le socle
+    document.documentElement.style.setProperty('--ovlblm',(Math.round(window.SORTIE.labelGap(_lm)/1024*1000)/10)+'cqw');
+    // tailles des marqueurs : le CSS suit le socle au lieu de recopier 13.5 / 9.5 / 7
+    var _P=window.SORTIE.POI_SIZE, _pc=function(v){return (Math.round(v*10000)/100)+'%';};
+    document.documentElement.style.setProperty('--poi-boss',_pc(_P.boss));
+    document.documentElement.style.setProperty('--poi-pack',_pc(_P.pack));
+    document.documentElement.style.setProperty('--poi-mid',_pc(_P.mid));}catch(e){}
 // (SORTIE.pqHtml n'est plus utilisé ici : la quantité suit le nom en ligne, comme dans Map Studio)
 
 let curFloor=null;      // descripteur d'étage courant
