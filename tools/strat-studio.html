@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SORTIE · Strat Studio</title>
+<link rel="icon" type="image/webp" href="../img/map-studio-icon.webp">
+<link rel="preload" href="../fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../css/fonts.css">
+<!-- la feuille du guide : c'est elle qui donne à l'aperçu son rendu RÉEL -->
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="strat-studio.css">
+</head>
+<body>
+<div class="ss-app">
+
+  <div class="ss-top">
+    <div class="ss-brand"><img class="ss-logo" src="../img/map-studio-logo.webp" alt="" width="34" height="34"><span class="ss-wm">STRAT<b>STUDIO</b></span></div>
+    <span class="ss-div"></span>
+    <div class="ss-seg" id="ssFloor"><button type="button" data-i="0" class="on">Rez-de-chaussée</button><button type="button" data-i="1">Sous-sol</button></div>
+    <div class="ss-spacer"></div>
+    <span id="ssUnsaved" title="Des modifications ne sont pas encore écrites dans les fichiers">non enregistré</span>
+    <button class="ss-btn" id="ssReload" title="Relire data.js et i18n.js depuis le disque">Recharger</button>
+    <button class="ss-btn primary" id="ssSave" title="Écrire dans data.js et i18n.js (Ctrl+S)">Enregistrer</button>
+  </div>
+
+  <div class="ss-body">
+
+    <!-- ─── colonne 1 : arbre du run ─── -->
+    <aside class="ss-tree">
+      <div class="ss-ttl"><span class="dot"></span>Arbre du run<button class="ss-mini" id="ssAddPhase" title="Ajouter une phase">＋</button></div>
+      <div id="ssTree"></div>
+    </aside>
+
+    <!-- ─── colonne 2 : édition ─── -->
+    <section class="ss-edit">
+      <div class="ss-ttl"><span class="dot" id="ssEditDot"></span><span id="ssEditTtl">Édition</span></div>
+      <div id="ssEditBody"><p class="ss-empty">Choisis une phase, une carte ou un groupe dans l’arbre.</p></div>
+    </section>
+
+    <!-- ─── colonne 3 : aperçu réel + traductions ─── -->
+    <section class="ss-side">
+      <div class="ss-ttl"><span class="dot" style="background:var(--r-heal)"></span>Aperçu — rendu réel du guide</div>
+      <div class="ss-preview" id="ssPreview"></div>
+      <div class="ss-ttl" style="margin-top:18px"><span class="dot" style="background:var(--r-buff)"></span>Traductions EN<span class="ss-count" id="ssTrCount">0</span></div>
+      <div id="ssTr"></div>
+    </section>
+
+  </div>
+
+  <div class="ss-status">
+    <span id="ssStat">—</span>
+    <span class="ss-spacer"></span>
+    <span>Ctrl+S enregistrer · les lignes s’écrivent en texte, une par action</span>
+  </div>
+</div>
+
+<div id="ssToast"></div>
+<div id="ssModal" hidden>
+  <div class="ss-mcard" role="alertdialog" aria-modal="true">
+    <div class="ss-mttl" id="ssModalTtl">Confirmer</div>
+    <div class="ss-mmsg" id="ssModalMsg"></div>
+    <div class="ss-mact"><button class="ss-btn" id="ssModalNo" type="button">Annuler</button><button class="ss-btn danger" id="ssModalYes" type="button">Supprimer</button></div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/sortie-map-core.js"></script>
+<script src="../js/strat-render.js"></script>
+<script src="../js/strat-core.js"></script>
+<script src="strat-studio.js"></script>
+</body>
+</html>
