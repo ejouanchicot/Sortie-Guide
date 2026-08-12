@@ -329,7 +329,7 @@ const MIDS_TOP=[
  {name:'Obdella', el:'red', x:42.2,y:26.2, label:'<span style="color:#ff8f6a">Obdella</span>'},
  {name:'Porxie', el:'blue', x:69.1,y:27.9, label:'<span style="color:#5bd6ef">Porxie</span>'},
  {name:'Bhoot', el:'green', x:67.3,y:53.5, label:'<span style="color:#8affc0">Bhoot</span>'},
- {name:'Deleterious', el:'gray', x:41.1,y:53.1, label:'Deleterious'},
+ {name:'Deleterious', el:'gray', x:40.6,y:51.6, label:'Deleterious'},
 ];
 
 // ---- ÉTAGES (top / bottom) ----
