@@ -340,7 +340,8 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .poi.lp-left .plabel{top:50%;left:auto;right:100%;transform:translateY(-50%);margin:0 var(--lblmargin,4px) 0 0}
 .poi.lp-right .plabel{top:50%;left:100%;transform:translateY(-50%);margin:0 0 0 var(--lblmargin,4px)}
 .poi.pack .plabel{font-size:9.5px;padding:1px 6px}
-.poi .pq{display:block;text-align:center;font-weight:800;font-size:8.5px;color:var(--pc);text-shadow:0 1px 2px #000}
+/* quantité d'un pack : dans le flux du nom, sans style propre — même rendu que Map Studio */
+.poi .pq{display:inline;font:inherit;color:inherit;text-shadow:inherit}
 
 /* ===== Aperçu = reflet fidèle de Map Studio : pastilles & labels À L'ÉCHELLE DE LA CARTE =====
    cqw = 1% de la largeur de la carte ; mêmes ratios que l'éditeur sur sa carte 1024px
@@ -352,10 +353,6 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .ovmap .poi.lp-top .plabel{margin:0 0 var(--ovlblm,1.33cqw)}
 .ovmap .poi.lp-left .plabel{margin:0 var(--ovlblm,1.33cqw) 0 0}
 .ovmap .poi.lp-right .plabel{margin:0 0 0 var(--ovlblm,1.33cqw)}
-.ovmap .poi .pq{font-size:1.1cqw}
-.poi .pq.pqlist{display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.25}
-.poi .pq.pqlist b{color:#fff;font-size:9px}
-.poi .pq.pqlist span{color:var(--pc)}
 /* marqueur de destination boss — plat, façon carte : disque couleur, liseré crème, contour encre */
 .ovnum{position:absolute;transform:translate(-50%,-50%);z-index:4;width:4.2%;aspect-ratio:1;min-width:19px;min-height:19px;
   border-radius:50%;display:flex;align-items:center;justify-content:center;

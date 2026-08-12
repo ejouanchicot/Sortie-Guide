@@ -173,7 +173,7 @@ try{var _ms=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1, _lm=(typeof LB
     document.documentElement.style.setProperty('--lblmargin',_lm+'px');
     // marge du label à l'échelle de la carte (comme l'éditeur : labelMargin*1.6+4 sur 1024px)
     document.documentElement.style.setProperty('--ovlblm',(Math.round((_lm*1.6+4)/1024*1000)/10)+'cqw');}catch(e){}
-const pqHtml=window.SORTIE.pqHtml; // socle partagé (js/sortie-map-core.js)
+// (SORTIE.pqHtml n'est plus utilisé ici : la quantité suit le nom en ligne, comme dans Map Studio)
 
 let curFloor=null;      // descripteur d'étage courant
 let curBossN={};        // boss par n° pour l'étage courant
@@ -260,7 +260,10 @@ function poiLabel(o,withQ){
       return '<span style="display:block;'+sty+'">'+(ln.prefix?esc(ln.prefix):'')+window.SORTIE.runsToHtml(ln.runs)+'</span>';
     }).join('');
   } else { txt=esc(o.name); }
-  var q=(!custom && withQ && o.q)?pqHtml(o.q):'';
+  // Quantité rendue comme dans Map Studio (labelSource) : à la suite du nom, sur la même ligne,
+  // même graisse / taille / couleur, séparée par deux espaces. Avant, le guide en faisait un bloc
+  // séparé sous le nom, plus petit et coloré (pqHtml) — les deux vues ne se ressemblaient pas.
+  var q=(!custom && withQ && o.q)?'<span class="pq">&nbsp;&nbsp;'+esc(o.q)+'</span>':'';
   return '<span class="plabel">'+txt+q+'</span>';
 }
 function placePOIs(f){
