@@ -870,7 +870,10 @@ body::before{
   // rendu texte enrichi PAR LIGNE et PAR RUN (gras/ital/soul/barré/couleur inline)
   function relayoutText(g){const o=g._meta.o,bg=g._bg,hit=g._hit;
     const fs=Math.max(2,(o.s||1.5)/100*MAP),lh=fs*1.34;
-    const blockAl=S.textAlign(o),fam=S.textFont(o),outline=S.textOutline(o),defc=o.c||'#fff';
+    // « puce » = même objet texte, rendu en pastille ronde (comme le Numéro d'un boss) :
+    // disque de la couleur choisie, liseré crème, texte en blanc.
+    const pill=o.sh==='pill';
+    const blockAl=S.textAlign(o),fam=S.textFont(o),outline=S.textOutline(o),defc=pill?'#ffffff':(o.c||'#fff');
     (g._lines||[]).forEach(n=>n.destroy());g._lines=[];
     const parsed=S.parseRich(o);if(!parsed.length)parsed.push({list:null,prefix:'',runs:[{t:' '}]});
     const rows=parsed.map(ln=>{const segs=[];if(ln.prefix)segs.push({t:ln.prefix});(ln.runs||[]).forEach(r=>segs.push(r));
@@ -879,8 +882,14 @@ body::before{
     const totalH=rows.length*lh,y0=-totalH/2,dy=(lh-fs)/2;
     rows.forEach((row,i)=>{const al=row.al;let sx=-blockW/2;if(al==='c')sx=-row.rr.w/2;else if(al==='r')sx=blockW/2-row.rr.w;
       let cx=sx;row.rr.nodes.forEach(t=>{t.position({x:cx,y:y0+i*lh+dy});g.add(t);g._lines.push(t);cx+=t._w;});});
-    const padX=fs*0.55,padY=fs*0.34,bw=blockW+padX*2,bh=totalH+padY*2;
-    bg.width(bw);bg.height(bh);bg.offsetX(bw/2);bg.offsetY(bh/2);bg.cornerRadius(fs*0.28);bg.visible(!!o.bg);
+    const padX=fs*0.55,padY=fs*0.34;let bw=blockW+padX*2,bh=totalH+padY*2;
+    if(pill){const d=Math.max(bw,bh)+fs*0.25;bw=bh=d;}   // carré → cornerRadius = moitié = disque
+    bg.width(bw);bg.height(bh);bg.offsetX(bw/2);bg.offsetY(bh/2);
+    bg.cornerRadius(pill?bw/2:fs*0.28);
+    bg.fill(pill?(o.c||BK.FALLBACK):'rgba(9,13,18,.82)');
+    bg.stroke(pill?BK.CREAM:'rgba(246,234,208,.22)');
+    bg.strokeWidth(pill?Math.max(1,fs*0.13):1);
+    bg.visible(pill||!!o.bg);
     hit.width(bw);hit.height(bh);hit.offsetX(bw/2);hit.offsetY(bh/2);
     bg.moveToBottom();hit.moveToTop();}
   function addText(o){
@@ -1215,8 +1224,11 @@ body::before{
     const html='<div class="meblock">'+
       '<span class="melbl">Taille</span><input type="range" id="mped_s" min="1.2" max="8" step="0.1" value="'+sz+'"><span id="mped_sv" class="melbl" style="min-width:32px">'+sz+'%</span>'+
       '<div class="meseg" id="mped_font">'+[['mono','Mono'],['sans','Sans'],['serif','Serif']].map(f=>'<button data-f="'+f[0]+'"'+(((o.f)||'mono')===f[0]?' class="on"':'')+'>'+f[1]+'</button>').join('')+'</div>'+
+      // couleur du BLOC : couleur par défaut du texte, et couleur du disque en mode Puce
+      '<input type="color" id="mped_c" value="'+(o.c||'#ffffff')+'" title="Couleur du bloc (texte, ou disque de la puce)" style="width:34px;height:22px;padding:1px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:6px;cursor:pointer">'+
       '<label class="mechk"><input type="checkbox" id="mped_bg"'+(o.bg?' checked':'')+'> Fond</label>'+
       '<label class="mechk"><input type="checkbox" id="mped_ol"'+(S.textOutline(o)?' checked':'')+'> Contour</label>'+
+      '<label class="mechk" title="Pastille ronde de la couleur choisie, comme le numéro d’un boss"><input type="checkbox" id="mped_pill"'+(o.sh==='pill'?' checked':'')+'> Puce</label>'+
       '<button class="metrash" id="mped_del" title="Supprimer ce texte"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7v13a1 1 0 001 1h10a1 1 0 001-1V7M10 11v6M14 11v6"/></svg></button></div>';
     ed.insertAdjacentHTML('afterend',html);ed.style.fontFamily=S.textFont(o);
     const del=document.getElementById('mped_del');if(del)del.addEventListener('click',()=>{del.blur();askConfirm('Supprimer ce texte ? Il sera retiré de data.js au prochain enregistrement.',{title:'Supprimer le texte'}).then(v=>{if(!v)return;
@@ -1225,9 +1237,17 @@ body::before{
     const ss=document.getElementById('mped_s');ss.addEventListener('input',()=>{o.s=Math.round(parseFloat(ss.value)*10)/10;document.getElementById('mped_sv').textContent=o.s+'%';if(cfg.onInput)cfg.onInput();positionMapEdit();});
     document.querySelectorAll('#mped_font button[data-f]').forEach(b=>{b.addEventListener('mousedown',e=>e.preventDefault());
       b.addEventListener('click',()=>{if(b.dataset.f==='mono')delete o.f;else o.f=b.dataset.f;document.querySelectorAll('#mped_font button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ed.style.fontFamily=S.textFont(o);if(cfg.onInput)cfg.onInput();positionMapEdit();});});
-    const bg=document.getElementById('mped_bg'),ol=document.getElementById('mped_ol');
+    const bg=document.getElementById('mped_bg'),ol=document.getElementById('mped_ol'),pill=document.getElementById('mped_pill');
     bg.addEventListener('change',()=>{if(bg.checked)o.bg=1;else delete o.bg;if(o.ol==null)ol.checked=S.textOutline(o);if(cfg.onInput)cfg.onInput();});
-    ol.addEventListener('change',()=>{o.ol=ol.checked?1:0;if(cfg.onInput)cfg.onInput();});}
+    ol.addEventListener('change',()=>{o.ol=ol.checked?1:0;if(cfg.onInput)cfg.onInput();});
+    const ci=document.getElementById('mped_c');
+    if(ci)ci.addEventListener('input',()=>{o.c=ci.value;if(cfg.onInput)cfg.onInput();});
+    if(pill)pill.addEventListener('change',()=>{
+      if(pill.checked){o.sh='pill';bg.checked=false;delete o.bg;
+        // le texte d'une puce est forcé en blanc : un disque blanc par défaut serait illisible
+        if(!o.c||o.c.toLowerCase()==='#ffffff'){o.c=S.EL_HEX.gray;if(ci)ci.value=o.c;}}
+      else delete o.sh;
+      if(cfg.onInput)cfg.onInput();positionMapEdit();});}
   function openMapEdit(cfg){closeMapEdit();closeMapPanel();mapEd={wrap:ensureMapEditEl(),cfg:cfg};const w=mapEd.wrap;
     w.innerHTML='<div class="mecard">'+richToolbarHtml('mped')+'<div id="mped" class="mped" contenteditable="true" spellcheck="false" data-ph="'+esc(cfg.placeholder||'texte…')+'"></div></div>';
     const tb=document.getElementById('mped_tb');

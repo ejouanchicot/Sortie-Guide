@@ -194,6 +194,7 @@
     if(t.f&&t.f!=='mono')ex+=", f:'"+t.f+"'";
     if(t.ol===0)ex+=", ol:0"; else if(t.ol===1)ex+=", ol:1";
     if(t.bg)ex+=", bg:1";
+    if(t.sh==='pill')ex+=", sh:'pill'";   // pastille ronde (« puce ») — même objet, autre forme
     s+=" {x:"+r1(t.x)+",y:"+r1(t.y)+", t:'"+escJs(t.t)+"', s:"+(Math.round((t.s||1.5)*100)/100)+", c:'"+(t.c||'#ffffff')+"'"+ex+"},\n";});return s+'];';}
 
   global.SORTIE = {

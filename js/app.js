@@ -197,12 +197,16 @@ function zoneTabsHtml(floor){
 // mini-éditeur : police, gras/italique/souligné/barré, alignement L/C/R, listes, contour/fond
 function txtSvg(o){
   var S=window.SORTIE;
-  var parsed=S.parseRich(o), fs=(o.s||1.5), lh=fs*1.34, defc=o.c||'#ffffff', adv=S.textAdv(o), blockAl=S.textAlign(o), outline=S.textOutline(o);
+  // « puce » (sh:'pill') = même objet texte rendu en pastille ronde, comme le numéro d'un boss
+  var pill=(o.sh==='pill');
+  var parsed=S.parseRich(o), fs=(o.s||1.5), lh=fs*1.34, defc=pill?'#ffffff':(o.c||'#ffffff'), adv=S.textAdv(o), blockAl=S.textAlign(o), outline=S.textOutline(o);
   var lineW=parsed.map(function(ln){var s=(ln.prefix||'');(ln.runs||[]).forEach(function(r){s+=r.t;});return s.length*fs*adv;});
   var blockW=Math.max.apply(null,lineW.concat([fs]));
   var x0=o.x-blockW/2, xR=o.x+blockW/2, yc=o.y-(parsed.length-1)*lh/2;
   var box='';
-  if(o.bg){var w=blockW+fs*1.1, hh=parsed.length*lh+fs*0.5;
+  if(pill){var d=Math.max(blockW+fs*1.1, parsed.length*lh+fs*0.5)+fs*0.25;
+    box='<circle cx="'+o.x+'" cy="'+o.y+'" r="'+(d/2)+'" style="fill:'+(o.c||SB.FALLBACK)+';stroke:#f6ead0;stroke-width:'+(fs*0.13)+'px"/>';}
+  else if(o.bg){var w=blockW+fs*1.1, hh=parsed.length*lh+fs*0.5;
     box='<rect x="'+(o.x-w/2)+'" y="'+(o.y-hh/2)+'" width="'+w+'" height="'+hh+'" rx="'+(fs*0.28)+'" style="fill:rgba(9,13,18,.82);stroke:rgba(246,234,208,.22);stroke-width:'+(fs*0.03)+'px"/>';}
   var base='font-size:'+fs+'px;font-family:'+S.textFont(o)+';fill:'+defc+';dominant-baseline:central'
     +(outline?';paint-order:stroke;stroke:#05080c;stroke-width:'+(fs*0.16)+'px;stroke-linejoin:round':'');
