@@ -257,54 +257,81 @@
   }
 
   /* ---- composition du groupe ----
-     `jobs` = tous les jobs qui peuvent apparaître dans la strat.
-     `variantes` = les façons de la jouer quand un créneau se tient à deux
-     (ici PLD ou DNC). Chaque variante dit QUELS jobs sont présents ; le guide
-     et l'outil en déduisent tout, plus rien n'est écrit en dur dans le moteur.
-     Sans variante déclarée, la strat n'a qu'une façon de se jouer. */
+     Un groupe, ce sont des CRÉNEAUX — une place chacun. Un créneau tenu par
+     plusieurs jobs, ce sont des remplaçants : la place est la même, la
+     personne change. C'est ce qui manquait à une simple liste de jobs, qui
+     ne disait pas QUI remplace QUI.
+
+       creneaux:[ ["MNK"], ["BRD"], … , ["PLD","DNC"] ]
+                                        └─ une place, deux façons de la tenir
+
+     Tout le reste se déduit : la liste des jobs, les façons de jouer la
+     strat (une par combinaison de remplaçants), et donc les boutons du guide.
+     Un seul job par créneau = une seule façon de jouer, aucun sélecteur. */
   var TAILLES = [6, 12, 18];
-  function compoJobs(c){ return (c && c.jobs) ? c.jobs.slice() : []; }
-  function compoVariantes(c){ return (c && c.variantes) ? c.variantes : []; }
+  function compoCreneaux(c){
+    if(c && c.creneaux) return c.creneaux.map(function(x){ return x.slice(); });
+    return [];
+  }
+  function compoJobs(c){
+    var vus = {}, out = [];
+    compoCreneaux(c).forEach(function(cr){ cr.forEach(function(j){ if(!vus[j]){ vus[j]=1; out.push(j); } }); });
+    return out;
+  }
+  // Les façons de jouer : le produit des choix sur les créneaux à plusieurs.
+  // Le nom d'une variante, ce sont les remplaçants retenus — « PLD », ou
+  // « PLD + SAM » s'il y a deux créneaux ouverts.
+  function compoVariantes(c){
+    var crs = compoCreneaux(c);
+    var flex = crs.filter(function(cr){ return cr.length > 1; });
+    if(!flex.length) return [];
+    var combos = [[]];
+    flex.forEach(function(cr){
+      var suite = [];
+      combos.forEach(function(base){ cr.forEach(function(j){ suite.push(base.concat([j])); }); });
+      combos = suite;
+    });
+    return combos.map(function(choix){
+      var pris = {};
+      choix.forEach(function(j){ pris[j] = 1; });
+      var jobs = [];
+      crs.forEach(function(cr){
+        if(cr.length === 1){ jobs.push(cr[0]); return; }
+        cr.forEach(function(j){ if(pris[j] && jobs.indexOf(j) < 0) jobs.push(j); });
+      });
+      return {nom: choix.join(' + '), jobs: jobs};
+    });
+  }
   function variante(c, nom){
-    var v = compoVariantes(c).filter(function(x){ return x.nom === nom; })[0];
-    return v || null;
+    return compoVariantes(c).filter(function(x){ return x.nom === nom; })[0] || null;
   }
   // Jobs présents dans une variante ; à défaut, toute la compo.
   function jobsDeLaVariante(c, nom){
     var v = variante(c, nom);
-    return v ? (v.jobs || []).slice() : compoJobs(c);
+    return v ? v.jobs.slice() : compoJobs(c);
   }
-  // Un job sur lequel les variantes se distinguent (le créneau qui se tient
-  // à deux). Un job que TOUTES les variantes ont — ou qu'aucune ne nomme —
-  // n'est pas discriminant : il est là quoi qu'il arrive.
+  // Discriminant = il partage son créneau avec un remplaçant. Un job seul sur
+  // sa place est là quelle que soit la façon de jouer.
   function jobDiscrimine(c, job){
-    var vs = compoVariantes(c);
-    if(!vs.length) return false;
-    var dedans = vs.filter(function(v){ return (v.jobs||[]).indexOf(job) >= 0; }).length;
-    return dedans > 0 && dedans < vs.length;
+    return compoCreneaux(c).some(function(cr){ return cr.length > 1 && cr.indexOf(job) >= 0; });
   }
-  // Un job est-il masqué par la variante active ? Trois cas où NON :
-  //  - il n'est pas dans la compo (cité à titre indicatif, « avec un WAR… ») ;
-  //  - aucune variante ne le nomme (ajouté à la compo, présent partout) ;
-  //  - toutes les variantes l'ont.
+  // Un job est-il masqué par la variante active ? Non s'il n'est pas dans la
+  // compo (cité à titre indicatif, « avec un WAR… ») ni s'il est seul sur sa
+  // place.
   function jobExclu(c, nom, job){
     if(!nom || !variante(c, nom)) return false;
-    if(compoJobs(c).indexOf(job) < 0) return false;
     if(!jobDiscrimine(c, job)) return false;
     return jobsDeLaVariante(c, nom).indexOf(job) < 0;
   }
   function compoConst(nm, c){
-    var vs = compoVariantes(c);
-    var s = 'const '+nm+'={taille:'+((c&&c.taille)||6)+',jobs:'+JSON.stringify(compoJobs(c));
-    if(!vs.length) return s + '};';
-    return s + ',variantes:[\n'
-      + vs.map(function(v){ return ' {nom:'+JSON.stringify(v.nom)+',jobs:'+JSON.stringify(v.jobs||[])+'}'; }).join(',\n')
+    return 'const '+nm+'={taille:'+((c&&c.taille)||6)+',creneaux:[\n'
+      + compoCreneaux(c).map(function(cr){ return ' '+JSON.stringify(cr); }).join(',\n')
       + '\n]};';
   }
 
   global.SORTIE = {
     ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
-    TAILLES:TAILLES, compoJobs:compoJobs, compoConst:compoConst,
+    TAILLES:TAILLES, compoCreneaux:compoCreneaux, compoJobs:compoJobs, compoConst:compoConst,
     compoVariantes:compoVariantes, variante:variante,
     jobsDeLaVariante:jobsDeLaVariante, jobDiscrimine:jobDiscrimine, jobExclu:jobExclu,
     EL_KEYS:EL_KEYS, EL_HEX:EL_HEX, EL_VAR:EL_VAR, EL_ZC2:EL_ZC2,

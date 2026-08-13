@@ -311,7 +311,7 @@ setTimeout(placeNodes,600);
 const jobsEl=document.getElementById("jobs");
 const allBtn=document.createElement("button");allBtn.className="chip on";allBtn.id="jobAll";allBtn.textContent=tr("Tous");
 jobsEl.appendChild(allBtn);
-COMPO.jobs.forEach(j=>{
+window.SORTIE.compoJobs(COMPO).forEach(j=>{
   const b=document.createElement("button");b.className="chip jobchip";b.dataset.j=j;b.textContent=j;
   b.style.setProperty("--jc",jcol(j));
   jobsEl.appendChild(b);
@@ -553,7 +553,7 @@ setFloor(initFloor);
 try{if(localStorage.getItem("sortie_solo")==="1"){document.body.classList.add("solo");soloBtn.classList.add("on");}}catch(e){}
 try{var savedRole=localStorage.getItem("sortie_role");
   // on ne restaure le job mémorisé que s'il est bien là dans la variante active
-  if(savedRole){ if(COMPO.jobs.indexOf(savedRole)>=0 && !window.SORTIE.jobExclu(COMPO,initComp,savedRole)) setJob(savedRole); else applyFilter(); }
+  if(savedRole){ if(window.SORTIE.compoJobs(COMPO).indexOf(savedRole)>=0 && !window.SORTIE.jobExclu(COMPO,initComp,savedRole)) setJob(savedRole); else applyFilter(); }
   else applyFilter();
 }catch(e){applyFilter();}
 upbar();

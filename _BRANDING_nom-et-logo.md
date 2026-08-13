@@ -40,26 +40,16 @@ socle et la même identité visuelle :
 
 ## 2. Nom de l'app
 
-Objectif : cool, parle à tout le monde, dit « stratégie + carte », brandable, **content-agnostic**
-(couvre Odyssey, Sortie & tout event FFXI — aucune référence à un contenu précis). Tagline FFXI.
+## ✅ NOM VERROUILLÉ : **FFXI Strat Studio**
 
-### Recommandation : **Stratlas**  ·  *(Strategy × Atlas)*
-- Porte-manteau **Stratégie + Atlas** → dit *exactement* ce que fait l'app (stratégie cartographiée),
-  sans se lier à un contenu. Parfait pour un outil qui couvre tout FFXI.
-- Court, original (peu de collisions), facile à dire (« strat-las »), international.
-- Tagline : **« FFXI strategy maps »** / **« Atlas de stratégie · tout FFXI »**.
+- Format **« FFXI + mot-clé »**, content-agnostic (couvre Odyssey, Sortie & tout event FFXI).
+- Garde la **filiation** avec l'actuel « Map Studio » → « Strat Studio » = l'atelier de stratégie.
+- **Wordmark** : `FFXI` (petit, en préfixe/tag) + **STRAT** (fin) **STUDIO** (gras) — même logique
+  que l'actuel `MAP` fin + `STUDIO` gras.
+- **Tagline** (sans répéter « FFXI ») : **« Strategy map builder »** ou **« Plan every run —
+  Odyssey · Sortie & more »**.
 
-### Alternatives fortes (toutes générales)
-| Nom | Pourquoi | Nuance |
-|---|---|---|
-| **Vana'Map** | *Vana'diel* (le monde de FFXI) + Map → couvre TOUT FFXI par définition. Clin d'œil qui fait mouche. | Un peu « insider », apostrophe. |
-| **Vana'Atlas** | Même idée, registre « atlas » plus premium et stratégique. | Proche de Vana'Map. |
-| **Waymark** | Terme MMO de « marquage » tactique sur la carte. Cool, universel, colle au motif tracé+nœuds. | Connu surtout des joueurs MMO. |
-| **Waypoint** | Universel, colle au motif du logo. | Générique / déjà utilisé ailleurs. |
-
-> ❌ Écartés car trop liés à un seul contenu : *Sortie Atlas*, *Nightfall Atlas*.
-> Mon choix : **Stratlas** (marque) + tagline **« FFXI strategy maps »**. Le doc utilise ce nom ;
-> remplace juste le mot-symbole si tu pars sur un autre.
+*Historique des pistes explorées (Stratlas, Vana'Map, Waymark…) conservé plus bas pour mémoire.*
 
 ---
 
@@ -68,7 +58,7 @@ Objectif : cool, parle à tout le monde, dit « stratégie + carte », brandable
 À coller dans un générateur d'images (Midjourney / DALL·E / SDXL). Sortie carrée, fond compris.
 
 ```
-App icon for a gaming strategy tool called "Stratlas", square 1:1, rounded-square tile.
+App icon for a gaming strategy tool called "FFXI Strat Studio", square 1:1, rounded-square tile.
 
 SUBJECT: a minimal emblem that reads at once as a folded map AND a tactical route — a stylized
 folded/segmented map shape that peaks in the center like a subtle mountain or letter "A/M",
@@ -105,16 +95,17 @@ crossed by a glowing waypoint route ending on a crystal diamond node »*.
 Pour l'en-tête du site (comme l'actuel « MAP STUDIO »).
 
 ```
-Horizontal logo lockup for "STRATLAS", a FFXI strategy-map tool. Transparent or dark navy
+Horizontal logo lockup for "FFXI STRAT STUDIO", a strategy-map tool. Transparent or dark navy
 background (#070b12).
 
 LEFT: the icon mark — a folded map peaking in the center, crossed by a glowing cyan waypoint
 route with two round nodes ending on a faceted crystal diamond; cyan-to-blue gradient
 (#5bd6ef → #4a9eff), soft neon glow.
 
-RIGHT: the wordmark "STRATLAS" in a clean modern geometric sans-serif, uppercase, wide tracking,
-white-to-light-cyan gradient; below it a small tagline in spaced letters "FFXI STRATEGY MAPS"
-in muted slate-blue (#a4b5cf), tiny.
+RIGHT: the wordmark on two visual weights — a small "FFXI" tag/prefix in cyan (#5bd6ef) above or
+before, then "STRAT" in a thin light weight and "STUDIO" in a bold weight, clean modern geometric
+sans-serif, uppercase, wide tracking, white-to-light-cyan gradient; below it a tiny tagline in
+spaced letters "STRATEGY MAP BUILDER" in muted slate-blue (#a4b5cf).
 
 STYLE: premium dark-UI gaming brand, sharp, minimal, thin accent line details, subtle glow.
 Vector, flat, crisp at small sizes.

@@ -611,41 +611,78 @@
   });
 
   /* ---------------- composition du groupe ---------------- */
-  // La grille suit les quatre catégories plutôt qu'un alphabet : on compose un
-  // groupe en pensant « il me faut un tank, deux soins », pas « il me faut un
-  // job dont le nom commence par B ». Le compte par catégorie se lit à côté du
-  // titre, c'est ce qu'on vérifie vraiment.
+  // Une place par ligne. Une place à plusieurs jobs, ce sont des remplaçants —
+  // et c'est ça qu'il faut voir : « la 6ᵉ place, c'est PLD ou DNC », pas une
+  // grille de 22 cases où PLD et DNC seraient cochés sans qu'on sache pourquoi.
   function panneauCompo(){
     var g = $('ssCompoGrid'); if(!g) return;
-    var jobs = S.compoJobs(CP), RT = (typeof ROLE!=='undefined') ? ROLE : {};
+    var crs = S.compoCreneaux(CP), RT = (typeof ROLE!=='undefined') ? ROLE : {};
     $('ssCompoTailles').innerHTML = S.TAILLES.map(function(t){
       return '<button type="button" data-t="'+t+'"'+(CP.taille===t?' class="on"':'')+'>'+t+' joueurs</button>'; }).join('');
-    var sup = jobs.length - CP.taille;
-    $('ssCompoInfo').innerHTML = '<b class="n">'+jobs.length+'</b> job' + (jobs.length>1?'s':'')
-      + ' pour <b class="n">'+CP.taille+'</b> place' + (CP.taille>1?'s':'')
-      + (sup > 0 ? ' · <b>'+sup+' remplaçant'+(sup>1?'s':'')+'</b> — un même créneau tenu par deux jobs, comme PLD ou DNC'
-        : sup < 0 ? ' · <b>'+(-sup)+' place'+(sup<-1?'s':'')+' encore vide'+(sup<-1?'s':'')+'</b>'
-        : ' · <b>au complet</b>');
-    g.innerHTML = Object.keys(ROLE_NOMS).map(function(r){
-      var dedans = tousLesJobs().filter(function(j){ return S.roleDuJob(RT,j)===r && jobs.indexOf(j)>=0; });
-      var liste  = tousLesJobs().filter(function(j){ return S.roleDuJob(RT,j)===r; });
-      if(!liste.length) return '';
-      return '<section class="ss-ccat r-'+r+'">'
-        + '<h4>'+ROLE_NOMS[r]+'<span>'+dedans.length+'</span></h4>'
-        + '<div class="ss-crow">'
-        + liste.map(function(j){
-            return '<button type="button" class="ss-cj r-'+r+(jobs.indexOf(j)>=0?' on':'')
-              + '" data-job="'+esc(j)+'" aria-pressed="'+(jobs.indexOf(j)>=0)+'">'+esc(j)+'</button>'; }).join('')
-        + '</div></section>';
-    }).join('');
+    var vs = S.compoVariantes(CP), ecart = crs.length - CP.taille;
+    $('ssCompoInfo').innerHTML = '<b class="n">'+crs.length+'</b> place' + (crs.length>1?'s':'')
+      + ' sur <b class="n">'+CP.taille+'</b>'
+      + (ecart > 0 ? ' · <b>'+ecart+' de trop</b>'
+        : ecart < 0 ? ' · <b>'+(-ecart)+' à remplir</b>' : ' · <b>au complet</b>')
+      + (vs.length > 1 ? ' — ' + vs.length + ' façons de jouer : <b>' + vs.map(function(v){ return esc(v.nom); }).join('</b>, <b>') + '</b>'
+                       : ' — une seule façon de jouer');
+    g.innerHTML = crs.map(function(cr, i){
+      return '<div class="ss-cslot'+(cr.length>1?' flex':'')+'" data-i="'+i+'">'
+        + '<span class="ss-cnum">'+(i+1)+'</span>'
+        + '<div class="ss-cjobs">'
+        + cr.map(function(j, k){
+            return (k ? '<span class="ss-cou">ou</span>' : '')
+              + '<span class="ss-cj r-'+S.roleDuJob(RT,j)+'" data-i="'+i+'" data-k="'+k+'">'+esc(j)
+              + '<button type="button" data-act="del" data-i="'+i+'" data-k="'+k+'" title="Retirer">✕</button></span>'; }).join('')
+        + '<button type="button" class="ss-cadd" data-act="alt" data-i="'+i+'" title="Un autre job peut tenir cette place">＋ remplaçant</button>'
+        + '</div></div>';
+    }).join('')
+      + '<button type="button" class="ss-cnew" data-act="place">＋ ajouter une place</button>';
     var t = $('ssCompoBadge'); if(t) t.textContent = CP.taille;
   }
-  function basculeCompo(job){
-    var jobs = S.compoJobs(CP), i = jobs.indexOf(job);
-    if(i >= 0) jobs.splice(i, 1); else jobs.push(job);
-    CP.jobs = jobs;
-    panneauCompo(); editeur(); rendre(); touche();
+  // Ajouter un job, c'est le mettre SUR UNE PLACE : soit une nouvelle, soit en
+  // remplaçant d'une place existante. C'est la seule façon de dire « il
+  // remplace celui-là ».
+  function choisitJobPour(titre, msg){
+    var deja = S.compoJobs(CP);
+    var reste = tousLesJobs().filter(function(j){ return deja.indexOf(j) < 0; });
+    if(!reste.length){ toast('Les 22 jobs sont déjà placés.','err'); return Promise.resolve(null); }
+    return new Promise(function(res){
+      var b = $('ssModal'), oui = $('ssModalYes'), non = $('ssModalNo'), msgEl = $('ssModalMsg');
+      $('ssModalTtl').textContent = titre;
+      msgEl.innerHTML = msg + '<div class="ss-mjobs">'
+        + reste.map(function(j){ return '<button type="button" class="ss-job r-'
+            + S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j) + '" data-job="'+esc(j)+'">'+esc(j)+'</button>'; }).join('')
+        + '</div>';
+      oui.style.display = 'none';         // on valide en cliquant un job
+      non.textContent = 'Annuler';
+      b.hidden = false;
+      function fin(v){ b.hidden = true; oui.style.display = ''; non.textContent = 'Annuler';
+        msgEl.onclick = null; non.onclick = null; res(v); }
+      msgEl.onclick = function(e){ var x = e.target.closest('button[data-job]'); if(x) fin(x.dataset.job); };
+      non.onclick = function(){ fin(null); };
+    });
   }
+  function actionCompo(act, i, k){
+    var crs = S.compoCreneaux(CP);
+    if(act === 'del'){
+      if(crs.length === 1 && crs[0].length === 1){ toast('Il faut au moins une place.','err'); return; }
+      crs[i].splice(k, 1);
+      if(!crs[i].length) crs.splice(i, 1);
+      CP.creneaux = crs; majCompo(); return;
+    }
+    if(act === 'alt'){
+      choisitJobPour('Remplaçant de la place ' + (i+1),
+        'Quel autre job peut tenir cette place ? Le guide proposera alors les deux façons de jouer.')
+        .then(function(j){ if(!j) return; crs[i].push(j); CP.creneaux = crs; majCompo(); });
+      return;
+    }
+    if(act === 'place'){
+      choisitJobPour('Nouvelle place', 'Qui occupe cette place de plus ?')
+        .then(function(j){ if(!j) return; crs.push([j]); CP.creneaux = crs; majCompo(); });
+    }
+  }
+  function majCompo(){ panneauCompo(); editeur(); rendre(); touche(); }
   function tailleCompo(t){ CP.taille = t; panneauCompo(); touche(); }
   function ouvrirCompo(){ panneauCompo(); $('ssCompoPan').hidden = false; }
   function fermerCompo(){ $('ssCompoPan').hidden = true; }
@@ -758,7 +795,8 @@
   $('ssCompoTailles').addEventListener('click', function(e){
     var b = e.target.closest('button[data-t]'); if(b) tailleCompo(+b.dataset.t); });
   $('ssCompoGrid').addEventListener('click', function(e){
-    var b = e.target.closest('button[data-job]'); if(b) basculeCompo(b.dataset.job); });
+    var b = e.target.closest('button[data-act]'); if(!b) return;
+    actionCompo(b.dataset.act, +b.dataset.i, +b.dataset.k); });
   $('ssCompoPan').addEventListener('mousedown', function(e){ if(e.target === this) fermerCompo(); });
   $('ssRoles').addEventListener('click', ouvrirRoles);
   $('ssRolesClose').addEventListener('click', fermerRoles);
@@ -784,5 +822,7 @@
   // crochet de test : le remplacement lui-même se teste sur window.DATAFILE
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
                  blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,
-                 compo:ouvrirCompo, basculeCompo:basculeCompo, taille:tailleCompo, barreJobs:barreJobs};
+                 compo:ouvrirCompo, actionCompo:actionCompo, taille:tailleCompo, barreJobs:barreJobs,
+                 place:function(job){ CP.creneaux = S.compoCreneaux(CP).concat([[job]]); majCompo(); },
+                 remplacant:function(i, job){ var c = S.compoCreneaux(CP); c[i].push(job); CP.creneaux = c; majCompo(); }};
 })();

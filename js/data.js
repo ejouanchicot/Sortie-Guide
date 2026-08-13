@@ -9,17 +9,23 @@
 
 // ---- composition du groupe ----
 // La strat se conçoit AVANT d'être écrite : combien on est, et avec quels jobs.
-// `taille` = 6 (party), 12 ou 18 (alliance). `jobs` = tous ceux qui peuvent
-// apparaître ; il peut y en avoir plus que `taille` quand un créneau se tient
-// à deux. `variantes` dit alors QUI est là dans chaque façon de jouer — c'est
-// ce qui fait la bascule en haut du guide. Rien n'est écrit en dur dans le
-// moteur : une autre strat déclare ses propres variantes, ou aucune.
-// Ces jobs font les boutons du filtre « Mon rôle », et ce sont eux que
-// Strat Studio propose en premier. Réglable dans Strat Studio (bouton
-// « Compo »), ne pas éditer à la main — l'outil réécrit la ligne.
-const COMPO={taille:6,jobs:["MNK","BRD","COR","GEO","RDM","PLD","DNC"],variantes:[
- {nom:"PLD",jobs:["MNK","BRD","COR","GEO","RDM","PLD"]},
- {nom:"DNC",jobs:["MNK","BRD","COR","GEO","RDM","DNC"]}
+// `taille` = le nombre de joueurs visé. 6 en party, 12 ou 18 en alliance —
+// ça dépend de l'event et de la strat.
+// `creneaux` = une place par entrée. Une place tenue par PLUSIEURS jobs, ce
+// sont des remplaçants : la place est la même, la personne change. Ici les
+// cinq premières places sont fixes, la sixième se tient au PLD ou au DNC —
+// et c'est exactement ce que fait la bascule en haut du guide.
+// Tout le reste se déduit : la liste des jobs (boutons du filtre « Mon rôle »),
+// et les façons de jouer la strat. Un seul job par créneau = une seule façon
+// de jouer, et le sélecteur disparaît.
+// Réglable dans Strat Studio (bouton « Compo ») — l'outil réécrit ce bloc.
+const COMPO={taille:6,creneaux:[
+ ["MNK"],
+ ["BRD"],
+ ["COR"],
+ ["GEO"],
+ ["RDM"],
+ ["PLD","DNC"]
 ]};
 // ROLE = les 22 jobs de FFXI, pas seulement la comp. UN rôle par job : il donne
 // la COULEUR du badge, et il appartient à CETTE strat — NIN peut tanker ici et
