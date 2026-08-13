@@ -56,11 +56,16 @@ async function page(opts) {
       if (o.mauvais) return {kind:'directory', name:'Téléchargements',
         getDirectoryHandle: async () => { throw new Error('absent'); },
         getFileHandle: async () => { throw new Error('absent'); }};
-      const js = {kind:'directory', name:'js',
-        getFileHandle: async n => fichier(n, window.__src[n] || '')};
-      return {kind:'directory', name:'Sortie-Guide',
-        getDirectoryHandle: async n => { if(n==='js') return js; throw new Error('absent'); },
-        getFileHandle: async n => fichier(n, window.__src[n] || '')};
+      const permis = {queryPermission:async()=>'granted', requestPermission:async()=>'granted'};
+      const js  = Object.assign({kind:'directory', name:'js'}, permis,
+        {getFileHandle: async n => fichier(n, window.__src[n] || '')});
+      const img = Object.assign({kind:'directory', name:'img'}, permis,
+        {getFileHandle: async n => fichier(n, '')});
+      return Object.assign({kind:'directory', name:'Sortie-Guide'}, permis, {
+        getDirectoryHandle: async n => { if(n==='js') return js;
+                                         if(n==='img') return img;
+                                         throw new Error('absent'); },
+        getFileHandle: async n => fichier(n, window.__src[n] || '')});
     };
   }, opts);
   await p.goto(STUDIO, {waitUntil:'networkidle0'});
@@ -137,6 +142,34 @@ dit('et on ne redemande rien',
     JSON.stringify(await p.evaluate(() => window.__vus)));
 dit('la sauvegarde se fait quand meme',
     (await p.evaluate(() => Object.keys(window.__ecrit))).length === 2);
+
+/* ---------------- 2 bis. ce que la sauvegarde offre au reste ---------------- */
+console.log('\n— poser une image de fond, apres avoir enregistre —');
+// img/ est DANS le dossier du projet : une fois celui-ci autorise, le navigateur
+// etend l'autorisation a ses descendants. Il n'y a plus rien a demander.
+await p.evaluate(() => { window.__vus = {fichier:0, dossier:0}; });
+const img = await p.evaluate(async () => {
+  const d = await IMPORTIMAGE.dossierPret();
+  return {trouve: !!d, nom: d && d.name};
+});
+dit('le dossier img est deja accessible', img.trouve === true, JSON.stringify(img));
+dit('il vient bien du projet', img.nom === 'img', String(img.nom));
+dit('et personne n\'a rien redemande',
+    JSON.stringify(await p.evaluate(() => window.__vus)) === '{"fichier":0,"dossier":0}',
+    JSON.stringify(await p.evaluate(() => window.__vus)));
+
+// et a l'ecran : l'entree de menu ne doit plus annoncer une autorisation a
+// donner, puisqu'elle est deja la. Sans sauvegarde prealable elle le fait
+// toujours — c'est ce que verifie verif-depot.
+await p.evaluate(() => { const s = document.getElementById('carteSel');
+  s.value = '__fond__'; s.dispatchEvent(new Event('change')); });
+await new Promise(r => setTimeout(r, 700));
+const annonce = await p.evaluate(() => {
+  const m = document.getElementById('modal');
+  return (m && m.checkVisibility()) ? m.textContent.replace(/\s+/g,' ').trim() : '';
+});
+dit('on ne propose plus de « choisir le dossier img »',
+    !/choisir le dossier/i.test(annonce), annonce.slice(0, 80) || '(aucune boite)');
 await p.close();
 
 /* ---------------- 3. le mauvais dossier ---------------- */

@@ -89,7 +89,10 @@
   async function dossierPret(){
     if(!DF || !DF.dispoDossier() || !DF.connue) return null;
     try{
-      var dir = await DF.connue('img');
+      // img/ se deduit du dossier du projet quand il est deja autorise : celui
+      // qui a enregistre une fois n'a plus rien a autoriser pour poser une image.
+      var dir = DF.sousDossier ? await DF.sousDossier('img', 'img')
+                               : await DF.connue('img');
       if(!dir) return null;
       return (await dir.queryPermission({mode:'readwrite'})) === 'granted' ? dir : null;
     }catch(e){ return null; }
@@ -98,6 +101,11 @@
   async function acces(){
     if(!DF || !DF.dispoDossier()) return {ou:'telechargement'};
     var dir;
+    // deja connu, ou deductible du projet : aucun selecteur a ouvrir
+    try{ dir = DF.sousDossier ? await DF.sousDossier('img', 'img') : null; }catch(e){}
+    if(dir){
+      try{ if(await DF.permission(dir)) return {ou:'ok', dossier:dir}; }catch(e){}
+    }
     try{ dir = await DF.dossier('img'); }
     catch(e){
       // l'utilisateur a ferme le selecteur : ce n'est pas une panne

@@ -145,6 +145,24 @@
     return {data:h, i18n:h2};
   }
 
+  /* Un sous-dossier du projet, sans rien redemander.
+     Quand le dossier du projet est deja autorise, img/ en decoule : le
+     navigateur etend l'autorisation aux descendants d'une poignee accordee.
+     Poser une image de fond ne demande donc plus sa propre permission.
+     Rend null si rien n'est connu — a l'appelant de decider s'il demande. */
+  async function sousDossier(cle, nom){
+    if(vives[cle]) return vives[cle];
+    try{ var m = await lit(cle); if(m){ vives[cle] = m; return m; } }catch(e){}
+    var p = await connue('projet');
+    if(!p) return null;
+    try{
+      var d = await p.getDirectoryHandle(nom);
+      vives[cle] = d;
+      try{ await ecrit(cle, d); }catch(e){}
+      return d;
+    }catch(e){ return null; }
+  }
+
   function lisTexte(h){ return h.getFile().then(function(f){ return f.text(); }); }
   async function ecrisTexte(h, texte){
     var w = await h.createWritable();
@@ -192,6 +210,7 @@
     dispoDossier: dispoDossier,
     dossier: dossier,
     fichiersProjet: fichiersProjet,
+    sousDossier: sousDossier,
     deposeFichier: deposeFichier,
     supprimeFichier: supprimeFichier,
     existe: existe
