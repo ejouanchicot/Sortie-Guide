@@ -119,13 +119,10 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 #soloToggle{border-color:var(--line2);color:var(--dim)}
 #soloToggle.on{background:var(--accent2);color:#08121d;border-color:var(--accent2);box-shadow:0 0 14px -4px var(--accent2)}
 
-body[data-comp="PLD"] .line[data-comp="DNC"],body[data-comp="PLD"] .buffs .bl[data-comp="DNC"]{display:none!important}
-body[data-comp="DNC"] .line[data-comp="PLD"],body[data-comp="DNC"] .buffs .bl[data-comp="PLD"]{display:none!important}
-/* les jobs flex PLD/DNC s'excluent : on cache par rôle le flex absent */
-body[data-comp="PLD"] .line[data-r~="DNC"],body[data-comp="PLD"] .buffs .bl[data-r~="DNC"]{display:none!important}
-body[data-comp="DNC"] .line[data-r~="PLD"],body[data-comp="DNC"] .buffs .bl[data-r~="PLD"]{display:none!important}
-body[data-comp="PLD"] #jobs .jobchip[data-j="DNC"]{display:none}
-body[data-comp="DNC"] #jobs .jobchip[data-j="PLD"]{display:none}
+/* Le filtrage par variante de comp était ici, avec « PLD » et « DNC » écrits
+   en dur : sept règles qui ne valaient que pour Sortie. Il est passé dans
+   app.js (lineHidden / setComp), qui lit COMPO.variantes — n'importe quelle
+   strat déclare les siennes, ou aucune. */
 
 /* ==========================================================================
    LAYOUT
@@ -303,7 +300,7 @@ body[data-comp="DNC"] #jobs .jobchip[data-j="PLD"]{display:none}
 .line.warn .txt{color:#f2c98a}
 
 /* filtre par rôle */
-.line.solohide,.bl.solohide{display:none}
+.line.solohide,.bl.solohide,.line.comphide,.bl.comphide{display:none}
 .grp.emptyhide,.card.emptyhide,.buffs.emptyhide{display:none}
 body.jobsel .line{opacity:.24}
 body.jobsel .line.match,body.jobsel .line[data-r~="ALL"]{opacity:1}

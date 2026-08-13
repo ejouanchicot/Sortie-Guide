@@ -47,10 +47,9 @@
   <div class="jobrow floorrow" id="floor"><span class="rlabel">Étage</span></div>
   <div class="jobrow zonerow" id="zone" style="display:none"><span class="rlabel">Zone</span></div>
   <div class="navrow nav" id="nav"><span class="rlabel">Phases</span></div>
-  <div class="jobrow" id="comp"><span class="rlabel">Comp · flex</span>
-    <button class="chip compchip" data-c="PLD" style="--jc:var(--r-tank)">PLD</button>
-    <button class="chip compchip" data-c="DNC" style="--jc:var(--r-dd)">DNC</button>
-  </div>
+  <!-- les variantes sont declarees dans data.js (COMPO.variantes) : app.js
+       construit les boutons, la rangee disparait s'il n'y en a qu'une -->
+  <div class="jobrow" id="comp"><span class="rlabel">Comp · flex</span></div>
   <div class="jobrow" id="jobs"><span class="rlabel">Mon rôle</span></div>
 </div>
 </div>

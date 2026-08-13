@@ -319,14 +319,20 @@ COMPO.jobs.forEach(j=>{
 const soloBtn=document.createElement("button");soloBtn.className="chip";soloBtn.id="soloToggle";soloBtn.textContent="Solo";soloBtn.title=tr("N'afficher que mon rôle");
 jobsEl.appendChild(soloBtn);
 let curJob=null;
-function lineHidden(el){
+// Masquée par la VARIANTE de comp : soit elle est réservée à une autre, soit
+// elle est tenue par un job que la variante active n'a pas.
+// SORTIE.jobExclu ne regarde que les jobs de la compo — un job cité à titre
+// indicatif (« avec un WAR… ») reste visible dans toutes les variantes.
+function compHidden(el){
   const comp=document.body.getAttribute("data-comp");
-  const roles=(el.dataset.r||"").split(" ");
-  const other = comp==="PLD" ? "DNC" : "PLD";
-  if(roles.indexOf(other)>=0) return true;
   const dc=el.dataset.comp;
   if(dc && dc!==comp) return true;
+  return (el.dataset.r||"").split(" ").some(j=>window.SORTIE.jobExclu(COMPO,comp,j));
+}
+function lineHidden(el){
+  if(compHidden(el)) return true;
   if(document.body.classList.contains("solo") && curJob){
+    const roles=(el.dataset.r||"").split(" ");
     if(roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0) return true;
   }
   return false;
@@ -335,6 +341,7 @@ function applyFilter(){
   const solo=document.body.classList.contains("solo") && !!curJob;
   document.querySelectorAll(".line").forEach(el=>{
     const roles=(el.dataset.r||"").split(" ");
+    el.classList.toggle("comphide", compHidden(el));
     el.classList.toggle("solohide", solo && roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0);
   });
   document.querySelectorAll(".grp").forEach(g=>{
@@ -347,6 +354,7 @@ function applyFilter(){
   });
   document.querySelectorAll(".buffs .bl").forEach(el=>{
     const roles=(el.dataset.r||"").split(" ");
+    el.classList.toggle("comphide", compHidden(el));
     el.classList.toggle("solohide", solo && roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0);
   });
   document.querySelectorAll(".buffs").forEach(bf=>{
@@ -382,14 +390,30 @@ jobsEl.addEventListener("click",e=>{
   else setJob(b.dataset.j===curJob?null:b.dataset.j);
 });
 
-// ---- sélecteur de comp (flex PLD / DNC) ----
+// ---- sélecteur de variante de comp ----
+// Construit depuis COMPO.variantes : rien de propre à Sortie ici. S'il n'y a
+// qu'une façon de jouer la strat, la rangée entière disparaît.
 const compEl=document.getElementById("comp");
+const VARIANTES=window.SORTIE.compoVariantes(COMPO);
+function buildCompSwitcher(){
+  if(VARIANTES.length<2){ compEl.style.display="none"; return; }
+  VARIANTES.forEach(v=>{
+    const b=document.createElement("button");
+    b.className="chip compchip"; b.dataset.c=v.nom; b.textContent=v.nom;
+    // un job qui donne son nom à la variante lui prête sa couleur de rôle
+    b.style.setProperty("--jc", jcol(v.nom));
+    compEl.appendChild(b);
+  });
+}
 function setComp(c){
   document.body.setAttribute("data-comp",c);
   compEl.querySelectorAll(".compchip").forEach(b=>b.classList.toggle("on",b.dataset.c===c));
+  // les chips de job suivent : on ne propose que les jobs réellement présents
+  jobsEl.querySelectorAll(".jobchip").forEach(b=>{
+    b.style.display = window.SORTIE.jobExclu(COMPO,c,b.dataset.j) ? "none" : "";
+  });
   try{localStorage.setItem("sortie_comp",c);}catch(e){}
-  const other=c==="PLD"?"DNC":"PLD";
-  if(curJob===other)setJob(null);
+  if(curJob && window.SORTIE.jobExclu(COMPO,c,curJob)) setJob(null);
   applyFilter();
 }
 compEl.addEventListener("click",e=>{const b=e.target.closest(".compchip");if(b)setComp(b.dataset.c);});
@@ -516,9 +540,11 @@ if(LANG==='en'){
 //  INIT
 // ============================================================
 buildFloorSwitcher();
-let initComp="PLD";try{const s=localStorage.getItem("sortie_comp");if(s==="PLD"||s==="DNC")initComp=s;}catch(e){}
-document.body.setAttribute("data-comp",initComp);
-compEl.querySelectorAll(".compchip").forEach(b=>b.classList.toggle("on",b.dataset.c===initComp));
+buildCompSwitcher();
+const NOMS_VAR=VARIANTES.map(v=>v.nom);
+let initComp=NOMS_VAR[0]||"";
+try{const s=localStorage.getItem("sortie_comp");if(NOMS_VAR.indexOf(s)>=0)initComp=s;}catch(e){}
+setComp(initComp);
 
 let initFloor="top";try{const s=localStorage.getItem("sortie_floor");if(s==="top"||s==="bottom")initFloor=s;}catch(e){}
 try{const z=localStorage.getItem("sortie_zone");if(z!=null&&!isNaN(+z))curZone=+z;}catch(e){}
@@ -526,7 +552,8 @@ setFloor(initFloor);
 
 try{if(localStorage.getItem("sortie_solo")==="1"){document.body.classList.add("solo");soloBtn.classList.add("on");}}catch(e){}
 try{var savedRole=localStorage.getItem("sortie_role");
-  if(savedRole){ if(savedRole==="PLD"||savedRole==="DNC"){ if(savedRole===initComp) setJob(savedRole); else applyFilter(); } else if(COMPO.jobs.indexOf(savedRole)>=0){ setJob(savedRole); } else applyFilter(); }
+  // on ne restaure le job mémorisé que s'il est bien là dans la variante active
+  if(savedRole){ if(COMPO.jobs.indexOf(savedRole)>=0 && !window.SORTIE.jobExclu(COMPO,initComp,savedRole)) setJob(savedRole); else applyFilter(); }
   else applyFilter();
 }catch(e){applyFilter();}
 upbar();

@@ -415,19 +415,11 @@
      avec PLD on ne voit pas les lignes du DNC, et inversement. Il faut donc
      pouvoir relire l'étape avec les yeux d'une comp, comme le fait le guide.
 
-     Les comps ne sont écrites nulle part : ce sont les valeurs de `comp`
-     effectivement employées dans la strat. Rien à déclarer, et ça marche pour
-     un contenu qui appellerait ses variantes autrement. */
+     Les variantes viennent de COMPO.variantes, déclarées dans la strat — la
+     même source que le guide. Rien de propre à Sortie, et une strat qui n'en
+     déclare aucune n'affiche simplement pas le sélecteur. */
   var vueComp = '';   // '' = tout voir
-  function compsUtilisees(){
-    var vus = {}, out = [];
-    function voir(l){ if(l && l.comp && !vus[l.comp]){ vus[l.comp]=1; out.push(l.comp); } }
-    Object.keys(JEUX).forEach(function(k){ (JEUX[k]||[]).forEach(voir); });
-    (FL||[]).forEach(function(f){ (f.phases||[]).forEach(function(p){
-      (p.cards||[]).forEach(function(c){ (c.groups||[]).forEach(function(g){
-        (g.lines||[]).forEach(voir); }); }); }); });
-    return out.sort();
-  }
+  function compsUtilisees(){ return S.compoVariantes(CP).map(function(v){ return v.nom; }); }
   function dessineVue(){
     var host = $('ssVue'); if(!host) return;
     var cs = compsUtilisees();
@@ -437,19 +429,15 @@
       + cs.map(function(c){ return '<button type="button" data-c="'+esc(c)+'"'
           + (vueComp===c?' class="on"':'')+'>'+esc(c)+'</button>'; }).join('');
   }
-  // Filtrage fait en JS et pas en CSS : les règles du guide nomment PLD et DNC
-  // en dur, ce qui ne vaut que pour Sortie.
+  // Exactement la règle du guide (app.js lineHidden), sur la même source.
   function filtreVue(host){
-    var cs = compsUtilisees();
     host.querySelectorAll('.line, .bl').forEach(function(el){
       var dc = el.getAttribute('data-comp') || '';
       var jobs = (el.getAttribute('data-r')||'').split(/\s+/);
       var cache = false;
       if(vueComp){
-        // réservée à une AUTRE comp
         if(dc && dc !== vueComp) cache = true;
-        // ou tenue par un job qui est justement le remplaçant d'une autre comp
-        jobs.forEach(function(j){ if(cs.indexOf(j) >= 0 && j !== vueComp) cache = true; });
+        jobs.forEach(function(j){ if(S.jobExclu(CP, vueComp, j)) cache = true; });
       }
       el.style.display = cache ? 'none' : '';
     });
@@ -746,6 +734,15 @@
   }
 
   /* ---------------- démarrage ---------------- */
+  // Un onglet par chapitre, nommé par le contenu. Aucun chapitre nommé dans le
+  // code : une strat à un seul chapitre n'affiche simplement pas la bascule.
+  (function(){
+    var host = $('ssFloor');
+    if(FL.length < 2){ host.style.display = 'none'; return; }
+    host.innerHTML = FL.map(function(f, i){
+      return '<button type="button" data-i="'+i+'"'+(i===idx?' class="on"':'')+'>'
+        + esc(f.fr || f.en || ('Chapitre '+(i+1))) + '</button>'; }).join('');
+  })();
   $('ssFloor').addEventListener('click', function(e){
     var b = e.target.closest('button[data-i]'); if(!b) return;
     $('ssFloor').querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });

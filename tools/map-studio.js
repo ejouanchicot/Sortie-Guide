@@ -1175,6 +1175,11 @@
   /* ============================================================
      11 · BARRE / RACCOURCIS / TOAST / BOOT
      ============================================================ */
+  // Un onglet par chapitre, nommé par le contenu (FLOORS), pas par le code.
+  (function(){const h=document.getElementById('floorSeg');
+    if(FL.length<2){h.style.display='none';return;}
+    h.innerHTML=FL.map((f,i)=>'<button data-i="'+i+'"'+(i===curIdx?' class="on"':'')+'>'
+      +esc(f.fr||f.en||('Chapitre '+(i+1)))+'</button>').join('');})();
   document.getElementById('floorSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#floorSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderFloor(+b.dataset.i);resetHistory();});
   document.getElementById('btnFit').addEventListener('click',fit);
   document.getElementById('btnSave').addEventListener('click',save);
