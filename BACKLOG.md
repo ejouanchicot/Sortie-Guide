@@ -14,7 +14,7 @@
 - **Refactor fondations** : contenu (`data.js`) séparé du moteur (`app.js`) → ajouter du contenu = ajouter des données.
 - Dépôt **git** propre relié à GitHub, `.gitignore` / `.gitattributes`.
 - **Images HD** des mobs/boss (Top Floor + 5 boss du Sous-sol).
-- **Éditeur de carte visuel** (`tools/map-editor.html`) — glisser les pastilles → coordonnées auto.
+- **Éditeur de carte visuel** (`tools/map-studio.html`) — glisser les pastilles → coordonnées auto.
 - **Sélecteur d'étage** Top Floor / Sous-sol (bilingue FR/EN).
 - **Squelette du Sous-sol** (E-H) : secteurs Dhartok, Triboulex, Aïta, Gartell + Aminon (à venir), familles de mobs / NM mineurs / Reives depuis le wiki.
 

@@ -31,7 +31,6 @@ Structure (à jour au 12/08/2026) :
 - `tools/map-studio.html` + `map-studio.css` + `map-studio.js` — **éditeur de carte principal**
   (Konva, plein écran). Le HTML ne porte que la structure ; le JS est sectionné (scène, marqueurs,
   textes, tracés, inspecteur, calques, sauvegarde). Format de sauvegarde de `data.js` inchangé au bit près.
-- `tools/map-editor.html` — ancien éditeur (existe encore). Câblé sur `sortie-map-core.js`.
 - `tools/vendor/konva.min.js` — Konva 9.3.6 vendu localement (167 Ko)
 - `.nojekyll` — indispensable : sans lui, GitHub Pages fait tourner Jekyll, qui ignore tout
   fichier ou dossier commençant par `_`.

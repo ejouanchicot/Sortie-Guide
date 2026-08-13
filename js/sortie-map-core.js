@@ -1,7 +1,7 @@
 /* ============================================================
    sortie-map-core.js — SOCLE PARTAGÉ (couleurs · points · géométrie)
    ------------------------------------------------------------
-   Logique commune à map-studio.html, map-editor.html et app.js.
+   Logique commune à map-studio.html, strat-studio.html et app.js.
    AUCUNE dépendance à un backend de rendu (ni Konva, ni DOM) :
    uniquement des données et des fonctions pures.
    Chargé AVANT le script qui l'utilise. Expose window.SORTIE.
@@ -90,7 +90,7 @@
   // SVG (app.js / guide, unités viewBox 0..100) — multiplicateurs par fs
   var BAND_SVG = {cw:2.25, rw:1.5, fw:0.62, fdaA:1.0, fdaB:2.05, foff:-3.05, ALPHA:0.82, FALLBACK:'#e5342b'};
 
-  // ---- sérialisation data.js (chaînes ; format STABLE, partagé par map-studio ET map-editor) ----
+  // ---- sérialisation data.js (chaînes ; format STABLE, partagé par les outils ET relu par app.js) ----
   // champs optionnels d'une pastille, omis quand ils valent le défaut → data.js propre + rétro-compatible
   function pinMeta(o){
     var s=(o.lp&&o.lp!=='bottom')?", lp:'"+o.lp+"'":"";
