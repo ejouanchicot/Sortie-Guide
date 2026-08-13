@@ -5,19 +5,25 @@
    (tools/strat-studio.html) produisent EXACTEMENT le même balisage :
    un aperçu qui approxime le rendu ne sert à rien pour écrire.
 
-   Ne dépend que de window.SORTIE (esc) et de quatre crochets que
+   Ne dépend que de window.SORTIE (esc) et de cinq crochets que
    l'hôte renseigne via STRATR.config() :
      tr    fonction de traduction        (guide : tr, outil : identité)
      MOB   map nom de mob -> image       (data.js)
      ELC   map élément -> couleur CSS    (SORTIE.EL_VAR)
      ROLE  map job -> rôle               (data.js)
+     base  préfixe des chemins d'image   (guide : '', outils : '../')
+
+   `base` existe parce que les chemins de data.js sont relatifs à la
+   racine ; sans lui, une page de tools/ demande tools/img/… et
+   n'affiche que des vignettes cassées.
 
    Expose window.STRATR. Chargé APRÈS sortie-map-core.js.
    ============================================================ */
 (function(global){
   "use strict";
   var esc = global.SORTIE.esc;
-  var H = {tr:function(s){return s;}, MOB:{}, ELC:{}, ROLE:{}};
+  var H = {tr:function(s){return s;}, MOB:{}, ELC:{}, ROLE:{}, base:''};
+  function img(nom){ return esc(H.base + H.MOB[nom]); }
 
   var RCOL = {dd:"var(--r-dd)", buff:"var(--r-buff)", heal:"var(--r-heal)", tank:"var(--r-tank)", all:"var(--r-all)"};
   function jcol(j){ return RCOL[H.ROLE[j] || "all"]; }
@@ -87,7 +93,7 @@
       if(g.img && H.MOB[g.img]){
         var gpk = packs.find(function(x){ return x.name === g.img; });
         var gac = gpk ? H.ELC[gpk.el] : 'var(--r-buff)';
-        gthumb = '<span class="gthumb" style="--ac:'+gac+'"><img src="'+H.MOB[g.img]+'" alt="'+g.img+'" loading="lazy" decoding="async"></span>';
+        gthumb = '<span class="gthumb" style="--ac:'+gac+'"><img src="'+img(g.img)+'" alt="'+esc(g.img)+'" loading="lazy" decoding="async"></span>';
       }
       var glabelHtml = '<div class="glabel '+(g.cls||"")+'">'+colorize(H.tr(g.label))+'</div>';
       var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
@@ -104,7 +110,7 @@
     }
     if(c.noHeadImg) mks = [];
     var thumbHtml = mks.length ? '<span class="cthumbs'+(mks.length>1?' multi':'')+'">'
-      + mks.map(function(k){ return '<span class="cthumb"><img src="'+H.MOB[k]+'" alt="'+k+'" loading="lazy" decoding="async"></span>'; }).join('')
+      + mks.map(function(k){ return '<span class="cthumb"><img src="'+img(k)+'" alt="'+esc(k)+'" loading="lazy" decoding="async"></span>'; }).join('')
       + '</span>' : '';
     return '<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+acc+'">'
       +'<div class="chead">'+thumbHtml

@@ -20,9 +20,10 @@
   if(!S || !SC || !R){ document.body.innerHTML = '<p style="padding:30px;font:14px sans-serif;color:#f88">'
     + 'Socle manquant — ouvre le projet via un serveur local, pas en double-cliquant le fichier.</p>'; return; }
 
-  // l'aperçu n'a pas à traduire : on écrit en français, la colonne de droite gère l'anglais
+  // l'aperçu n'a pas à traduire : on écrit en français, la colonne de droite gère l'anglais.
+  // base '../' : les chemins de data.js partent de la racine, cette page est dans tools/.
   R.config({tr:function(s){return s;}, MOB:(typeof MOB!=='undefined'?MOB:{}), ELC:S.EL_VAR,
-            ROLE:(typeof ROLE!=='undefined'?ROLE:{})});
+            ROLE:(typeof ROLE!=='undefined'?ROLE:{}), base:'../'});
 
   var FL = (typeof FLOORS!=='undefined') ? FLOORS : [];
   var BUFFS = {BUFFS_P1:(typeof BUFFS_P1!=='undefined'?BUFFS_P1:null),
