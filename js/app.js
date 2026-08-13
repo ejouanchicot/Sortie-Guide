@@ -251,6 +251,29 @@ function placeNodes(){
   }
   tl.style.setProperty('--rail-top', topY+'px');
   tl.style.setProperty('--rail-bottom', Math.max(0,tlr.height-botY)+'px');
+  suitLaTimeline(tl);
+}
+
+/* Le rail est memorise en DISTANCE DEPUIS LE BAS. Tant que la timeline garde
+   sa hauteur, c'est equivalent — mais elle ne la garde pas.
+
+   `content-visibility:auto` laisse les cartes hors ecran sans mise en page :
+   leurs hauteurs ne sont qu'ESTIMEES tant qu'on ne les a pas approchees. Quand
+   elles se resolvent — en defilant, une fois les polices chargees — la timeline
+   change de hauteur, et la distance calculee avant ne designe plus le meme
+   endroit. Le rail s'arretait alors avant le dernier boss.
+
+   Ca se voyait au sous-sol, dont les etapes sont presque vides : l'estimation
+   y depassait le reel du simple au triple (5089 px estimes pour 1832 reels),
+   et le trait s'arretait apres le 2. On surveille donc la hauteur, et on
+   recalcule des qu'elle bouge. Pas de boucle : placer les noeuds (absolus) et
+   poser deux variables ne changent aucune hauteur. */
+var railRO = null, railCible = null;
+function suitLaTimeline(tl){
+  if(!window.ResizeObserver || railCible === tl) return;
+  if(railRO) railRO.disconnect();
+  railRO = new ResizeObserver(function(){ placeNodes(); });
+  railRO.observe(tl); railCible = tl;
 }
 
 // vue "zone" du sous-sol : on ne garde que la zone courante (sa carte, son boss, son midboss, son chemin, sa card)
