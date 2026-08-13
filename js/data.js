@@ -376,14 +376,31 @@ const MIDS_TOP=[
  {name:'Deleterious', el:'gray', x:40.6,y:51.6, label:'Deleterious'},
 ];
 
-// ---- ÉTAGES (top / bottom) ----
+// ---- CARTES ----
+// Une carte est un MODULE autonome : son fond, ses marqueurs, ses tracés, ses
+// annotations. Elle ne sait rien de la stratégie qui s'en sert — et deux
+// chapitres, ou deux strats différentes, peuvent pointer la même. C'est ce qui
+// permet d'en dessiner une puis de la réutiliser ailleurs.
+// Les tableaux ci-dessous sont ceux que l'atelier Carte réécrit ; la carte ne
+// fait que les rassembler sous un nom.
+const CARTES={
+ "Sortie · rez-de-chaussée":{
+  fond:'img/map.webp', trace:OVPTS_TOP, depart:{x:17.7,y:42.4,l:'S'}, departNom:'Start · Device',
+  bosses:BOSSES, packs:PACKS, mids:MIDS_TOP, routes:ROUTES_TOP, texts:TEXTS, shapes:SHAPES, zones:ZONES_TOP},
+ "Sortie · sous-sol":{
+  fond:'img/map-basement.webp', trace:'', depart:null, departNom:'',
+  bosses:BOSSES_B, packs:PACKS_B, mids:MIDS_B, routes:ROUTES_B, texts:TEXTS_B, shapes:SHAPES_B, zones:ZONES_B}
+};
+
+// ---- CHAPITRES de la strat ----
+// Un chapitre ne CONTIENT plus sa carte : il la DÉSIGNE par son nom. Le socle
+// (sortie-map-core.js) projette ensuite les champs de la carte sur le chapitre,
+// par référence — tout ce qui lisait f.bosses ou f.map continue de marcher.
 const FLOORS=[
- {id:'top', fr:'Rez-de-chaussée', en:'Top Floor', sub:'A–D', map:'img/map.webp',
-  points:OVPTS_TOP, start:{x:17.7,y:42.4,l:'S'}, startNode:'Start · Device',
-  introFr:OVINTRO_TOP_FR, introEn:OVINTRO_TOP_EN,
-  phases:PHASES, bosses:BOSSES, packs:PACKS, mids:MIDS_TOP, routes:ROUTES_TOP, texts:TEXTS, shapes:SHAPES, zones:ZONES_TOP},
- {id:'bottom', fr:'Sous-sol', en:'Basement', sub:'E–H', map:'img/map-basement.webp',
-  points:'', start:null, startNode:'', routes:ROUTES_B, texts:TEXTS_B, shapes:SHAPES_B, zones:ZONES_B,
-  introFr:OVINTRO_BOT_FR, introEn:OVINTRO_BOT_EN,
-  phases:PHASES_B, bosses:BOSSES_B, packs:PACKS_B, mids:MIDS_B}
+ {id:'top', fr:'Rez-de-chaussée', en:'Top Floor', sub:'A–D',
+  carte:"Sortie · rez-de-chaussée",
+  introFr:OVINTRO_TOP_FR, introEn:OVINTRO_TOP_EN, phases:PHASES},
+ {id:'bottom', fr:'Sous-sol', en:'Basement', sub:'E–H',
+  carte:"Sortie · sous-sol",
+  introFr:OVINTRO_BOT_FR, introEn:OVINTRO_BOT_EN, phases:PHASES_B}
 ];

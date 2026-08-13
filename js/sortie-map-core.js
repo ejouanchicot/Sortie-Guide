@@ -329,7 +329,32 @@
       + '\n]};';
   }
 
+  /* ---- une carte est un module ----
+     Un chapitre de la strat ne CONTIENT plus sa carte : il la DÉSIGNE par son
+     nom. C'est ce qui permet d'en réutiliser une — deux chapitres, ou deux
+     strats, peuvent pointer la même.
+
+     On projette ensuite les champs de la carte sur le chapitre, PAR RÉFÉRENCE
+     et jamais par copie : éditer f.bosses édite bien le tableau de la carte,
+     donc l'enregistrement écrit au bon endroit. Tout ce qui lisait f.bosses,
+     f.map ou f.routes continue de marcher sans une ligne de changement. */
+  var CHAMPS_CARTE = [['map','fond'], ['points','trace'], ['start','depart'],
+    ['startNode','departNom'], ['bosses','bosses'], ['packs','packs'], ['mids','mids'],
+    ['routes','routes'], ['texts','texts'], ['shapes','shapes'], ['zones','zones']];
+  function resoudreCartes(floors, cartes){
+    (floors || []).forEach(function(f){
+      var c = (cartes || {})[f.carte];
+      if(!c) return;
+      CHAMPS_CARTE.forEach(function(p){
+        var v = c[p[1]];
+        f[p[0]] = (v === undefined) ? (p[0] === 'points' || p[0] === 'startNode' ? '' : null) : v;
+      });
+    });
+    return floors;
+  }
+
   global.SORTIE = {
+    resoudreCartes:resoudreCartes,
     ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
     TAILLES:TAILLES, compoCreneaux:compoCreneaux, compoJobs:compoJobs, compoConst:compoConst,
     compoVariantes:compoVariantes, variante:variante,
@@ -348,4 +373,10 @@
     parseInline:parseInline, parseRich:parseRich, runsToHtml:runsToHtml, stripRuns:stripRuns,
     textParse:textParse, textLines:textLines, textsConst:textsConst
   };
+
+  // data.js est chargé AVANT ce fichier partout : on branche les chapitres sur
+  // leur carte ici, une fois, plutôt que dans chaque page.
+  // `typeof` et pas `global.X` : un const de premier niveau n'atterrit pas sur
+  // window, il vit dans la portée de script.
+  if(typeof FLOORS !== 'undefined' && typeof CARTES !== 'undefined') resoudreCartes(FLOORS, CARTES);
 })(typeof window!=='undefined'?window:this);
