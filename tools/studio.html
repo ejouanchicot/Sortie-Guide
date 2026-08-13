@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FFXI Strat Studio — strategy map builder</title>
 <link rel="icon" type="image/png" sizes="64x64" href="../img/favicon-64.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#070b12">
 <link rel="apple-touch-icon" href="../img/icon-180.webp">
 <meta name="description" content="Éditeur de cartes et de stratégies pour Final Fantasy XI — Odyssey, Sortie et tout autre contenu.">
 <meta property="og:title" content="FFXI Strat Studio">
@@ -47,6 +49,8 @@
     <div class="st-ctx" id="stCtxStrat" hidden></div>
 
     <div class="st-spacer"></div>
+    <button class="st-btn" id="stInstall" hidden title="Ajouter l’outil à ton bureau — il s’ouvre alors sans navigateur et sans connexion">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Installer</button>
     <span class="st-file" id="stFile"></span>
     <span id="stUnsaved" title="Des changements ne sont pas encore sauvegardés">non enregistré</span>
     <button class="st-btn" id="stReload" title="Repartir de la dernière version sauvegardée — les changements en cours sont perdus">

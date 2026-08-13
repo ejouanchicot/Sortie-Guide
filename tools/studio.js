@@ -166,5 +166,31 @@
   if(DF.connue) DF.connue('data').then(function(h){ if(h) $('stFile').textContent = h.name; });
   majEtat();
 
+  /* ---------------- installable, et hors ligne ----------------
+     Pas de boutique, pas de signature, pas d'abonnement : le navigateur
+     sait installer une page. Elle prend alors son icône, sa fenêtre, et
+     s'ouvre sans connexion. Le service worker ne fait QUE le hors-ligne.  */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('../sw.js', {scope:'../'}).catch(function(){});
+    });
+  }
+  // Le navigateur ne propose l'installation que s'il juge le moment opportun :
+  // on garde son invitation de côté et on montre notre bouton à ce moment-là.
+  var invite = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); invite = e;
+    var b = $('stInstall'); if(b) b.hidden = false;
+  });
+  var bi = $('stInstall');
+  if(bi) bi.addEventListener('click', async function(){
+    if(!invite) return;
+    invite.prompt();
+    var r = await invite.userChoice;
+    invite = null; bi.hidden = true;
+    if(r && r.outcome === 'accepted') toast('Installé — tu peux l’ouvrir depuis ton bureau.','ok');
+  });
+  window.addEventListener('appinstalled', function(){ var b = $('stInstall'); if(b) b.hidden = true; });
+
   window.__STUDIO = {ouvre:ouvre, chapitre:chapitre, enregistrer:enregistrer, actif:function(){ return actif; }};
 })();
