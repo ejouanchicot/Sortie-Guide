@@ -14,6 +14,9 @@
   carte de réglages qui s'ouvre à côté de l'objet posé et le suit au zoom. L'inspecteur
   de droite ne configure plus rien — il explique.
 - **Outils** : marqueur (boss / midboss / pack), texte enrichi, tracé, forme, image, pipette.
+- **La Puce** : n'importe quelle annotation peut prendre la forme d'une pastille ronde —
+  un numéro d'ordre, une lettre, un mot posé où on veut. C'est une case à cocher dans la
+  carte d'édition du texte, pas un outil de plus : rien de nouveau dans `data.js`.
 - **Un calque par type de marqueur**, qu'on masque indépendamment.
 - **Enregistrement direct dans `data.js`**, bloc par bloc, le même mécanisme pour les deux
   onglets — on choisit le fichier une fois pour tout l'atelier.
@@ -37,7 +40,7 @@
 
 - **Contenu séparé du moteur** : ajouter de la strat = ajouter des données, pas du code.
 - **Installable** (PWA) et **utilisable hors ligne** — utile en donjon, sans alt-tab.
-- **11 contrôles qui ouvrent vraiment les pages** dans un navigateur, montés d'une commande.
+- **Des contrôles qui ouvrent vraiment les pages** dans un navigateur, montés d'une commande.
 - **Le projet se présente lui-même** : `CLAUDE.md`, `docs/architecture.md`, sept agents.
 - Dépôt git propre relié à GitHub Pages.
 
@@ -60,11 +63,6 @@ Ce qui manque ici n'est pas du code : c'est ce qui se sait en run. L'outil est p
 
 ## 📋 Ce qui reste de mon côté
 
-- [ ] **La Puce** — une pastille qu'on pose n'importe où avec le contenu qu'on veut (un
-      numéro, une lettre, un mot), pour annoter une carte sans avoir à poser un mob. C'est
-      la dernière étape du plan d'ergonomie ; les trois autres sont faites. Tout ce qu'elle
-      demande existe déjà : la carte flottante, l'ancrage qui suit le zoom, la barre
-      d'armement. Voir `docs/archive/2026-08-12-plan-ergonomie.md` §4.
 - [ ] **La marque sur le guide** — l'atelier s'annonce « FFXI Strat Studio », le guide non :
       son onglet et son aperçu Discord affichent encore « SORTIE · Guide de run ». À reprendre
       du brief `docs/archive/2026-08-13-integration-branding.md` §3.1, **sauf** la police
