@@ -207,20 +207,24 @@
       + 'au-dessus de chaque zone de saisie.</p>'
 
       + '<p class="ss-hero-go">'
-      + (n ? 'Ouvre une étape à gauche pour commencer. '
-          : 'Ajoute une première étape en haut de la colonne de gauche. ')
+      + (n ? 'Ouvre une étape à gauche pour continuer. '
+          : 'Cette strat est encore vide : sa première étape reste à créer. ')
       + 'Ce que tu écris apparaît aussitôt à droite, tel que ton groupe le verra — et '
       + 'rien n’est sauvegardé tant que tu ne cliques pas <b>Enregistrer</b>. '
       + '<b>Ctrl+Z</b> annule, toujours.</p>'
-      + (prem ? '<button class="ss-btn primary" id="ssGo">Commencer par '+esc(prem)+'</button>' : '')
+      // Le libellé vient du contenu : « Degei » ici, « Sheol C » ailleurs.
+      // Sans aucune étape, il n'y a rien à ouvrir — on propose d'en créer une.
+      + (prem ? '<button class="ss-btn primary" id="ssGo">Ouvrir · '+esc(prem)+'</button>'
+              : '<button class="ss-btn primary" id="ssGoNew">＋ Créer la première étape</button>')
       + '</div>';
   }
   function editeur(){
     var body = $('ssEditBody'), ttl = $('ssEditTtl'), dot = $('ssEditDot');
     var ps = phases();
     if(selP==null || !ps[selP]){
-      body.innerHTML = accueil(); ttl.textContent='Ce que tu écris'; dot.style.background='var(--dim)';
+      body.innerHTML = accueil(); ttl.textContent='La stratégie de l’étape'; dot.style.background='var(--dim)';
       var go = $('ssGo'); if(go) go.addEventListener('click', function(){ choisir(0); });
+      var neuf = $('ssGoNew'); if(neuf) neuf.addEventListener('click', function(){ $('ssAddPhase').click(); });
       return;
     }
     var ph = ps[selP];
