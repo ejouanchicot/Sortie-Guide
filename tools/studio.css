@@ -169,6 +169,9 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
   background:var(--chip);border:1px solid var(--chipbd);border-radius:9px;padding:6px 10px;cursor:pointer;
   max-width:260px}
 .st-txtctl select:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
+/* meme raison que pour les autres menus : la liste deroulante sort blanche
+   si on ne lui donne pas sa couleur */
+.st-txtctl select option{background:#0e1726;color:var(--txt)}
 
 .st-txtparts{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
 .st-part{border:1px solid var(--hair);border-radius:13px;overflow:hidden;background:rgba(0,0,0,.22)}

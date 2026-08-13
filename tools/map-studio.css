@@ -43,6 +43,10 @@ input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px}
 #carteSel{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--tx);max-width:230px;
   background:var(--s1);border:1px solid var(--line2);border-radius:9px;padding:7px 9px;cursor:pointer}
 #carteSel:hover{border-color:color-mix(in srgb,var(--cyan) 50%,transparent)}
+/* la liste deroulante ne suit pas toujours la couleur du champ : sans ca
+   elle sort blanche, et le texte clair devient illisible dessus */
+#carteSel option{background:var(--s2);color:var(--tx)}
+#carteSel option:disabled{color:var(--dim)}
 /* une carte partagee : le dire, sinon on la corrige pour deux chapitres sans le savoir */
 .cartepart{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--cyan);white-space:nowrap;
   background:color-mix(in srgb,var(--cyan) 13%,transparent);
