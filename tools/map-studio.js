@@ -1162,7 +1162,7 @@
     // gestes sont rares : on les cherche la ou on choisit la carte.
     const aFond=!!(REG[f.carte]&&REG[f.carte].fond);
     host.innerHTML='<span class="ctxlab">Carte</span>'
-      +'<select id="carteSel" title="La carte utilisee par ce chapitre">'
+      +'<select id="carteSel" title="La carte de ce chapitre — en choisir une autre va la voir, sans rien rattacher">'
       + noms.map(k=>'<option value="'+esc(k)+'"'+(k===f.carte?' selected':'')+'>'+esc(k)+'</option>').join('')
       +'<option disabled>──────────</option>'
       +'<option value="__neuve__">＋ Nouvelle carte…</option>'
@@ -1341,8 +1341,38 @@
       ? ' · '+II.ko(prete.avant.poids)+' → '+II.ko(prete.apres.poids) : '';
     toast('Fond pose en '+prete.w+'×'+prete.h+gain+'.','ok');
   }
-  function choisirCarte(nom){
+  // Aller à un chapitre : le segment d'en haut et la scène disent la même chose.
+  function allerEtage(i){
+    if(i<0||i>=FL.length||i===curIdx)return;
+    document.querySelectorAll('#floorSeg button').forEach(x=>
+      x.classList.toggle('on', +x.dataset.i===i));
+    renderFloor(i);resetHistory();
+  }
+
+  /* Choisir une carte ici, c'est ALLER LA VOIR — pas rattacher le chapitre
+     courant à elle.
+
+     L'inverse a coûté cher, et en silence : un coup d'œil au sous-sol par ce
+     menu, et le chapitre du haut se retrouvait dessiné sur la carte du bas.
+     Sa strat allait alors chercher, pour chaque étape, le marqueur du même
+     numéro — sur l'autre carte. Degei affichait le portrait de Dhartok,
+     Leshonn celui d'Aïta, et rien ne signalait quoi que ce soit.
+
+     Une carte appartient à son chapitre. On ne le défait donc que dans le seul
+     cas où c'est nécessaire : une carte que PERSONNE n'utilise, et qui serait
+     autrement impossible à ouvrir. */
+  async function choisirCarte(nom){
     const f=FL[curIdx];if(!f||!REG[nom]||f.carte===nom){majSelCarte();return;}
+    const i=FL.findIndex(x=>x.carte===nom);
+    if(i>=0){ majSelCarte(); allerEtage(i); return; }
+
+    const ok=await askConfirm(
+      '<b>'+esc(nom)+'</b> n’est utilisée par aucun chapitre — il n’y a pas d’étage '
+      +'où aller la voir.<br><br>Le chapitre <b>'+esc(f.fr||f.id)+'</b> passerait de '
+      +'<b>'+esc(f.carte)+'</b> à celle-ci : ses marqueurs, ses tracés et les portraits '
+      +'de sa strat viendraient de cette carte-là.',
+      {title:'Rattacher ce chapitre à cette carte ?',ok:'Rattacher',danger:false});
+    if(!ok){majSelCarte();return;}
     S.deposeCartes(FL,REG);          // on n'abandonne pas le travail en cours
     f.carte=nom;S.resoudreCartes(FL,REG);
     setDirty(true);renderFloor(curIdx);resetHistory();majSelCarte();
@@ -1510,7 +1540,8 @@
     if(FL.length<2){h.style.display='none';return;}
     h.innerHTML=FL.map((f,i)=>'<button data-i="'+i+'"'+(i===curIdx?' class="on"':'')+'>'
       +esc(f.fr||f.en||('Chapitre '+(i+1)))+'</button>').join('');})();
-  document.getElementById('floorSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#floorSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderFloor(+b.dataset.i);resetHistory();});
+  document.getElementById('floorSeg').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;allerEtage(+b.dataset.i);});
   document.getElementById('btnFit').addEventListener('click',fit);
   document.getElementById('btnSave').addEventListener('click',save);
   document.getElementById('btnExport').addEventListener('click',openExport);
