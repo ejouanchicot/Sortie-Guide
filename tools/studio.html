@@ -31,6 +31,16 @@
     <div class="st-brand"><img class="st-logo" src="../img/logo.webp" alt="" width="44" height="44"><span class="st-wm"><span class="tag">FFXI</span><span class="nom"><i>STRAT</i><b>STUDIO</b></span></span></div>
     <span class="st-div"></span>
 
+    <!-- la strat ouverte : le contexte le plus large, avant les ateliers -->
+    <div class="st-lib" title="Tes strats vivent dans ce navigateur, prêtes à l’ouverture. « Enregistrer » publie celle-ci dans le guide.">
+      <svg class="st-lib-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 015.5 4H9v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M9 4h4.5A1.5 1.5 0 0115 5.5v13a1.5 1.5 0 01-1.5 1.5H9"/><path d="M16.6 5.2l2.6.7a1.5 1.5 0 011 1.9l-3.1 11.6"/></svg>
+      <span class="st-lib-in">
+        <select id="stStratSel" aria-label="Strat ouverte"></select>
+        <span class="st-lib-sub" id="stStratInfo"></span>
+      </span>
+    </div>
+    <span class="st-div"></span>
+
     <!-- les deux ateliers -->
     <div class="st-tabs" id="stTabs" role="tablist">
       <button type="button" class="st-tab" id="stTabMap" role="tab" data-pane="map" aria-selected="false" title="Placer les mobs, les trés et les annotations sur la carte">
@@ -246,6 +256,7 @@
 <script src="../js/i18n.js"></script>
 <script src="../js/sortie-map-core.js"></script>
 <script src="../js/data-file.js"></script>
+<script src="../js/biblio.js"></script>
 <script src="../js/strat-render.js"></script>
 <script src="../js/strat-core.js"></script>
 <script src="../js/rich-editor.js"></script>

@@ -886,6 +886,9 @@
   // crochet de test, et ce que la coque de l'outil unifié (studio.js) demande :
   // les blocs à écrire, l'état « non enregistré », et sa modale de confirmation.
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
+                 recharge:function(){ idx=0; selP=null; JEUX=(typeof BUFFS!=='undefined')?BUFFS:{};
+                   CP=(typeof COMPO!=='undefined')?COMPO:CP; buildTree(); editeur(); rendre(); propre(); },
+                 saisie:saisie,
                  blocs:blocsData, blocsTr:function(){ return [{nom:'TR', txt:SC.trConst('TR', TRAD)}]; },
                  sale:function(){ return dirty; }, propre:propre, demande:demande,
                  blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,

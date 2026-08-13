@@ -23,6 +23,76 @@
   var SS = window.__SS || null;      // atelier stratégie
   var FL = (typeof FLOORS !== 'undefined') ? FLOORS : [];
 
+  /* ---------------- la bibliothèque ----------------
+     Ton travail vit dans le navigateur, pas dans le dépôt. Le dépôt devient
+     une destination : « Enregistrer » y publie la strat ouverte.
+     Charger une strat REMPLACE le contenu des globales — jamais leur
+     référence, que les deux ateliers ont prise au démarrage. */
+  var BI = window.BIBLIO;
+  var G = {COMPO: window.COMPO || (typeof COMPO !== 'undefined' ? COMPO : {}),
+           ROLE:  (typeof ROLE  !== 'undefined') ? ROLE  : {},
+           BUFFS: (typeof BUFFS !== 'undefined') ? BUFFS : {},
+           CARTES:(typeof CARTES!== 'undefined') ? CARTES: {},
+           FLOORS: FL};
+  var stratId = null, dernierEcrit = '';
+
+  function nomCourant(){
+    var s = $('stStratSel');
+    var o = s && s.querySelector('option[value="'+stratId+'"]');
+    return o ? o.textContent : 'Sans titre';
+  }
+  function instantane(){ return BI.depuisGlobaux(G, nomCourant()); }
+
+  // Sauvegarde silencieuse dans l'espace de travail. Rien à voir avec
+  // « Enregistrer », qui publie dans le dépôt.
+  var tSauve = null;
+  function sauveBientot(){ clearTimeout(tSauve); tSauve = setTimeout(sauve, 1200); }
+  function sauve(){
+    if(!stratId || !BI) return Promise.resolve();
+    var s = instantane(); s.id = stratId;
+    var j = JSON.stringify(s);
+    if(j === dernierEcrit) return Promise.resolve();      // rien n'a bougé
+    dernierEcrit = j;
+    return BI.ecris(s).catch(function(){});
+  }
+  window.addEventListener('pagehide', function(){ clearTimeout(tSauve); sauve(); });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden){ clearTimeout(tSauve); sauve(); } });
+
+  async function majListeStrats(){
+    var host = $('stStratSel'); if(!host || !BI) return;
+    var l = await BI.liste();
+    host.innerHTML = l.map(function(s){
+      return '<option value="'+S.escAttr(s.id)+'"'+(s.id===stratId?' selected':'')+'>'+S.esc(s.nom)+'</option>';
+    }).join('')
+      + '<option disabled>──────────</option>'
+      + '<option value="__neuve__">＋ Nouvelle strat…</option>'
+      + '<option value="__copie__">⧉ Dupliquer celle-ci</option>'
+      + '<option value="__renom__">✎ Renommer celle-ci</option>'
+      + (l.length > 1 ? '<option value="__suppr__">✕ Supprimer celle-ci</option>' : '');
+    var n = l.filter(function(s){ return s.id === stratId; })[0];
+    $('stStratInfo').textContent = n ? (n.chapitres + ' chap · ' + n.etapes + ' étapes') : '';
+  }
+
+  // Poser une strat dans les ateliers : on remplit les globales, puis chacun
+  // se redessine. Ils n'ont pas à savoir qu'une bibliothèque existe.
+  function poseStrat(s){
+    BI.versGlobaux(s, G, S.resoudreCartes);
+    stratId = s.id; BI.noteCourante(s.id);
+    dernierEcrit = JSON.stringify(BI.depuisGlobaux(G, s.nom));
+    construitChapitres();
+    if(MS && MS.recharge) MS.recharge();
+    if(SS && SS.recharge) SS.recharge();
+    majListeStrats();
+  }
+  async function ouvreStrat(id){
+    if(id === stratId) return;
+    await sauve();
+    var s = await BI.lis(id);
+    if(!s){ majListeStrats(); return; }
+    poseStrat(s);
+    toast('« ' + s.nom +' » ouverte.','ok');
+  }
+
   /* ---------------- onglets ---------------- */
   var actif = 'map';
   function ouvre(nom){
@@ -62,15 +132,17 @@
       x.classList.toggle('on', +x.dataset.i === i); });
     try{ localStorage.setItem('studio_chapitre', i); }catch(e){}
   }
-  (function(){
+  // Reconstruit à chaque changement de strat : les chapitres ne sont pas
+  // les mêmes d'une strat à l'autre.
+  function construitChapitres(){
     var host = $('stChap');
-    if(FL.length < 2) return;              // une strat d'un seul tenant : rien à choisir
-    host.innerHTML = FL.map(function(f, i){
+    host.innerHTML = FL.length < 2 ? '' : FL.map(function(f, i){
       return '<button type="button" data-i="'+i+'"'+(i===0?' class="on"':'')+'>'
         + S.esc(f.fr || f.en || ('Chapitre '+(i+1))) + '</button>'; }).join('');
-    host.addEventListener('click', function(e){
-      var b = e.target.closest('button[data-i]'); if(b) chapitre(+b.dataset.i); });
-  })();
+  }
+  $('stChap').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-i]'); if(b) chapitre(+b.dataset.i); });
+  construitChapitres();
 
   /* ---------------- les commandes de chaque atelier ---------------- */
   // On les DÉPLACE : un appendChild conserve les écouteurs déjà posés.
@@ -80,6 +152,10 @@
   }
   range(['carteBar','ctxbar','btnFit','btnExport'], 'stCtxMap');
   range(['ssCompo','ssRoles'], 'stCtxStrat');
+  // La boîte de dialogue de l'atelier Stratégie sert aussi à la coque
+  // (renommer une strat, confirmer une suppression). Restée dans son panneau,
+  // elle serait invisible dès qu'on est sur la carte : on la remonte.
+  var mdl = $('ssModal'); if(mdl) document.querySelector('.st-app').appendChild(mdl);
 
   /* ---------------- état « non enregistré » ---------------- */
   // Chaque atelier tient le sien ; la coque en fait la somme, et marque
@@ -89,8 +165,59 @@
     $('stTabMap').classList.toggle('sale', !!m);
     $('stTabStrat').classList.toggle('sale', !!s);
     $('stUnsaved').classList.toggle('on', !!(m || s));
+    if(m || s) sauveBientot();     // l'espace de travail suit, en silence
   }
   setInterval(majEtat, 400);
+
+  /* ---------------- créer, dupliquer, renommer, supprimer ---------------- */
+  async function nouvelleStrat(){
+    majListeStrats();
+    var nom = (await saisie('Un event, un contenu, une variante — ce nom te sert à la retrouver.',
+      {titre:'Nouvelle strat', valeur:'Nouvelle strat', ok:'Créer'}) || '').trim();
+    if(!nom) return;
+    await sauve();
+    var s = BI.nouvelle(nom);
+    await BI.ecris(s);
+    poseStrat(s);
+    toast('« ' + nom + ' » créée — elle t’attend, vide.','ok');
+  }
+  async function dupliqueStrat(){
+    majListeStrats();
+    var nom = (await saisie('La copie est indépendante : la modifier ne touche pas à l’originale.',
+      {titre:'Dupliquer la strat', valeur:nomCourant() + ' (copie)', ok:'Dupliquer'}) || '').trim();
+    if(!nom) return;
+    await sauve();
+    var s = BI.duplique(instantane(), nom);
+    await BI.ecris(s);
+    poseStrat(s);
+    toast('Copie créée : « ' + nom + ' ».','ok');
+  }
+  async function renommeStrat(){
+    var nom = (await saisie('Ce nom n’apparaît que dans ta bibliothèque.',
+      {titre:'Renommer la strat', valeur:nomCourant(), ok:'Renommer'}) || '').trim();
+    if(!nom) { majListeStrats(); return; }
+    var s = instantane(); s.id = stratId; s.nom = nom;
+    dernierEcrit = '';                       // on force l'écriture
+    await BI.ecris(s);
+    await majListeStrats();
+  }
+  async function supprimeStrat(){
+    var l = await BI.liste();
+    if(l.length < 2){ toast('Il faut garder au moins une strat.','err'); majListeStrats(); return; }
+    var ok = await demande('Supprimer <b>' + S.esc(nomCourant()) + '</b> de ta bibliothèque ?<br><br>'
+      + 'Ce qui a déjà été publié dans le guide n’est pas touché.',
+      {titre:'Supprimer la strat', ok:'Supprimer'});
+    if(!ok){ majListeStrats(); return; }
+    var mort = stratId;
+    stratId = null;                          // plus de sauvegarde silencieuse dessus
+    await BI.supprime(mort);
+    var suite = l.filter(function(x){ return x.id !== mort; })[0];
+    poseStrat(await BI.lis(suite.id));
+    toast('Strat supprimée.','ok');
+  }
+  function saisie(msg, opts){
+    return (SS && SS.saisie) ? SS.saisie(msg, opts) : Promise.resolve(null);
+  }
 
   /* ---------------- une seule sauvegarde ---------------- */
   var explique = false;
@@ -163,6 +290,27 @@
      parsing : y rejouer l'onglet et le chapitre mémorisés revenait à masquer
      le panneau de la carte avant que Konva ne se mesure — la scène naissait
      à 0 × 0 et il fallait recharger pour la voir. */
+  // La bibliothèque d'abord : au tout premier lancement elle est vide, et on
+  // y verse ce que data.js contient — le travail existant ne se perd pas et
+  // devient la première entrée.
+  async function ouvreBibliotheque(){
+    if(!BI) return;
+    BI.persiste();
+    var l = await BI.liste();
+    if(!l.length){
+      var s = BI.depuisGlobaux(G, 'Sortie · Nightfallens');
+      await BI.ecris(s);
+      stratId = s.id; BI.noteCourante(s.id);
+      dernierEcrit = JSON.stringify(BI.depuisGlobaux(G, s.nom));
+    } else {
+      var vise = BI.courante();
+      var choix = l.filter(function(x){ return x.id === vise; })[0] || l[0];
+      var s2 = await BI.lis(choix.id);
+      if(s2) poseStrat(s2); else stratId = null;
+    }
+    await majListeStrats();
+  }
+
   function restaure(){
     var depart = 'map';
     try{ var m = localStorage.getItem('studio_atelier'); if(m==='map'||m==='strat') depart = m; }catch(e){}
@@ -171,9 +319,18 @@
     if(DF.connue) DF.connue('data').then(function(h){ if(h) $('stFile').textContent = h.name; });
     majEtat();
   }
+  $('stStratSel').addEventListener('change', function(e){
+    var v = e.target.value;
+    if(v === '__neuve__') return nouvelleStrat();
+    if(v === '__copie__') return dupliqueStrat();
+    if(v === '__renom__') return renommeStrat();
+    if(v === '__suppr__') return supprimeStrat();
+    ouvreStrat(v);
+  });
   // les ateliers démarrent sur DOMContentLoaded : on passe juste après
-  if(document.readyState === 'loading') window.addEventListener('DOMContentLoaded', function(){ setTimeout(restaure, 0); });
-  else setTimeout(restaure, 0);
+  function demarre(){ ouvreBibliotheque().then(restaure).catch(restaure); }
+  if(document.readyState === 'loading') window.addEventListener('DOMContentLoaded', function(){ setTimeout(demarre, 0); });
+  else setTimeout(demarre, 0);
 
   /* ---------------- installable, et hors ligne ----------------
      Pas de boutique, pas de signature, pas d'abonnement : le navigateur

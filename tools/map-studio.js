@@ -1406,7 +1406,9 @@
     blocs:function(){clearTimeout(histTimer);commit();return blocksToSave();},
     sale:function(){return dirty;},
     propre:function(){setDirty(false);},
-    fichier:setFname
+    fichier:setFname,
+    // la coque a charge une autre strat dans les globales : on repart de zero
+    recharge:function(){curIdx=0;renderFloor(0);resetHistory();setDirty(false);}
   };
   if(document.readyState!=='loading')boot();else window.addEventListener('DOMContentLoaded',boot);
 })();

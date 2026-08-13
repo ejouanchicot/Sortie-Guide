@@ -47,6 +47,28 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 .st-div{width:1px;height:26px;background:var(--line2);flex:none;opacity:.6}
 .st-spacer{flex:1}
 
+/* ─── la strat ouverte ───
+   Elle vient avant les onglets parce qu'elle les contient : on change
+   d'atelier DANS une strat. Le sous-titre (chapitres, étapes) confirme
+   qu'on a bien ouvert celle qu'on croit — deux strats peuvent porter des
+   noms proches. */
+.st-lib{display:flex;align-items:center;gap:9px;flex:none;max-width:270px}
+.st-lib-ic{width:19px;height:19px;flex:none;fill:none;stroke:var(--accent2);stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.st-lib-in{display:flex;flex-direction:column;gap:1px;min-width:0}
+.st-lib select{font-family:var(--sans);font-size:13.5px;font-weight:650;color:var(--txt);
+  background:transparent;border:none;border-radius:8px;padding:2px 22px 2px 6px;margin-left:-6px;
+  cursor:pointer;max-width:210px;text-overflow:ellipsis;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%237e93b5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 4px center;background-size:12px}
+.st-lib select:hover{background-color:var(--chip)}
+.st-lib select:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
+.st-lib select option{background:#0e1726;color:var(--txt);font-weight:500}
+.st-lib-sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-lib-sub:empty{display:none}
+
 /* ─── onglets : les deux ateliers ───
    Un atelier n'est pas un réglage : les onglets sont larges, portent une
    icône, et l'actif est souligné d'un trait plein. */

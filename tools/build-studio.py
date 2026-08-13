@@ -19,8 +19,16 @@ HTML = u'''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Studio · carte &amp; strat\u00e9gie</title>
-<link rel="icon" type="image/webp" href="../img/map-studio-icon.webp">
+<title>FFXI Strat Studio — strategy map builder</title>
+<link rel="icon" type="image/png" sizes="64x64" href="../img/favicon-64.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#070b12">
+<link rel="apple-touch-icon" href="../img/icon-180.webp">
+<meta name="description" content="\u00c9diteur de cartes et de strat\u00e9gies pour Final Fantasy XI \u2014 Odyssey, Sortie et tout autre contenu.">
+<meta property="og:title" content="FFXI Strat Studio">
+<meta property="og:description" content="Strategy map builder \u2014 plan every run.">
+<meta property="og:image" content="https://ejouanchicot.github.io/Sortie-Guide/img/og-studio.webp">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <link rel="preload" href="../fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../css/fonts.css">
@@ -36,7 +44,17 @@ HTML = u'''<!DOCTYPE html>
 <div class="st-app">
 
   <header class="st-top">
-    <div class="st-brand"><img class="st-logo" src="../img/map-studio-logo.webp" alt="" width="44" height="44"><span class="st-wm">STRAT<b>STUDIO</b></span></div>
+    <div class="st-brand"><img class="st-logo" src="../img/logo.webp" alt="" width="44" height="44"><span class="st-wm"><span class="tag">FFXI</span><span class="nom"><i>STRAT</i><b>STUDIO</b></span></span></div>
+    <span class="st-div"></span>
+
+    <!-- la strat ouverte : le contexte le plus large, avant les ateliers -->
+    <div class="st-lib" title="Tes strats vivent dans ce navigateur, pr\u00eates \u00e0 l\u2019ouverture. \u00ab\u00a0Enregistrer\u00a0\u00bb publie celle-ci dans le guide.">
+      <svg class="st-lib-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 015.5 4H9v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M9 4h4.5A1.5 1.5 0 0115 5.5v13a1.5 1.5 0 01-1.5 1.5H9"/><path d="M16.6 5.2l2.6.7a1.5 1.5 0 011 1.9l-3.1 11.6"/></svg>
+      <span class="st-lib-in">
+        <select id="stStratSel" aria-label="Strat ouverte"></select>
+        <span class="st-lib-sub" id="stStratInfo"></span>
+      </span>
+    </div>
     <span class="st-div"></span>
 
     <!-- les deux ateliers -->
@@ -57,6 +75,8 @@ HTML = u'''<!DOCTYPE html>
     <div class="st-ctx" id="stCtxStrat" hidden></div>
 
     <div class="st-spacer"></div>
+    <button class="st-btn" id="stInstall" hidden title="Ajouter l\u2019outil \u00e0 ton bureau. Le navigateur demandera confirmation \u2014 c\u2019est lui qui installe, pas le site.">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Installer\u2026</button>
     <span class="st-file" id="stFile"></span>
     <span id="stUnsaved" title="Des changements ne sont pas encore sauvegard\u00e9s">non enregistr\u00e9</span>
     <button class="st-btn" id="stReload" title="Repartir de la derni\u00e8re version sauvegard\u00e9e \u2014 les changements en cours sont perdus">
@@ -82,6 +102,7 @@ __STRAT__
 <script src="../js/i18n.js"></script>
 <script src="../js/sortie-map-core.js"></script>
 <script src="../js/data-file.js"></script>
+<script src="../js/biblio.js"></script>
 <script src="../js/strat-render.js"></script>
 <script src="../js/strat-core.js"></script>
 <script src="../js/rich-editor.js"></script>
