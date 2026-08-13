@@ -3,20 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SORTIE · Guide de run</title>
-<meta name="description" content="Guide de run Sortie (FINAL FANTASY XI) — 4 phases, stratégie par rôle. Linkshell Nightfallens.">
+<!-- Ce que voit quelqu'un qui n'a PAS encore ouvert la page : l'onglet du
+     navigateur, et surtout l'aperçu quand on colle le lien sur Discord.
+     Discord ne lit que le HTML, jamais le JavaScript — ces lignes ne peuvent
+     donc pas se déduire de data.js. Si tu publies une autre strat que Sortie,
+     c'est ici que son nom se change, et nulle part ailleurs.
+     `og:site_name` porte l'outil, `og:title` le contenu : Discord affiche le
+     premier en petit au-dessus du second. -->
+<title>Sortie · Guide de run — FFXI Strat Studio</title>
+<meta name="description" content="Guide de run Sortie (FINAL FANTASY XI) — 4 phases, stratégie par rôle. Linkshell Nightfallens. Écrit avec FFXI Strat Studio.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="SORTIE · Guide de run">
-<meta property="og:title" content="SORTIE · Guide de run">
+<meta property="og:site_name" content="FFXI Strat Studio">
+<meta property="og:title" content="Sortie · Guide de run">
 <meta property="og:description" content="Stratégie complète · 4 phases · Degei → Skomora → Leshonn → Ghatjot · filtre par rôle et mode Solo.">
 <meta property="og:image" content="https://ejouanchicot.github.io/Sortie-Guide/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="https://ejouanchicot.github.io/Sortie-Guide/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#080a0e">
+<!-- la couleur dont le navigateur teinte sa barre autour de la page : c'est
+     le --bg réel du thème sombre, sinon la jointure se voit -->
+<meta name="theme-color" content="#07090d">
 <script>try{var t=localStorage.getItem('sortie_theme');document.documentElement.setAttribute('data-theme',(t==='light')?'light':'dark');}catch(e){}</script>
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="64x64" href="img/favicon-64.png">
+<link rel="apple-touch-icon" href="img/icon-180.webp">
 <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/fonts.css">
@@ -29,6 +40,11 @@
 <div class="topstick">
 <header>
   <div class="brand">
+    <!-- Le titre reste celui de la STRAT : c'est elle qu'on vient lire. L'outil
+         se signe discrètement à côté, et sert de porte vers l'atelier pour qui
+         mène le run. -->
+    <a class="bmark" href="tools/studio.html" title="Ouvrir l'atelier — FFXI Strat Studio"
+       aria-label="Ouvrir l'atelier FFXI Strat Studio"><img src="img/logo.webp" alt="" width="40" height="40"></a>
     <div class="btitle">
       <h1 id="gTitre">…</h1>
       <span class="bsub" id="gSous"></span>
