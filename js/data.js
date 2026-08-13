@@ -60,27 +60,37 @@ const PACKS=[
  {name:'Umbril', el:'blue', x:79.8,y:29.8, q:'X12', ph:3, label:'<c><u><span style="color:#009dff">Umbril</span></u>\n<c>X12'},
 ];
 
-// ---- buffs de déplacement (Trajet) ----
-const BUFFS_P1=[
+// ---- jeux de buffs ----
+// Un bloc de préparation, posé en tête d'une étape. Son NOM est ce que le guide
+// affiche en titre du bloc : on l'écrit, il n'est pas imposé par le moteur.
+// Une étape s'y rattache par ce nom (« buffs:"Buffs de trajet" »), donc corriger
+// un jeu le corrige dans toutes les étapes qui s'en servent.
+// Réglable dans Strat Studio — ne pas éditer à la main, l'outil réécrit le bloc.
+const BUFFS={
+ "Buffs de départ":[
   ln(["ALL"],"Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
   ln(["ALL"],"Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
   ln(["COR"],"Bolter's + Tactician's"),
   ln(["BRD"],"Mazurka"),
   ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
-];
-const BUFFS_STD=[
+ ],
+ "Buffs de trajet":[
   ln(["COR"],"Bolter's (Tactician's déjà posé)"),
   ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
-];
-// trajet du sous-sol (E–H) : identique partout
-const BUFFS_B=[
+ ],
+ "Buffs avant le dernier boss":[
+  ln(["COR"],"Bolter's + Tactician's"),
+  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
+ ],
+ "Buffs de trajet · sous-sol":[
   ln(["ALL"],"Sneak + Invisible"),
   ln(["COR"],"Bolter's + Tactician's")
-];
+ ]
+};
 
 // ---- PHASES : le cœur de la strat ----
 const PHASES=[
-{n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:BUFFS_P1,cards:[
+{n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:"Buffs de départ",cards:[
   {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
     {label:"Setup · au camp Fomor",cls:"tank",lines:[
       ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"],{comp:"PLD"}),
@@ -139,7 +149,7 @@ const PHASES=[
     ]}
   ]}
 ]},
-{n:2,boss:"Skomora",map:"",title:"Ghost → Skomora",route:"Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).",buffs:BUFFS_STD,cards:[
+{n:2,boss:"Skomora",map:"",title:"Ghost → Skomora",route:"Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).",buffs:"Buffs de trajet",cards:[
   {kind:"pack",name:"Pack · Ghost ×3",tag:"weak Fire · SC → MB Fire",groups:[
     {label:"Buff · farm",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
@@ -175,7 +185,7 @@ const PHASES=[
     ]}
   ]}
 ]},
-{n:3,boss:"Leshonn",map:"",title:"Umbril → Leshonn",route:"Mur de droite, plein NORD → coin haut-droite (Umbril ×5, puis Leshonn).",buffs:BUFFS_STD,cards:[
+{n:3,boss:"Leshonn",map:"",title:"Umbril → Leshonn",route:"Mur de droite, plein NORD → coin haut-droite (Umbril ×5, puis Leshonn).",buffs:"Buffs de trajet",cards:[
   {kind:"pack",name:"Pack · Umbril ×5",tag:"≥1 WS par mob · tous tués = lock ses TP moves",groups:[
     {label:"Buff · farm",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
@@ -220,10 +230,7 @@ const PHASES=[
     ]}
   ]}
 ]},
-{n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:[
-  ln(["COR"],"Bolter's + Tactician's"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
-],cards:[
+{n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:"Buffs avant le dernier boss",cards:[
   {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
     {label:"PLD",cls:"tank",lines:[
       ln(["PLD"],"tank sur place")
@@ -259,7 +266,7 @@ const PHASES=[
    Aminon (E) = boss final, pas encore fait.
    ============================================================ */
 const PHASES_B=[
-{n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:BUFFS_B,cards:[
+{n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
     {label:"Botulus",cls:"",lines:[
       ln(["DNC"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade",{comp:"DNC"})
@@ -267,7 +274,7 @@ const PHASES_B=[
   ]},
   {kind:"boss",name:"Boss · Dhartok",tag:"à définir",groups:[]}
 ]},
-{n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:BUFFS_B,cards:[
+{n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
     {label:"Naraka",cls:"",lines:[
       ln(["DNC"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade",{comp:"DNC"})
@@ -275,10 +282,10 @@ const PHASES_B=[
   ]},
   {kind:"boss",name:"Boss · Triboulex",tag:"à définir",groups:[]}
 ]},
-{n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:BUFFS_B,cards:[
+{n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"boss",name:"Boss · Aïta",tag:"à définir",groups:[]}
 ]},
-{n:4,sector:"F",boss:"Gartell",title:"Secteur F · Gartell",route:"On file directement au boss.",buffs:BUFFS_B,cards:[
+{n:4,sector:"F",boss:"Gartell",title:"Secteur F · Gartell",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"boss",name:"Boss · Gartell",tag:"à définir",groups:[]}
 ]},
 {n:5,sector:"E",boss:"Aminon",soon:true,title:"Aminon · boss final (E)"}

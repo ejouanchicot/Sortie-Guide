@@ -194,8 +194,8 @@ function buildTimeline(f){
       TL.appendChild(sec); return;
     }
     let cards=""; p.cards.forEach(c=>{ cards+=cardHtml(c,p,f,bossByN); });
-    const buffsHtml= p.buffs ? '<div class="buffs"><span class="bhead">'+tr("Trajet · buffs de déplacement")+'</span>'
-      + p.buffs.map(b=>'<span class="bl'+(b.warn?' warn':'')+'" data-r="'+(b.r||['ALL']).join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'+roleChip(b.r[0])+'<span>'+(Array.isArray(b.t)?'<ul class="acts">'+b.t.map(function(it){return '<li>'+colorize(tr(it))+'</li>';}).join('')+'</ul>':colorize(tr(b.t)))+'</span></span>').join("")+'</div>' : '';
+    // p.buffs est le NOM d'un jeu de BUFFS ; le titre affiché est ce nom.
+    const buffsHtml = STRATR.buffsHtml(p.buffs, BUFFS[p.buffs]);
     const numPill=(k)=>{const bb=bossByN[k];return '<span class="segpill" style="--sc:'+(bb?ELC[bb.el]:'var(--dim)')+'">'+k+'</span>';};
     const fromHtml=p.n===1?'<span class="segstart">Start</span>':numPill(p.n-1);
     const segHtml='<span class="pseg">'+fromHtml+'<span class="segar">→</span>'+numPill(p.n)+'</span>';

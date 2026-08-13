@@ -121,10 +121,13 @@
       +'<div class="cbody">'+groups+'</div></div>';
   }
 
-  // ---- bloc des buffs de trajet ----
-  function buffsHtml(buffs){
+  // ---- bloc de préparation posé en tête d'une étape ----
+  // Le titre vient du NOM du jeu de buffs, écrit par l'auteur. Il était écrit
+  // en dur ici (« Trajet · buffs de déplacement »), ce qui ne voulait rien dire
+  // hors d'un run où l'on se déplace entre les boss.
+  function buffsHtml(nom, buffs){
     if(!buffs || !buffs.length) return '';
-    return '<div class="buffs"><span class="bhead">'+H.tr("Trajet · buffs de déplacement")+'</span>'
+    return '<div class="buffs"><span class="bhead">'+esc(H.tr(nom || ''))+'</span>'
       + buffs.map(function(b){
           var roles = b.r || ['ALL'];
           return '<span class="bl'+(b.warn?' warn':'')+'" data-r="'+roles.join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'

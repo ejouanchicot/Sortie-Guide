@@ -1,7 +1,7 @@
 /* ============================================================
    strat-studio.js — outil d'écriture des stratégies
    ------------------------------------------------------------
-   Édite PHASES / PHASES_B (et les blocs BUFFS_*) de js/data.js, plus
+   Édite PHASES / PHASES_B, COMPO, ROLE et BUFFS de js/data.js, plus
    TR de js/i18n.js.
 
    UNE ÉTAPE = UNE PAGE. Le run se pense en P1 P2 P3 P4 : la colonne de
@@ -26,9 +26,9 @@
             ROLE:(typeof ROLE!=='undefined'?ROLE:{}), base:'../'});
 
   var FL = (typeof FLOORS!=='undefined') ? FLOORS : [];
-  var BUFFS = {BUFFS_P1:(typeof BUFFS_P1!=='undefined'?BUFFS_P1:null),
-               BUFFS_STD:(typeof BUFFS_STD!=='undefined'?BUFFS_STD:null),
-               BUFFS_B:(typeof BUFFS_B!=='undefined'?BUFFS_B:null)};
+  // JEUX et pas BUFFS : `var BUFFS` ici masquerait le `const BUFFS` de data.js
+  // dans toute l'IIFE, et `typeof BUFFS` ne verrait plus que la locale.
+  var JEUX = (typeof BUFFS!=='undefined') ? BUFFS : {};
   var TRAD = (typeof TR!=='undefined') ? TR : {};
   var CP = (typeof COMPO!=='undefined') ? COMPO : {taille:6, jobs:[]};
   // Les 22 jobs de FFXI, dans un ordre stable — la référence pour les panneaux
@@ -43,7 +43,7 @@
   function jobsCites(){
     var vus = {};
     (FL||[]).forEach(function(f){ (f.phases||[]).forEach(function(p){
-      (p.buffs||[]).forEach(function(l){ (l.r||[]).forEach(function(j){ vus[j]=1; }); });
+      ((p.buffs && JEUX[p.buffs]) || []).forEach(function(l){ (l.r||[]).forEach(function(j){ vus[j]=1; }); });
       (p.cards||[]).forEach(function(c){ (c.groups||[]).forEach(function(g){
         (g.lines||[]).forEach(function(l){ (l.r||[]).forEach(function(j){ vus[j]=1; }); }); }); });
     }); });
@@ -80,6 +80,26 @@
     b.hidden=false;
     function fin(v){ b.hidden=true; $('ssModalYes').onclick=null; $('ssModalNo').onclick=null; res(v); }
     $('ssModalYes').onclick=function(){fin(true);}; $('ssModalNo').onclick=function(){fin(false);}; }); }
+
+  // Même modale, mais avec un champ : rend le texte saisi, ou null si annulé.
+  // (window.prompt existe, mais il sort du thème et bloque tout l'onglet.)
+  function saisie(msg, opts){ opts=opts||{}; return new Promise(function(res){
+    var b=$('ssModal');
+    $('ssModalTtl').textContent = opts.titre||'Saisie';
+    $('ssModalMsg').innerHTML = msg + '<input type="text" class="ss-msaisie" id="ssModalIn">';
+    $('ssModalYes').textContent = opts.ok||'Valider';
+    $('ssModalYes').className = 'ss-btn primary';
+    b.hidden=false;
+    var champ = $('ssModalIn');
+    champ.value = opts.valeur||'';
+    champ.focus(); champ.select();
+    function fin(v){ b.hidden=true; champ.onkeydown=null;
+      $('ssModalYes').onclick=null; $('ssModalNo').onclick=null; res(v); }
+    champ.onkeydown = function(e){
+      if(e.key==='Enter'){ e.preventDefault(); fin(champ.value); }
+      if(e.key==='Escape'){ e.preventDefault(); fin(null); } };
+    $('ssModalYes').onclick=function(){ fin(champ.value); };
+    $('ssModalNo').onclick=function(){ fin(null); }; }); }
 
   /* ---------------- colonne 1 : les étapes, rien d'autre ---------------- */
   function buildTree(){
@@ -148,16 +168,23 @@
     ttl.textContent = (ph.sector?ph.sector+' · ':'')+'Étape '+ph.n+' — '+(ph.boss||'');
     dot.style.background = couleurEtape(ph);
 
-    var noms = Object.keys(BUFFS).filter(function(k){ return BUFFS[k]; });
-    var cur = noms.filter(function(k){ return BUFFS[k]===ph.buffs; })[0] || '';
+    // Le bloc de préparation se choisit par son NOM — le même que le guide
+    // affiche en titre. Le choix « nouveau… » en crée un, et le crayon renomme
+    // celui en cours dans toutes les étapes qui s'en servent.
+    var noms = Object.keys(JEUX);
+    var cur = ph.buffs || '';
     body.innerHTML =
       '<div class="ss-hdr">'
       + '<div class="ss-f"><label for="f_boss">Boss</label><input type="text" id="f_boss" value="'+esc(ph.boss||'')+'"></div>'
       + '<div class="ss-f"><label for="f_title">Titre affiché</label><input type="text" id="f_title" value="'+esc(ph.title||'')+'"></div>'
-      + '<div class="ss-f ss-narrow"><label for="f_buffs">Buffs de trajet</label><select id="f_buffs">'
-      +   '<option value="">aucun</option>'
-      +   noms.map(function(o){ return '<option'+(o===cur?' selected':'')+'>'+o+'</option>'; }).join('')
-      + '</select></div></div>'
+      + '<div class="ss-f ss-wide"><label for="f_buffs">Bloc de préparation</label>'
+      +   '<div class="ss-frow"><select id="f_buffs">'
+      +     '<option value="">aucun</option>'
+      +     noms.map(function(o){ return '<option value="'+esc(o)+'"'+(o===cur?' selected':'')+'>'+esc(o)+'</option>'; }).join('')
+      +     '<option value="__neuf__">＋ nouveau bloc…</option>'
+      +   '</select>'
+      +   '<button type="button" class="ss-mini" id="f_buffsRen" title="Renommer ce bloc partout"'
+      +     (cur?'':' disabled')+'>renommer</button></div></div></div>'
       + '<div class="ss-f"><label for="f_route">Comment on y va</label>'
       +   '<input type="text" id="f_route" value="'+esc(ph.route||'')+'" placeholder="Mur de droite, plein SUD → coin bas-gauche."></div>'
       + '<div id="ssBlocs"></div>'
@@ -169,8 +196,11 @@
     lie('f_title', function(v){ ph.title=v; });
     lie('f_route', function(v){ ph.route=v; });
     $('f_buffs').addEventListener('change', function(e){
-      if(e.target.value) ph.buffs = BUFFS[e.target.value]; else delete ph.buffs;
-      touche(); rendre(); });
+      var v = e.target.value;
+      if(v === '__neuf__'){ nouveauBuff(ph); return; }
+      if(v) ph.buffs = v; else delete ph.buffs;
+      touche(); editeur(); rendre(); });
+    $('f_buffsRen').addEventListener('click', function(){ renommeBuff(ph.buffs); });
     $('ssAddFarm').addEventListener('click', function(){ ajouteBloc(ph,'pack'); });
     $('ssAddBoss').addEventListener('click', function(){ ajouteBloc(ph,'boss'); });
     dessineBlocs(ph);
@@ -335,7 +365,7 @@
     if(selP==null || !ps[selP]){
       host.innerHTML='<p class="ss-empty">Choisis une étape à gauche pour voir son rendu.</p>'; majTrad(); return; }
     var ph = ps[selP], f = etage(), bn = bossParN();
-    host.innerHTML = R.buffsHtml(ph.buffs)
+    host.innerHTML = R.buffsHtml(ph.buffs, JEUX[ph.buffs])
       + '<div class="cards">'+(ph.cards||[]).map(function(c){ return R.cardHtml(c, ph, f, bn); }).join('')+'</div>'
       + ((ph.cards||[]).length ? '' : '<p class="ss-empty">Cette étape n’a encore aucun bloc — utilise <b>＋ bloc</b>.</p>');
     majTrad();
@@ -343,7 +373,7 @@
 
   /* ---------------- traductions ---------------- */
   function majTrad(){
-    var manque = SC.manquantes(phases(), TRAD);
+    var manque = SC.manquantes(phases(), TRAD, JEUX);
     $('ssTrCount').textContent = manque.length;
     var host = $('ssTr');
     if(!manque.length){ host.innerHTML='<p class="ss-trok">Tout est traduit pour cet étage.</p>'; return; }
@@ -380,6 +410,50 @@
     if(hidx>0){ hidx--; restaure(hist[hidx]); touche(); toast('Annulé.'); } else toast('Rien à annuler.'); }
   function retablir(){ clearTimeout(hTimer);
     if(hidx < hist.length-1){ hidx++; restaure(hist[hidx]); touche(); toast('Rétabli.'); } else toast('Rien à rétablir.'); }
+
+  /* ---------------- jeux de buffs (blocs de préparation) ---------------- */
+  // Le nom est le titre affiché : créer, c'est nommer. Renommer met à jour
+  // toutes les étapes qui pointaient dessus — sinon elles se retrouveraient
+  // à désigner un bloc qui n'existe plus.
+  function nomLibre(propose){
+    var n = propose, i = 2;
+    while(JEUX[n] !== undefined) n = propose + ' ' + (i++);
+    return n;
+  }
+  async function nouveauBuff(ph){
+    var nom = await saisie('Nom du bloc — c\'est le titre que le guide affichera.',
+      {titre:'Nouveau bloc de préparation', valeur:'Buffs', ok:'Créer'});
+    if(nom === null){ editeur(); return; }              // annulé : on remet le choix d'avant
+    nom = nom.trim();
+    if(!nom){ toast('Il faut un nom.','err'); editeur(); return; }
+    if(JEUX[nom] !== undefined){ toast('Ce nom existe déjà.','err'); editeur(); return; }
+    JEUX[nom] = [];
+    ph.buffs = nom;
+    touche(); editeur(); rendre();
+  }
+  async function renommeBuff(ancien){
+    if(!ancien || JEUX[ancien] === undefined) return;
+    var nom = await saisie('Le nom sert de titre dans le guide. Les étapes qui utilisent ce bloc suivront.',
+      {titre:'Renommer le bloc', valeur:ancien, ok:'Renommer'});
+    if(nom === null) return;
+    nom = nom.trim();
+    if(!nom || nom === ancien) return;
+    if(JEUX[nom] !== undefined){ toast('Ce nom existe déjà.','err'); return; }
+    // on reconstruit le dico pour garder l'ORDRE : sinon le bloc renommé
+    // sauterait en fin de fichier à chaque enregistrement.
+    var neuf = {};
+    Object.keys(JEUX).forEach(function(k){ neuf[k === ancien ? nom : k] = JEUX[k]; });
+    Object.keys(JEUX).forEach(function(k){ delete JEUX[k]; });
+    Object.keys(neuf).forEach(function(k){ JEUX[k] = neuf[k]; });
+    FL.forEach(function(f){ (f.phases||[]).forEach(function(p){ if(p.buffs === ancien) p.buffs = nom; }); });
+    touche(); editeur(); rendre();
+    toast('Renommé — ' + nomsEtapesAvec(nom) + '.','ok');
+  }
+  function nomsEtapesAvec(nom){
+    var n = 0;
+    FL.forEach(function(f){ (f.phases||[]).forEach(function(p){ if(p.buffs === nom) n++; }); });
+    return n + ' étape' + (n>1?'s':'') + ' concernée' + (n>1?'s':'');
+  }
 
   /* ---------------- « ＋ job » : un job hors composition ---------------- */
   // On écrit une strat avec six jobs, pas avec vingt-deux. Mais il faut pouvoir
@@ -501,14 +575,13 @@
   // partagé avec Map Studio pour que les deux outils écrivent à l'identique.
   var DF = window.DATAFILE;
   function blocsData(){
-    var reg = {}; Object.keys(BUFFS).forEach(function(k){ if(BUFFS[k]) reg[k]=BUFFS[k]; });
     var out = [];
     if(typeof COMPO !== 'undefined') out.push({nom:'COMPO', scalaire:true, txt:S.compoConst('COMPO', CP)});
     if(typeof ROLE !== 'undefined') out.push({nom:'ROLE', txt:S.roleConst('ROLE', ROLE)});
-    Object.keys(reg).forEach(function(k){ out.push({nom:k, txt:SC.buffsConst(k, reg[k])}); });
+    out.push({nom:'BUFFS', txt:SC.buffsConst('BUFFS', JEUX)});
     FL.forEach(function(f){
       var nom = (f.id==='top') ? 'PHASES' : 'PHASES_B';
-      out.push({nom:nom, txt:SC.phasesConst(nom, f.phases||[], reg)});
+      out.push({nom:nom, txt:SC.phasesConst(nom, f.phases||[])});
     });
     return out;
   }

@@ -258,14 +258,11 @@
     if(c.noHeadImg) s += ',noHeadImg:true';
     return s + ',groups:' + liste(c.groups, ind, grpConst) + '}';
   }
-  // registre = {NOM: tableau} des constantes de buffs, pour réécrire « buffs:BUFFS_P1 »
-  // comme une RÉFÉRENCE et non comme une copie aplatie.
-  function nomDuBuff(arr, registre){
-    if(!arr || !registre) return null;
-    for(var k in registre) if(registre[k] === arr) return k;
-    return null;
-  }
-  function phaseConst(p, ind, registre){
+  // Une phase désigne son jeu de buffs par son NOM — le même nom que le guide
+  // affiche en tête du bloc. Avant, elle pointait sur une constante
+  // (« buffs:BUFFS_P1 ») dont le nom ne disait rien et n'était visible nulle
+  // part, et le titre affiché était écrit en dur dans le moteur.
+  function phaseConst(p, ind){
     var s = ind+'{n:'+p.n;
     if(p.sector) s += ',sector:'+q(p.sector);
     if(p.boss) s += ',boss:'+q(p.boss);
@@ -273,24 +270,29 @@
     if(p.map!=null) s += ',map:'+q(p.map);
     s += ',title:'+q(p.title||'');
     if(p.route!=null) s += ',route:'+q(p.route);
-    var nb = nomDuBuff(p.buffs, registre);
-    if(nb) s += ',buffs:'+nb;
-    else if(p.buffs && p.buffs.length) s += ',buffs:'+liste(p.buffs, ind, lnConst);
+    if(p.buffs) s += ',buffs:'+q(p.buffs);
     if(p.soon && !(p.cards||[]).length) return s+'}';
     return s + ',cards:' + liste(p.cards, ind, cardConst) + '}';
   }
   // Indentation ZÉRO au premier niveau : c'est celle que PHASES a déjà dans
   // data.js. Avec un espace, chaque enregistrement redécalait les 170 lignes
   // de l'étage du haut pour rien.
-  function phasesConst(nom, arr, registre){
+  function phasesConst(nom, arr){
     return 'const '+nom+'=[\n'
-      + (arr||[]).map(function(p){ return phaseConst(p, '', registre); }).join(',\n')
+      + (arr||[]).map(function(p){ return phaseConst(p, ''); }).join(',\n')
       + (arr && arr.length ? '\n' : '') + '];';
   }
-  function buffsConst(nom, arr){
-    return 'const '+nom+'=[\n'
-      + (arr||[]).map(function(l){ return lnConst(l, '  '); }).join(',\n')
-      + (arr && arr.length ? '\n' : '') + '];';
+  // BUFFS : un seul bloc, nom du jeu -> ses lignes. Le nom est du texte écrit
+  // par l'auteur, affiché tel quel en tête du bloc dans le guide.
+  function buffsConst(nom, dico){
+    var cles = Object.keys(dico || {});
+    if(!cles.length) return 'const '+nom+'={\n};';
+    return 'const '+nom+'={\n'
+      + cles.map(function(k){
+          return ' '+q(k)+':[\n'
+            + (dico[k]||[]).map(function(l){ return lnConst(l, '  '); }).join(',\n')
+            + ((dico[k]||[]).length ? '\n' : '') + ' ]'; }).join(',\n')
+      + '\n};';
   }
   // TR : une entrée par ligne, ordre d'insertion conservé (les ajouts vont à la fin)
   function trConst(nom, dico){
@@ -303,12 +305,17 @@
   /* ---------------- CHAÎNES À TRADUIRE ---------------- */
   // Tout ce que le guide passe par tr() : titres, routes, tags, labels, notes,
   // conditions et textes de ligne. Sert à lister ce qui manque dans i18n.js.
-  function collecteTextes(phases){
+  function collecteTextes(phases, buffs){
     var out = [];
     var add = function(v){ if(typeof v==='string' && v.trim()) out.push(v); };
+    var vusBuffs = {};
     (phases||[]).forEach(function(p){
       add(p.title); add(p.route);
-      (p.buffs||[]).forEach(ligne);
+      // le nom du jeu de buffs est le titre affiché : il se traduit aussi
+      if(p.buffs && !vusBuffs[p.buffs]){
+        vusBuffs[p.buffs] = 1; add(p.buffs);
+        ((buffs||{})[p.buffs] || []).forEach(ligne);
+      }
       (p.cards||[]).forEach(function(c){
         add(c.name); add(c.tag);
         (c.groups||[]).forEach(function(g){
@@ -326,8 +333,8 @@
     out.forEach(function(v){ if(!vus[v]){ vus[v]=1; uniq.push(v); } });
     return uniq;
   }
-  function manquantes(phases, dico){
-    return collecteTextes(phases).filter(function(v){ return !dico || dico[v]===undefined; });
+  function manquantes(phases, dico, buffs){
+    return collecteTextes(phases, buffs).filter(function(v){ return !dico || dico[v]===undefined; });
   }
 
   global.STRATCORE = {

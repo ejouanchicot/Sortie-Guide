@@ -248,6 +248,15 @@ button.ss-job.hors:hover{opacity:1}
 .ss-mttl{font-family:var(--display);font-weight:700;font-size:15px;margin-bottom:9px}
 .ss-mmsg{font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:16px}
 .ss-mact{display:flex;gap:9px;justify-content:flex-end}
+.ss-msaisie{display:block;width:100%;margin-top:11px;font-family:var(--sans);font-size:13.5px;color:var(--txt);
+  background:var(--bg2);border:1px solid var(--line2);border-radius:9px;padding:9px 11px}
+.ss-msaisie:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+/* le sélecteur de bloc de préparation et son bouton « renommer » */
+.ss-frow{display:flex;gap:6px;align-items:center}
+.ss-frow select{flex:1;min-width:0}
+.ss-frow .ss-mini{margin-left:0;height:auto;align-self:stretch;padding:0 10px}
+.ss-frow .ss-mini[disabled]{opacity:.4;cursor:default}
+.ss-hdr>.ss-wide{flex:0 0 300px}
 
 /* ─── panneau « Composition du groupe » ─── */
 #ssCompoPan{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:22px;
