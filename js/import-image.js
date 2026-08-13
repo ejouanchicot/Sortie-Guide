@@ -73,21 +73,48 @@
             apres:{poids:blob.size}};
   }
 
-  /* ---------------- déposer dans img/ ----------------
-     Rend ce qui s'est passé plutôt qu'un booléen : l'appelant doit pouvoir
-     dire « écrasée » ou « ajoutée », et proposer autre chose si le dossier
-     n'est pas accessible. */
-  async function depose(prete, nomFichier, opts){
-    opts = opts || {};
+  /* ---------------- obtenir le dossier ----------------
+     ⚠ À APPELER EN PREMIER, avant toute autre attente.
+
+     Le navigateur n'ouvre un sélecteur de dossier que dans la foulée d'un
+     geste de l'utilisateur, et cette autorisation s'éteint en quelques
+     secondes. En demandant le dossier APRÈS avoir converti l'image, on
+     arrivait les mains vides : Chrome refusait, et l'outil annonçait
+     « sans accès au dossier » alors que personne n'avait rien refusé.
+
+     Rend ce qui s'est passé, pas un booléen : annuler et échouer ne se
+     disent pas de la même façon. */
+  async function acces(){
     if(!DF || !DF.dispoDossier()) return {ou:'telechargement'};
     var dir;
     try{ dir = await DF.dossier('img'); }
-    catch(e){ return {ou:'refuse'}; }
-    if(!(await DF.permission(dir))) return {ou:'refuse'};
+    catch(e){
+      // l'utilisateur a ferme le selecteur : ce n'est pas une panne
+      if(e && (e.name === 'AbortError' || /abort/i.test(e.message || '')))
+        return {ou:'annule'};
+      return {ou:'refuse', pourquoi:(e && (e.name + ' — ' + e.message)) || 'inconnu'};
+    }
+    try{
+      if(!(await DF.permission(dir)))
+        return {ou:'refuse', pourquoi:'permission d’écriture non accordée'};
+    }catch(e){
+      if(e && e.name === 'AbortError') return {ou:'annule'};
+      return {ou:'refuse', pourquoi:(e && (e.name + ' — ' + e.message)) || 'inconnu'};
+    }
+    return {ou:'ok', dossier:dir};
+  }
 
+  /* ---------------- écrire le fichier ---------------- */
+  async function depose(dir, prete, nomFichier, opts){
+    opts = opts || {};
     var deja = await DF.existe(dir, nomFichier);
     if(deja && opts.confirme && !(await opts.confirme(nomFichier))) return {ou:'annule'};
-    await DF.deposeFichier(dir, nomFichier, prete.blob);
+    try{ await DF.deposeFichier(dir, nomFichier, prete.blob); }
+    catch(e){
+      // la poignee memorisee peut ne plus valoir : dossier deplace, renomme…
+      if(DF.oublie) await DF.oublie('img');
+      return {ou:'refuse', pourquoi:(e && (e.name + ' — ' + e.message)) || 'inconnu'};
+    }
     return {ou: deja ? 'remplace' : 'ajoute'};
   }
 
@@ -102,6 +129,7 @@
 
   function ko(n){ return Math.round(n / 1024) + ' Ko'; }
 
-  global.IMPORTIMAGE = {prepare:prepare, depose:depose, telecharge:telecharge,
-                        nomDeFichier:nomDeFichier, ko:ko, COTE_MAX:COTE_MAX};
+  global.IMPORTIMAGE = {acces:acces, prepare:prepare, depose:depose,
+                        telecharge:telecharge, nomDeFichier:nomDeFichier,
+                        ko:ko, COTE_MAX:COTE_MAX};
 })(typeof window!=='undefined'?window:this);

@@ -1158,24 +1158,40 @@
   async function poseFond(fichier){
     const f=FL[curIdx],nomCarte=f.carte,c=REG[nomCarte];
     if(!II){toast('L’import d’image n’est pas disponible ici.','err');return;}
+    const nomFichier=II.nomDeFichier(nomCarte);
+
+    // ⚠ LE DOSSIER D'ABORD. Le navigateur n'ouvre un selecteur de dossier que
+    // dans la foulee du geste de l'utilisateur, et cette autorisation s'eteint
+    // en quelques secondes. En convertissant l'image avant, on arrivait les
+    // mains vides et l'outil annoncait « sans acces au dossier » alors que
+    // personne n'avait rien refuse.
+    const a=await II.acces();
+    if(a.ou==='annule')return;                    // il a ferme le selecteur
+    if(a.ou==='refuse'){
+      toast('Le dossier img n’a pas pu etre ouvert : '+a.pourquoi,'err');
+      return;
+    }
+
     let prete;
     try{ prete=await II.prepare(fichier); }
     catch(e){ toast('Cette image n’a pas pu etre lue.','err'); return; }
 
-    const nomFichier=II.nomDeFichier(nomCarte);
-    const r=await II.depose(prete,nomFichier,{confirme:nom=>
-      askConfirm('<b>'+esc(nom)+'</b> existe deja dans le dossier <b>img</b>.<br><br>'
-        +'Une autre carte s’en sert peut-etre : elle changerait de fond elle aussi.',
-        {title:'Remplacer l’image ?',ok:'Remplacer'})});
-
-    if(r.ou==='annule')return;
-    if(r.ou==='refuse'){toast('Sans acces au dossier img, l’image ne peut pas etre rangee.','err');return;}
-    if(r.ou==='telechargement'){
+    if(a.ou==='telechargement'){
       II.telecharge(prete,nomFichier);
       await askConfirm('Ton navigateur ne sait pas ecrire dans un dossier — Chrome ou Edge le font.<br><br>'
         +'L’image convertie vient d’etre telechargee sous le nom <b>'+esc(nomFichier)+'</b>. '
         +'Depose-la dans le dossier <b>img</b> du projet et elle apparaitra.',
         {title:'A poser toi-meme',ok:'Compris',danger:false});
+    } else {
+      const r=await II.depose(a.dossier,prete,nomFichier,{confirme:nom=>
+        askConfirm('<b>'+esc(nom)+'</b> existe deja dans le dossier <b>img</b>.<br><br>'
+          +'Une autre carte s’en sert peut-etre : elle changerait de fond elle aussi.',
+          {title:'Remplacer l’image ?',ok:'Remplacer'})});
+      if(r.ou==='annule')return;
+      if(r.ou==='refuse'){
+        toast('L’image n’a pas pu etre ecrite : '+r.pourquoi+'. Re-essaie, on te redemandera le dossier.','err');
+        return;
+      }
     }
 
     c.fond='img/'+nomFichier;

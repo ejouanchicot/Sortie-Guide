@@ -56,23 +56,40 @@ const r = await p.evaluate(async () => {
     new File([png], 'sheol.png', {type:'image/png'}));
 
   const nom = window.IMPORTIMAGE.nomDeFichier('Sheol C · étage 2');
-  const un = await window.IMPORTIMAGE.depose(prete, nom, {confirme: async () => true});
-  const deux = await window.IMPORTIMAGE.depose(prete, nom, {confirme: async () => true});
-  const trois = await window.IMPORTIMAGE.depose(prete, nom, {confirme: async () => false});
+  const II = window.IMPORTIMAGE;
+  const acc = await II.acces();
+  const un = await II.depose(acc.dossier, prete, nom, {confirme: async () => true});
+  const deux = await II.depose(acc.dossier, prete, nom, {confirme: async () => true});
+  const trois = await II.depose(acc.dossier, prete, nom, {confirme: async () => false});
 
   // et si la permission est refusee
   faussaire._perm = 'denied';
-  const refus = await window.IMPORTIMAGE.depose(prete, nom, {confirme: async () => true});
+  const refus = await II.acces();
 
-  return {nom, un:un.ou, deux:deux.ou, trois:trois.ou, refus:refus.ou,
+  // et si l'utilisateur ferme le selecteur : ce n'est pas une panne
+  window.showDirectoryPicker = async () => {
+    const e = new Error('The user aborted a request.'); e.name = 'AbortError'; throw e; };
+  const vives = await II.acces();          // la poignee memorisee court-circuite
+  await window.DATAFILE.oublie('img');
+  const ferme = await II.acces();
+
+  return {nom, acces:acc.ou, un:un.ou, deux:deux.ou, trois:trois.ou,
+          refus:refus.ou, pourquoi:refus.pourquoi, ferme:ferme.ou,
           ecrits, poids:prete.apres.poids, dims:prete.w + '×' + prete.h};
 });
 
 console.log('\n— le depot dans le dossier —');
+dit('le dossier est obtenu avant toute conversion', r.acces === 'ok', r.acces);
 dit('le fichier est cree la premiere fois', r.un === 'ajoute', r.un);
 dit('la deuxieme fois c\'est un remplacement annonce', r.deux === 'remplace', r.deux);
 dit('et refuser le remplacement n\'ecrit rien', r.trois === 'annule', r.trois);
-dit('sans permission, rien n\'est ecrit', r.refus === 'refuse', r.refus);
+// Un refus et une annulation ne se disent pas de la meme facon : l'outil
+// annoncait « sans acces au dossier » quand l'utilisateur avait simplement
+// ferme le selecteur — ou quand le geste avait expire.
+dit('sans permission, on le dit ET on l\'explique',
+    r.refus === 'refuse' && /permission/i.test(r.pourquoi || ''),
+    r.refus + ' / ' + r.pourquoi);
+dit('fermer le selecteur n\'est PAS une panne', r.ferme === 'annule', r.ferme);
 dit('l\'image ecrite a bien le poids converti',
     r.ecrits[r.nom] === r.poids, JSON.stringify(r.ecrits) + ' vs ' + r.poids);
 console.log('       ' + r.nom + ' · ' + r.dims + ' · ' + Math.round(r.poids/1024) + ' Ko');
