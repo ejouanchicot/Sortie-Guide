@@ -9,9 +9,15 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName Microsoft.VisualBasic
 
-# dossier img : à côté du script, ou le script est déjà dedans
-$img = Join-Path $PSScriptRoot 'img'
-if (-not (Test-Path $img)) { $img = $PSScriptRoot }
+# dossier img : depuis tools/ il est un cran au-dessus ; sinon à côté du
+# script, ou le script est déjà dedans. Sans le cran au-dessus, le script
+# balaie tools/ et annonce « rien à retirer » sans avoir vu la bonne image.
+$img = @(
+  (Join-Path $PSScriptRoot '..\img'),
+  (Join-Path $PSScriptRoot 'img'),
+  $PSScriptRoot
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+$img = (Resolve-Path $img).Path
 
 function Recycle([string]$p){
   [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($p,'OnlyErrorDialogs','SendToRecycleBin')
