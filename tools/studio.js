@@ -161,7 +161,7 @@
     ids.forEach(function(id){ var el = $(id); if(el) host.appendChild(el); });
   }
   range(['carteBar','ctxbar','btnFit','btnExport'], 'stCtxMap');
-  range(['ssCompo','ssRoles'], 'stCtxStrat');
+  range(['ssCompo','ssRoles','stTexte'], 'stCtxStrat');
   // La boîte de dialogue de l'atelier Stratégie sert aussi à la coque
   // (renommer une strat, confirmer une suppression). Restée dans son panneau,
   // elle serait invisible dès qu'on est sur la carte : on la remonte.
@@ -283,6 +283,140 @@
       if(f.files[0]) importe(f.files[0]); });
   })();
   function choisirFichier(){ var f = $('stFichier'); if(f){ f.value = ''; f.click(); } }
+
+  /* ---------------- le texte pour Discord ----------------
+     Avant un run, le lead ne demande à personne d'ouvrir un lien : il colle
+     le plan dans le salon, au moment où on le joue. */
+  var TX = window.EXPORTTEXTE;
+  function jeuxBuffs(){ return (typeof BUFFS !== 'undefined') ? BUFFS : {}; }
+  function compo(){ return (typeof COMPO !== 'undefined') ? COMPO : null; }
+
+  function remplitReglages(){
+    var e = (SS && SS.etat) ? SS.etat() : {idx:0, selP:null};
+    var f = FL[e.idx] || FL[0] || {};
+
+    var por = $('stTxtPortee'), avant = por.value;
+    var opts = [];
+    if(e.selP != null && (f.phases || [])[e.selP]){
+      var p = f.phases[e.selP];
+      opts.push(['etape', 'L’étape ouverte — ' + S.esc(p.boss || p.title || ('n° ' + (e.selP + 1)))]);
+    }
+    opts.push(['chapitre', FL.length > 1
+      ? 'Le chapitre — ' + S.esc(f.fr || f.en || '')
+      : 'Toute la strat']);
+    if(FL.length > 1) opts.push(['tout', 'Toute la strat — ' + FL.length + ' chapitres']);
+    por.innerHTML = opts.map(function(o){
+      return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
+    if(avant && por.querySelector('option[value="' + avant + '"]')) por.value = avant;
+
+    // les façons de jouer : mêler les lignes du PLD et celles du DNC donnerait
+    // des consignes qui se contredisent, et le lecteur n'a pas de bouton
+    var vars = S.compoVariantes(compo()) || [];
+    $('stTxtVarL').hidden = vars.length < 2;
+    if(vars.length >= 2){
+      var av = $('stTxtVar').value;
+      $('stTxtVar').innerHTML = vars.map(function(v){
+        return '<option value="' + S.escAttr(v.nom) + '">' + S.esc(v.nom) + '</option>'; }).join('');
+      if(av && $('stTxtVar').querySelector('option[value="' + av + '"]')) $('stTxtVar').value = av;
+    }
+
+    var jb = $('stTxtJob'), aj = jb.value;
+    jb.innerHTML = '<option value="">Tout le groupe</option>'
+      + (S.compoJobs(compo()) || []).map(function(j){
+          return '<option value="' + j + '">Seulement ' + j + '</option>'; }).join('');
+    if(aj) jb.value = aj;
+  }
+
+  function texteCourant(){
+    var e = (SS && SS.etat) ? SS.etat() : {idx:0, selP:null};
+    var o = {variante: $('stTxtVarL').hidden ? null : $('stTxtVar').value,
+             job: $('stTxtJob').value || null,
+             compo: compo()};
+    var jeux = jeuxBuffs(), por = $('stTxtPortee').value;
+    if(por === 'etape'){
+      var p = (FL[e.idx] || {}).phases[e.selP];
+      return TX.etape(p, o, jeux);
+    }
+    if(por === 'tout') return TX.strat(FL, o, jeux);
+    return TX.chapitre(FL[e.idx] || FL[0] || {}, o, jeux);
+  }
+
+  function rendTexte(){
+    var parts;
+    try{ parts = TX.messages(texteCourant()); }
+    catch(err){ parts = []; }
+    var host = $('stTxtParts');
+    if(!parts.length){
+      host.innerHTML = '<p class="st-vide">Rien à coller ici — cette étape ne contient '
+        + 'aucune ligne pour ce choix.</p>';
+      $('stTxtInfo').textContent = '';
+      $('stTxtTout').disabled = true;
+      return;
+    }
+    $('stTxtTout').disabled = false;
+    host.innerHTML = parts.map(function(t, i){
+      return '<div class="st-part" data-i="' + i + '">'
+        + '<div class="st-parthead"><b>' + (parts.length > 1 ? 'MESSAGE ' + (i + 1) : 'À COLLER')
+        + '</b><span>' + t.length + ' caractères</span>'
+        + '<button type="button" class="st-btn" data-copie="' + i + '">Copier</button></div>'
+        + '<pre>' + S.esc(t) + '</pre></div>';
+    }).join('');
+    host._parts = parts;
+    var plusLong = parts.reduce(function(n, t){ return Math.max(n, t.length); }, 0);
+    $('stTxtInfo').textContent = (parts.length > 1
+      ? parts.length + ' messages · envoie-les dans l’ordre'
+      : 'un seul message')
+      + ' · le plus long fait ' + plusLong + ' sur les 2000 permis';
+  }
+
+  // navigator.clipboard n'existe qu'en contexte sûr, et REFUSE aussi quand la
+  // page n'a pas le focus. Un refus ne doit pas rester sans suite : on repasse
+  // par la vieille méthode, qui elle part d'un clic et passe donc partout.
+  function vieilleCopie(txt){
+    return new Promise(function(res, rej){
+      var z = document.createElement('textarea');
+      z.value = txt;
+      z.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
+      document.body.appendChild(z);
+      z.focus(); z.select();
+      var ok = false;
+      try{ ok = document.execCommand('copy'); }catch(e){}
+      z.remove();
+      ok ? res() : rej(new Error('copie refusée'));
+    });
+  }
+  function copie(txt){
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      return navigator.clipboard.writeText(txt).catch(function(){ return vieilleCopie(txt); });
+    return vieilleCopie(txt);
+  }
+  function copié(quoi, n){ toast(quoi + ' copié — ' + n + ' caractères, colle dans Discord.','ok'); }
+
+  (function(){
+    var w = $('stTxtWrap'); if(!w || !TX) return;
+    function ouvreTexte(){ remplitReglages(); rendTexte(); w.hidden = false; }
+    function ferme(){ w.hidden = true; }
+    $('stTexte').addEventListener('click', ouvreTexte);
+    $('stTxtFermer').addEventListener('click', ferme);
+    w.addEventListener('click', function(e){ if(e.target === w) ferme(); });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !w.hidden) ferme(); });
+    ['stTxtPortee','stTxtVar','stTxtJob'].forEach(function(id){
+      $(id).addEventListener('change', rendTexte); });
+    $('stTxtParts').addEventListener('click', function(e){
+      var b = e.target.closest('button[data-copie]'); if(!b) return;
+      var t = ($('stTxtParts')._parts || [])[+b.dataset.copie];
+      copie(t).then(function(){
+        b.textContent = 'Copié'; setTimeout(function(){ b.textContent = 'Copier'; }, 1600);
+        copié('Message ' + (+b.dataset.copie + 1), t.length);
+      }).catch(function(){ toast('La copie a échoué — sélectionne le texte à la main.','err'); });
+    });
+    $('stTxtTout').addEventListener('click', function(){
+      var t = ($('stTxtParts')._parts || []).join('\n\n');
+      copie(t).then(function(){ copié('Tout', t.length); })
+        .catch(function(){ toast('La copie a échoué — sélectionne le texte à la main.','err'); });
+    });
+  })();
 
   /* ---------------- une seule sauvegarde ---------------- */
   var explique = false;

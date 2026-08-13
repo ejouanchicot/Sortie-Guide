@@ -145,6 +145,49 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 /* leur propre barre du haut est remplacée par celle de la coque */
 .st-pane .topbar,.st-pane .ss-top{display:none!important}
 
+/* ─── le texte pour Discord ───
+   Une feuille large : on relit ce qu'on va coller. Chaque message a son
+   bouton, parce qu'on les envoie l'un après l'autre. */
+.st-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:rgba(4,7,12,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.st-sheet{display:flex;flex-direction:column;gap:0;width:min(820px,100%);max-height:100%;
+  background:linear-gradient(180deg,#111a2a,#0c131f);border:1px solid var(--line2);border-radius:18px;
+  box-shadow:0 40px 90px -30px #000;overflow:hidden}
+.st-sheethead{display:flex;align-items:flex-start;gap:16px;padding:20px 22px 16px;
+  border-bottom:1px solid var(--hair)}
+.st-sheethead h2{margin:0;font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:.3px;color:#fff}
+.st-sheethead p{margin:5px 0 0;font-size:12.5px;line-height:1.5;color:var(--dim);max-width:56ch}
+.st-x{margin-left:auto;flex:none;width:30px;height:30px;border-radius:9px;cursor:pointer;
+  font-size:14px;color:var(--dim);background:var(--chip);border:1px solid var(--chipbd)}
+.st-x:hover{color:#fff;border-color:var(--accent2)}
+
+.st-txtctl{display:flex;gap:18px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--hair);
+  background:rgba(0,0,0,.16)}
+.st-txtctl label{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:9.5px;
+  font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.st-txtctl select{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--txt);
+  background:var(--chip);border:1px solid var(--chipbd);border-radius:9px;padding:6px 10px;cursor:pointer;
+  max-width:260px}
+.st-txtctl select:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
+
+.st-txtparts{flex:1;min-height:0;overflow:auto;padding:16px 22px;display:flex;flex-direction:column;gap:14px}
+.st-part{border:1px solid var(--hair);border-radius:13px;overflow:hidden;background:rgba(0,0,0,.22)}
+.st-parthead{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;
+  border-bottom:1px solid var(--hair);background:rgba(255,255,255,.02)}
+.st-parthead b{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--accent2)}
+.st-parthead span{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.st-parthead .st-btn{margin-left:auto;padding:5px 11px;font-size:11.5px}
+/* le texte tel qu'il partira : police à chasse fixe, retours conservés */
+.st-part pre{margin:0;padding:14px;max-height:340px;overflow:auto;
+  font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--txt2);
+  white-space:pre-wrap;word-break:break-word;tab-size:2}
+.st-vide{padding:26px 14px;text-align:center;font-size:13px;color:var(--dim)}
+
+.st-sheetfoot{display:flex;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid var(--hair);
+  background:rgba(0,0,0,.16)}
+#stTxtInfo{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.st-sheetfoot .st-btn{margin-left:auto}
+
 @media (max-width:1100px){
   .st-wm{display:none}
   .st-top{gap:8px;padding:8px 12px}

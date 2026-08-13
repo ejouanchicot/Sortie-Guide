@@ -101,12 +101,40 @@ __STRAT__
 </div>
 <input type="file" id="stFichier" accept=".html,text/html" hidden>
 
+<!-- va dans la barre de l'atelier Strat\u00e9gie -->
+<button class="st-btn" id="stTexte" title="Rendre la strat en texte, pr\u00eat \u00e0 coller dans un salon Discord \u2014 d\u00e9coup\u00e9 en messages de la bonne taille.">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 9 9 0 01-3.9-.9L3 21l1.9-4.6A8.4 8.4 0 013 11.5 8.4 8.4 0 0112 3a8.4 8.4 0 019 8.5z"/></svg>Texte\u2026</button>
+
+<!-- ce qu'on va coller : on le voit avant, on copie message par message -->
+<div class="st-modal" id="stTxtWrap" hidden>
+  <div class="st-sheet" role="dialog" aria-modal="true" aria-labelledby="stTxtTitre">
+    <header class="st-sheethead">
+      <div>
+        <h2 id="stTxtTitre">Texte pour Discord</h2>
+        <p>Ce que tu colles dans le salon. Les jobs ressortent, les messages tiennent dans la limite de Discord.</p>
+      </div>
+      <button type="button" class="st-x" id="stTxtFermer" aria-label="Fermer">\u2715</button>
+    </header>
+    <div class="st-txtctl">
+      <label>Quoi<select id="stTxtPortee"></select></label>
+      <label id="stTxtVarL" hidden>Fa\u00e7on de jouer<select id="stTxtVar"></select></label>
+      <label>Pour qui<select id="stTxtJob"></select></label>
+    </div>
+    <div class="st-txtparts" id="stTxtParts"></div>
+    <footer class="st-sheetfoot">
+      <span id="stTxtInfo"></span>
+      <button type="button" class="st-btn primary" id="stTxtTout">Tout copier</button>
+    </footer>
+  </div>
+</div>
+
 <script src="../js/data.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/sortie-map-core.js"></script>
 <script src="../js/data-file.js"></script>
 <script src="../js/biblio.js"></script>
 <script src="../js/export-html.js"></script>
+<script src="../js/export-texte.js"></script>
 <script src="../js/strat-render.js"></script>
 <script src="../js/strat-core.js"></script>
 <script src="../js/rich-editor.js"></script>
