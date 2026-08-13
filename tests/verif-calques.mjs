@@ -26,8 +26,19 @@ const lignes = () => p.evaluate(() => [...document.querySelectorAll('#layers .la
 console.log('\n— la liste —');
 const l0 = await lignes();
 console.log(l0.map(x => '       ' + (x.sous ? '  ' : '') + x.nom.padEnd(18) + x.n).join('\n'));
-dit('les types de marqueurs ont leur ligne',
-    ['Boss','Mid-boss','Packs'].every(n => l0.some(x => x.nom === n && x.sous)),
+// Les types attendus se DEDUISENT de la carte chargee, ils ne sont pas ecrits
+// ici. La liste en dur (Boss, Mid-boss, Packs) tombait le jour ou Eric retirait
+// le dernier mid-boss de la carte : le test reclamait une ligne que la regle du
+// dessous — un type vide n'encombre pas la liste — interdit justement d'afficher.
+// Un test du moteur ne doit pas dependre du contenu.
+const attendus = await p.evaluate(() => {
+  const nom = document.getElementById('carteSel').value;
+  const c = (typeof CARTES !== 'undefined' ? CARTES : {})[nom] || {};
+  return [['bosses','Boss'], ['mids','Mid-boss'], ['packs','Packs']]
+    .filter(([k]) => (c[k] || []).length).map(([, lbl]) => lbl);
+});
+dit(`chaque type pose sur la carte a sa ligne (${attendus.join(', ') || 'aucun'})`,
+    attendus.length > 0 && attendus.every(n => l0.some(x => x.nom === n && x.sous)),
     JSON.stringify(l0.map(x => x.nom)));
 dit('ils sont en retrait sous « Marqueurs »',
     l0[0].nom === 'Marqueurs' && !l0[0].sous && l0[1].sous);
