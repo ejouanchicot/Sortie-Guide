@@ -159,12 +159,21 @@ body{overflow:hidden;background:var(--bg)}
   white-space:pre;overflow-x:auto;
   background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:13px 14px}
 .ss-demo-out{flex:1;background:color-mix(in srgb,var(--panel) 60%,transparent);
-  border:1px solid var(--line2);border-radius:12px;padding:8px}
-/* l'aperçu est un vrai rendu : on lui retire juste son cadre de carte */
-.ss-demo-out .card{border:none;box-shadow:none;background:none;margin:0}
-.ss-demo-out .cbody{padding:0}
+  border:1px solid var(--line2);border-radius:12px;padding:8px;overflow:hidden}
+/* L'aperçu est un vrai rendu : on retire le fond et la bordure de la carte,
+   mais il faut aussi ramener son RAYON — sinon son overflow:hidden continue
+   de rogner le liseré d'accent contre des coins devenus invisibles.
+   On lui donne le rayon intérieur du cadre : le liseré s'y arrondit
+   proprement au lieu d'être coupé net. */
+.ss-demo-out .card{border:none;box-shadow:none;background:none;margin:0;border-radius:7px}
+/* Le guide passe les rubriques sur deux colonnes au-delà d'une certaine
+   largeur. Dans un exemple pédagogique c'est contre-productif : les phrases
+   se coupent en trois. On le force sur une colonne — la leçon porte sur la
+   syntaxe, pas sur la mise en page. */
+.ss-demo-out .cbody{padding:0 8px 4px;column-count:1}
+.ss-demo-out .card::before{border-radius:7px 7px 0 0}
 .ss-demo-out .grp{padding:8px 0}
-.ss-demo-out .grp:first-child{padding-top:2px}
+.ss-demo-out .grp:first-child{padding-top:7px}
 .ss-demo-fleche{align-self:center;font-size:17px;color:var(--dim);flex:none}
 @media (max-width:1180px){
   .ss-demo{grid-template-columns:1fr}
