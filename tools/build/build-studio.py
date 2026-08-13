@@ -3,8 +3,11 @@
 # atelier repris TEL QUEL. Ainsi map-studio.js et strat-studio.js retrouvent
 # tous leurs elements par id et n'ont pas une ligne a changer.
 import io
+import os
 
-T = 'G:/01_Development/Game_Project/Sortie-Guide/tools/'
+# le script vit dans tools/build/, les ateliers dans tools/ : on part de la
+# position du fichier, pour que le depot puisse etre clone n'importe ou.
+T = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')) + os.sep
 
 def corps(p):
     s = io.open(T + p, encoding='utf-8').read()
@@ -37,7 +40,7 @@ HTML = u'''<!DOCTYPE html>
 <link rel="stylesheet" href="studio.css">
 <!-- l'atelier carte, confin\u00e9 sous .ms pour que ses jetons n'\u00e9crasent pas
      ceux du guide dont l'aper\u00e7u de la strat a besoin -->
-<link rel="stylesheet" href="studio-map.css">
+<link rel="stylesheet" href="map-studio.confine.css">
 <link rel="stylesheet" href="strat-studio.css">
 </head>
 <body>

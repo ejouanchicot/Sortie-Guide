@@ -1,27 +1,26 @@
-# aperçus / builds locaux (ne pas versionner)
+# ============================================================
+#  Ce qui ne part pas sur GitHub Pages
+# ============================================================
+
+# aperçus / builds locaux
 apercu-local.html
 preview.html
 *.zip
 
-# exports bruts d'images (Photoshop) — on ne garde que les .webp finaux
-img/_[0-9]*.png
-img/Map Sortie*.png
-
-# sources Photoshop : trop lourdes pour le dépôt (13 Mo+), à garder en sauvegarde à part
+# sources de travail : Photoshop, générations d'images, exports bruts.
+# Elles vivent dans sources/, à côté du dépôt mais hors de lui — trop
+# lourdes (13 Mo pour le seul .psd) pour ce qu'elles apportent versionnées.
+# Seuls les .webp finaux, dans img/, sont suivis.
+sources/
 *.psd
 *.psb
-
-# images sources brutes déposées à la racine (générations, exports) : on ne versionne
-# que le webp recadré et redimensionné qui en sort, dans img/
 /ChatGPT Image*.png
 /*_source.png
+img/_[0-9]*.png
+img/Map Sortie*.png
 
 # dépendances / système
 node_modules/
 .DS_Store
 Thumbs.db
 .vscode/
-
-# visuels de marque bruts (ChatGPT/Midjourney) : on ne versionne que les
-# exports finaux dans img/ (logo.webp, icon.webp, og-studio.webp)
-/ChatGPT Image*.png

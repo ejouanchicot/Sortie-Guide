@@ -5,16 +5,14 @@
    sans --s1 rend la declaration invalide, et l'element retombe sur
    transparent. Aucune console ne le signale. C'est exactement ce
    qui est arrive au menu des cartes, blanc pendant des semaines,
-   parce que le generateur de studio-map.css avait perdu une ligne
+   parce que le generateur de map-studio.confine.css avait perdu une ligne
    de declarations.
 
    On verifie donc deux choses, du plus general au plus visible :
      1. tout jeton utilise dans une feuille y est defini ;
      2. rien de ce qui doit etre sombre ne rend clair.
    ============================================================ */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 
 let ko = 0;
 const dit = (t, c, d) => { if(c) console.log('  ok   ' + t);

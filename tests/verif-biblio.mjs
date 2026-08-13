@@ -9,9 +9,7 @@
      4. les deux ateliers suivent le changement ;
      5. ce qu'on ecrit est encore la apres un rechargement.
    ============================================================ */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 
 const URL = 'http://localhost:8137/tools/studio.html';
 let ko = 0;

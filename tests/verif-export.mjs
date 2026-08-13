@@ -6,9 +6,7 @@
    2. C'est le fichier de sauvegarde. Le Studio le rouvre et retrouve
       la strat entiere, y compris ce qui ne se lit pas a l'ecran.
    ============================================================ */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';

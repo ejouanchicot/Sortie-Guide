@@ -6,9 +6,7 @@
    place un trace. Chacun a le sien, et le groupe reste la pour tout
    eteindre d'un coup.
    ============================================================ */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 
 let ko = 0;
 const dit = (t, c, d) => { if(c) console.log('  ok   ' + t);

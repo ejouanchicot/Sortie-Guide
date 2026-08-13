@@ -4,7 +4,7 @@
    Un seul en-tête pour les deux ateliers : identité, onglets,
    chapitre, réglages du moment, état du fichier. Chaque atelier
    garde sa propre feuille — celle de la carte est confinée sous
-   « .ms » (studio-map.css), celle de la strat est déjà préfixée
+   « .ms » (map-studio.confine.css), celle de la strat est déjà préfixée
    « ss- ». Ici on ne pose que ce qui les entoure.
    ============================================================ */
 

@@ -1,5 +1,5 @@
 /* ============================================================
-   studio-map.css — la feuille de l’éditeur de carte, confinée
+   map-studio.confine.css — la feuille de l’éditeur de carte, confinée
    ------------------------------------------------------------
    GÉNÉRÉ depuis map-studio.css : chaque sélecteur est préfixé
    par « .ms », le panneau Carte de l’outil unifié. Sans ça ses
@@ -7,7 +7,7 @@
    écraseraient ceux du guide, dont l’aperçu de la strat a besoin
    dans la même page.
    ⚠ Ne pas éditer ici : modifier map-studio.css et regénérer
-     (python tools/scope-mapcss.py).
+     (python tools/build/scope-mapcss.py).
    ============================================================ */
 .ms{color-scheme:dark;/* ── palette alignée au logo : navy profond · or · cristal cyan ── */
   --bg:#070b12;--s1:#0c131f;--s2:#111a29;--s3:#172234;--s4:#1f2d43;/* échelle d'élévation */

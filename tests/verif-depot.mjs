@@ -3,9 +3,7 @@
    remplace par un faux dossier en memoire, ce qui laisse tout le reste — la
    permission, la creation du fichier, l'ecriture, l'ecrasement — s'executer
    pour de vrai. */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 
 let ko = 0;
 const dit = (t, c, d) => { if(c) console.log('  ok   ' + t);

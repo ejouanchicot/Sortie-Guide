@@ -13,9 +13,7 @@
    passer quand meme — parce qu'il demande le dossier depuis son propre
    bouton, avant d'ouvrir le selecteur de fichier.
    ============================================================ */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';

@@ -1,8 +1,6 @@
 // Le geste reel : cliquer Partager, recuperer le fichier ; puis le rouvrir
 // par le menu de la bibliotheque.
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 import fs from 'fs'; import path from 'path'; import os from 'os';
 
 let ko = 0;

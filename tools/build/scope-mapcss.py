@@ -29,9 +29,13 @@
 # */ .a », c'est-a-dire un descendant de .ms — pas la meme chose. On separe
 # donc l'en-tete (blancs et commentaires) du selecteur lui-meme.
 import io
+import os
 
-SRC = 'G:/01_Development/Game_Project/Sortie-Guide/tools/map-studio.css'
-DST = 'G:/01_Development/Game_Project/Sortie-Guide/tools/studio-map.css'
+# le script vit dans tools/build/, les feuilles dans tools/ : on part de la
+# position du fichier, pour que le depot puisse etre clone n'importe ou.
+TOOLS = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+SRC = os.path.join(TOOLS, 'map-studio.css')
+DST = os.path.join(TOOLS, 'map-studio.confine.css')
 
 # selecteurs qui designent la page entiere -> ils designent le panneau
 # .app n'est PAS la racine : c'est un enfant du panneau. Le confondre avec
@@ -187,7 +191,7 @@ def corpsDesBlocs(css):
 
 
 EN_TETE = (u'/* ============================================================\n'
-           u'   studio-map.css \u2014 la feuille de l\u2019\u00e9diteur de carte, confin\u00e9e\n'
+           u'   map-studio.confine.css \u2014 la feuille de l\u2019\u00e9diteur de carte, confin\u00e9e\n'
            u'   ------------------------------------------------------------\n'
            u'   G\u00c9N\u00c9R\u00c9 depuis map-studio.css : chaque s\u00e9lecteur est pr\u00e9fix\u00e9\n'
            u'   par \u00ab .ms \u00bb, le panneau Carte de l\u2019outil unifi\u00e9. Sans \u00e7a ses\n'
@@ -195,7 +199,7 @@ EN_TETE = (u'/* ============================================================\n'
            u'   \u00e9craseraient ceux du guide, dont l\u2019aper\u00e7u de la strat a besoin\n'
            u'   dans la m\u00eame page.\n'
            u'   \u26a0 Ne pas \u00e9diter ici : modifier map-studio.css et reg\u00e9n\u00e9rer\n'
-           u'     (python tools/scope-mapcss.py).\n'
+           u'     (python tools/build/scope-mapcss.py).\n'
            u'   ============================================================ */\n')
 
 if __name__ == '__main__':
@@ -216,5 +220,5 @@ if __name__ == '__main__':
             corps = texte[d + 2:].lstrip('\n')
 
     io.open(DST, 'w', encoding='utf-8', newline='').write(EN_TETE + corps)
-    print('studio-map.css regenere : %d blocs verifies, %d octets'
+    print('map-studio.confine.css regenere : %d blocs verifies, %d octets'
           % (len(a), len(EN_TETE + corps)))

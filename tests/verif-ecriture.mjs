@@ -9,9 +9,7 @@
    Les ecarts sont affiches ligne a ligne : quand la mise en forme
    change volontairement, on voit exactement ce qu'on accepte.
    ============================================================ */
-import {createRequire} from 'module';
-const require = createRequire('C:/Users/g0dli/AppData/Roaming/npm/node_modules/@modelcontextprotocol/server-puppeteer/node_modules/');
-const puppeteer = require('puppeteer');
+import {puppeteer} from './navigateur.mjs';
 
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
 const p = await b.newPage();
