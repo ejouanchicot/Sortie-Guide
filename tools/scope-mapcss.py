@@ -13,7 +13,10 @@ DST = 'G:/01_Development/Game_Project/Sortie-Guide/tools/studio-map.css'
 s = io.open(SRC, encoding='utf-8').read()
 
 # selecteurs qui designent la page entiere -> ils designent le panneau
-RACINE = {':root', 'body', 'html', '.app', '*'}
+# .app n'est PAS la racine : c'est un enfant du panneau. Le confondre avec
+# lui laissait le vrai <div class="app"> sans mise en page, et la carte
+# s'arretait a mi-hauteur.
+RACINE = {':root', 'body', 'html', '*'}
 # regles a laisser hors du panneau (elles ne stylent rien de visible seules)
 IGNORE_HAUTEUR = {'html,body'}
 
@@ -23,7 +26,7 @@ def prefixeUn(sel):
         return sel
     if sel in RACINE:
         return '.ms'
-    for r in ('body', 'html', '.app'):
+    for r in ('body', 'html'):
         if sel.startswith(r + ':') or sel.startswith(r + '::'):
             return '.ms' + sel[len(r):]
         if sel.startswith(r + ' '):
@@ -87,7 +90,7 @@ out.append(s[sel_debut:])
 res = ''.join(out)
 
 # le panneau n'est pas la page : il est dimensionne par la coque
-res = res.replace('.ms{height:100%}', '')
+# le panneau est deja dimensionne par la coque, mais .ms .app en a besoin
 res = res.replace('height:100vh', 'height:100%')
 
 entete = (u'/* ============================================================\n'

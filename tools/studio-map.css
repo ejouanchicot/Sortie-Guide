@@ -12,10 +12,10 @@
   --line:rgba(150,180,225,.10);--line2:rgba(150,180,225,.20);--hair:rgba(255,255,255,.05);--tx:#eaf1fb;--tx2:#a4b5cf;--dim:#6c7f9c;--gold:#f6c86a;--cyan:#5bd6ef;--teal:#54d1c4;--blue:#4a9eff;--violet:#8b7cff;--green:#4bd18a;--danger:#ff6b74;--accent:var(--cyan);--sans:'Inter',system-ui,-apple-system,sans-serif;--disp:'Space Grotesk',var(--sans);--mono:'JetBrains Mono',ui-monospace,monospace;--r-sm:8px;--r:11px;--r-lg:15px;--spring:cubic-bezier(.34,1.56,.64,1);--ease:cubic-bezier(.4,0,.2,1);--sh1:0 1px 2px rgba(0,0,0,.45);--sh2:0 10px 30px -10px rgba(0,0,0,.6);--sh3:0 24px 60px -16px rgba(0,0,0,.75);--hi:inset 0 1px 0 rgba(255,255,255,.07);--glow-cy:0 0 22px -6px color-mix(in srgb,var(--cyan) 70%,transparent)}
 .ms{box-sizing:border-box;-webkit-user-select:none;user-select:none}
 .ms ::selection{background:color-mix(in srgb,var(--cyan) 34%,transparent);color:#fff}
-
+.ms{height:100%}
 .ms{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);overflow:hidden;font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 
-.ms{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
+.ms .app{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
 
 .ms ::-webkit-scrollbar{width:11px;height:11px}
 .ms ::-webkit-scrollbar-track{background:transparent}
@@ -197,7 +197,7 @@
     radial-gradient(44% 46% at 90% 12%,color-mix(in srgb,var(--violet) 32%,transparent),transparent 70%),
     radial-gradient(52% 48% at 64% 98%,color-mix(in srgb,var(--cyan) 26%,transparent),transparent 72%),
     radial-gradient(40% 42% at 6% 94%,color-mix(in srgb,var(--gold) 13%,transparent),transparent 70%);animation:aurora 20s ease-in-out infinite;will-change:transform}/* grain premium */
-.ms::after{"""data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}/* topbar : glow bas + wordmark dégradé */
+.ms .app::after{"""data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}/* topbar : glow bas + wordmark dégradé */
 .ms .topbar{display:flex;align-items:center;gap:12px;flex:none;z-index:6;background:linear-gradient(180deg,rgba(16,25,40,.88),rgba(10,16,26,.7));backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid transparent;box-shadow:0 1px 0 color-mix(in srgb,var(--cyan) 24%,transparent),0 12px 34px -20px #000}
 
 .ms .brand b{color:#fff;font-weight:700;background:linear-gradient(180deg,#ffffff,#b7cff0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}/* CORPS : 3 cartes flottantes sur l'aurora */
