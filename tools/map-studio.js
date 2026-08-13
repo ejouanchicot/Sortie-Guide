@@ -1318,5 +1318,14 @@
   // ne peut le remplacer par sa propre modale. Et en Live Server, enregistrer fait recharger la page,
   // donc il se déclenchait à chaque sauvegarde. Le témoin « non enregistré » et la confirmation sur
   // Recharger suffisent. (Pour le remettre : window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}}))
+  // Ce que la coque de l'outil unifié (studio.js) doit pouvoir demander :
+  // les blocs à écrire, l'état « non enregistré », et de le baisser une fois
+  // la sauvegarde faite. Le reste de l'atelier ne change pas.
+  window.__MS={
+    blocs:function(){clearTimeout(histTimer);commit();return blocksToSave();},
+    sale:function(){return dirty;},
+    propre:function(){setDirty(false);},
+    fichier:setFname
+  };
   if(document.readyState!=='loading')boot();else window.addEventListener('DOMContentLoaded',boot);
 })();

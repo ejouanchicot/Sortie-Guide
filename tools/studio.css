@@ -1,0 +1,119 @@
+/* ============================================================
+   studio.css — la coque de l'outil unifié
+   ------------------------------------------------------------
+   Un seul en-tête pour les deux ateliers : identité, onglets,
+   chapitre, réglages du moment, état du fichier. Chaque atelier
+   garde sa propre feuille — celle de la carte est confinée sous
+   « .ms » (studio-map.css), celle de la strat est déjà préfixée
+   « ss- ». Ici on ne pose que ce qui les entoure.
+   ============================================================ */
+
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+.st-app{display:flex;flex-direction:column;height:100%}
+
+/* ─── en-tête ─── */
+.st-top{display:flex;align-items:center;gap:12px;padding:9px 18px;flex:none;z-index:40;
+  background:linear-gradient(180deg,rgba(16,25,40,.92),rgba(10,16,26,.82));
+  backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+  border-bottom:1px solid transparent;
+  box-shadow:0 1px 0 color-mix(in srgb,#5bd6ef 24%,transparent),0 12px 34px -20px #000}
+
+/* wordmark : mêmes mesures que les deux ateliers avaient chacun de leur côté */
+.st-brand{display:flex;align-items:center;gap:11px;flex:none}
+.st-logo{width:44px;height:44px;flex:none;object-fit:cover;border-radius:12px;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 0 1px var(--line2),0 6px 20px -6px #000,0 0 30px -8px color-mix(in srgb,#5bd6ef 72%,transparent)}
+.st-brand:hover .st-logo{transform:translateY(-1px) scale(1.03)}
+.st-wm{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:2px;line-height:1;
+  display:inline-flex;gap:7px;white-space:nowrap;
+  background:linear-gradient(180deg,#ffffff,#c2d6f2);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.st-wm b{font-weight:700;background:linear-gradient(180deg,#5bd6ef,#54d1c4);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 10px color-mix(in srgb,#5bd6ef 45%,transparent))}
+
+.st-div{width:1px;height:26px;background:var(--line2);flex:none;opacity:.6}
+.st-spacer{flex:1}
+
+/* ─── onglets : les deux ateliers ───
+   Un atelier n'est pas un réglage : les onglets sont larges, portent une
+   icône, et l'actif est souligné d'un trait plein. */
+.st-tabs{display:flex;gap:2px;flex:none;padding:3px;border-radius:13px;
+  background:rgba(0,0,0,.26);border:1px solid var(--hair)}
+.st-tab{display:inline-flex;align-items:center;gap:8px;position:relative;
+  font-family:var(--sans);font-size:13px;font-weight:650;color:var(--dim);
+  background:transparent;border:none;border-radius:10px;padding:8px 15px;cursor:pointer;
+  white-space:nowrap;transition:.16s var(--ease)}
+.st-tab svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round}
+.st-tab:hover{color:var(--txt)}
+.st-tab.on{color:#0b1620;background:linear-gradient(135deg,#5bd6ef,#54d1c4);
+  box-shadow:0 4px 14px -6px color-mix(in srgb,#5bd6ef 70%,transparent)}
+.st-tab:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+/* pastille « non enregistré » propre à un atelier : on voit ce qui bouge */
+.st-tab i{width:6px;height:6px;border-radius:50%;background:var(--r-buff);flex:none;
+  box-shadow:0 0 7px var(--r-buff);display:none}
+.st-tab.sale i{display:block}
+.st-tab.on.sale i{background:#0b1620;box-shadow:none}
+
+/* ─── chapitre ─── */
+.st-seg{display:flex;gap:3px;padding:3px;flex:none;
+  background:rgba(0,0,0,.24);border:1px solid var(--hair);border-radius:12px}
+.st-seg button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--dim);
+  background:transparent;border:none;border-radius:9px;padding:6px 13px;cursor:pointer;white-space:nowrap}
+.st-seg button.on{color:#fff;background:linear-gradient(135deg,var(--accent),var(--violet))}
+.st-seg:empty{display:none}
+
+/* ─── réglages du moment : les commandes de l'atelier actif ───
+   Elles sont DÉPLACÉES ici depuis leur atelier (appendChild), donc elles
+   gardent leurs écouteurs : aucun des deux ateliers n'a été retouché. */
+.st-ctx{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.st-ctx:empty{display:none}
+.st-ctx[hidden]{display:none}
+/* Le slot de la carte porte « .ms » pour hériter des jetons de l'atelier —
+   sinon ses boutons, sortis du panneau, perdraient leur habillage. Mais il ne
+   doit RIEN prendre de la mise en page du panneau : on la neutralise ici. */
+.st-ctx.ms{flex-direction:row;height:auto;min-height:0;background:none;
+  overflow:visible;position:static;z-index:auto;font-size:14px}
+.st-ctx.ms::before,.st-ctx.ms::after{content:none}
+
+/* ─── état du fichier ─── */
+#stUnsaved{display:none;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--r-buff);padding:5px 11px;border-radius:99px;flex:none;
+  border:1px solid color-mix(in srgb,var(--r-buff) 34%,transparent);
+  background:color-mix(in srgb,var(--r-buff) 10%,transparent)}
+#stUnsaved.on{display:inline-flex}
+#stUnsaved::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--r-buff);box-shadow:0 0 8px var(--r-buff)}
+.st-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12.5px;font-weight:600;
+  color:var(--txt2);background:var(--chip);border:1px solid var(--chipbd);border-radius:10px;
+  padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;transition:.15s var(--ease)}
+.st-btn svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+.st-btn:hover{color:#fff;border-color:var(--accent2)}
+.st-btn.primary{color:#fff;border-color:transparent;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--violet))}
+.st-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.st-file{font-family:var(--mono);font-size:11px;color:var(--dim);max-width:150px;flex:none;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ─── les deux panneaux ─── */
+.st-panes{flex:1;min-height:0;position:relative}
+.st-pane{position:absolute;inset:0;overflow:hidden}
+.st-pane[hidden]{display:none}
+/* les ateliers se croyaient seuls sur la page : ils prennent la hauteur du
+   panneau, plus celle de la fenêtre */
+.st-pane .ms,.st-pane .ss-app{height:100%}
+/* leur propre barre du haut est remplacée par celle de la coque */
+.st-pane .topbar,.st-pane .ss-top{display:none!important}
+
+@media (max-width:1100px){
+  .st-wm{display:none}
+  .st-top{gap:8px;padding:8px 12px}
+  .st-tab{padding:8px 11px}
+}
+@media (max-width:720px){
+  .st-tab span{display:none}
+  .st-tab{padding:9px 12px}
+  .st-file{display:none}
+}

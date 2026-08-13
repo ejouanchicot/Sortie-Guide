@@ -820,8 +820,11 @@
   });
   buildTree(); editeur(); rendre(); memorise();
   $('ssCompoBadge').textContent = CP.taille;   // lisible sans ouvrir le panneau
-  // crochet de test : le remplacement lui-même se teste sur window.DATAFILE
+  // crochet de test, et ce que la coque de l'outil unifié (studio.js) demande :
+  // les blocs à écrire, l'état « non enregistré », et sa modale de confirmation.
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
+                 blocs:blocsData, blocsTr:function(){ return [{nom:'TR', txt:SC.trConst('TR', TRAD)}]; },
+                 sale:function(){ return dirty; }, propre:propre, demande:demande,
                  blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,
                  compo:ouvrirCompo, actionCompo:actionCompo, taille:tailleCompo, barreJobs:barreJobs,
                  place:function(job){ CP.creneaux = S.compoCreneaux(CP).concat([[job]]); majCompo(); },

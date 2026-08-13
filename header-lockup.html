@@ -1,0 +1,93 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FFXI Strat Studio — lockup d'en-tête (texte vivant)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#070b12;--cyan:#5bd6ef;--blue:#4a9eff;--tx2:#a4b5cf;--line2:#323b49}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 700px at 30% -10%,#0e1626,#070b12);color:#eaf1fb;
+    font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:40px 26px 70px}
+  h1{font-size:18px;font-weight:800;margin:0 0 22px;color:#cfe0f2}
+  .note{color:var(--tx2);font-size:12.5px;max-width:760px;line-height:1.55;margin:0 0 26px}
+  .demo{background:#0a1220;border:1px solid #1b2436;border-radius:16px;padding:26px 30px;margin-bottom:20px}
+  .cap{font-family:ui-monospace,monospace;font-size:11px;color:var(--tx2);margin-bottom:16px}
+
+  /* ---- LOCKUP ---- */
+  .lock{display:inline-flex;align-items:center;gap:var(--g,20px)}
+  .lock .mk{width:var(--h,84px);height:var(--h,84px);flex:none}
+  .wm{display:flex;flex-direction:column;justify-content:center;line-height:1}
+  .wm .top{display:flex;align-items:center;gap:10px}
+  .wm .ff{font-family:'Chakra Petch',sans-serif;font-weight:700;color:var(--cyan);
+    letter-spacing:.42em;font-size:calc(var(--h,84px)*.19);text-indent:.42em}
+  .wm .rule{height:1px;flex:1;min-width:40px;background:linear-gradient(90deg,var(--cyan),transparent);opacity:.6}
+  .wm .rule::after{content:"";float:right;width:4px;height:4px;margin-top:-1.5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+  .wm .main{font-family:'Chakra Petch',sans-serif;font-size:calc(var(--h,84px)*.5);letter-spacing:.02em;margin:.06em 0 .04em}
+  .wm .main .s1{font-weight:300;color:#dbe9f7}
+  .wm .main .s2{font-weight:700;background:linear-gradient(180deg,#ffffff,#bfe6f5);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .wm .tag{font-family:'Chakra Petch',sans-serif;font-weight:500;color:var(--tx2);
+    letter-spacing:.34em;font-size:calc(var(--h,84px)*.135);text-indent:.34em;
+    display:flex;align-items:center;gap:12px}
+  .wm .tag::before,.wm .tag::after{content:"";height:1px;width:16px;background:var(--line2)}
+  .wm .tag::before{margin-left:2px}
+  .row{display:flex;gap:40px;flex-wrap:wrap;align-items:center}
+</style></head><body>
+<h1>FFXI Strat Studio — lockup d'en-tête (texte vivant, net & responsive)</h1>
+<p class="note">Le mot est du <b>vrai texte</b> (police Chakra Petch, proche du visuel ChatGPT) → parfaitement net à toute taille, thémable, responsive. L'icône ci-dessous est mon <b>SVG provisoire</b> ; à l'intégration je la remplace par ton <b>PNG détouré</b> (ou une version SVG propre). Compare avec la bannière ChatGPT.</p>
+
+<div class="demo"><div class="cap">grand (héro / page d'accueil) — hauteur icône 96px</div>
+  <div class="lock" style="--h:96px;--g:24px">
+    <svg class="mk" viewBox="0 0 512 512"><use href="#mk"/></svg>
+    <div class="wm">
+      <div class="top"><span class="ff">FFXI</span><span class="rule"></span></div>
+      <div class="main"><span class="s1">STRAT</span> <span class="s2">STUDIO</span></div>
+      <div class="tag">STRATEGY MAP BUILDER</div>
+    </div>
+  </div>
+</div>
+
+<div class="demo"><div class="cap">en-tête réel du site — hauteur icône 48px</div>
+  <div class="lock" style="--h:48px;--g:14px">
+    <svg class="mk" viewBox="0 0 512 512"><use href="#mk"/></svg>
+    <div class="wm">
+      <div class="top"><span class="ff">FFXI</span><span class="rule"></span></div>
+      <div class="main"><span class="s1">STRAT</span> <span class="s2">STUDIO</span></div>
+      <div class="tag">STRATEGY MAP BUILDER</div>
+    </div>
+  </div>
+</div>
+
+<div class="demo"><div class="cap">compact / mobile — hauteur icône 34px (sans tagline)</div>
+  <div class="lock" style="--h:34px;--g:11px">
+    <svg class="mk" viewBox="0 0 512 512"><use href="#mk"/></svg>
+    <div class="wm">
+      <div class="main"><span class="s1">STRAT</span> <span class="s2">STUDIO</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- icône SVG provisoire -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="mf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3de0e0"/><stop offset=".5" stop-color="#39b6e8"/><stop offset="1" stop-color="#2f6fd0"/></linearGradient>
+  <linearGradient id="ms" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7ff0ff"/><stop offset="1" stop-color="#4a9eff"/></linearGradient>
+  <linearGradient id="mc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dff6ff"/><stop offset="1" stop-color="#4a9eff"/></linearGradient>
+  <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <symbol id="mk" viewBox="0 0 512 512">
+    <!-- carte pliée (2 pics) remplie + contour -->
+    <path d="M150 356 L150 214 L196 180 L230 214 L256 196 L282 214 L316 180 L362 214 L362 356 L316 340 L256 356 L196 340 Z"
+          fill="url(#mf)" fill-opacity=".22" stroke="url(#ms)" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M230 214 L230 338 M282 214 L282 338" stroke="url(#ms)" stroke-width="6" stroke-opacity=".4" stroke-linecap="round"/>
+    <path d="M244 300 L256 252 L268 300 Z" fill="url(#ms)" opacity=".3"/>
+    <!-- tracé blanc lumineux + poignées -->
+    <g filter="url(#glow)">
+      <path d="M188 322 L238 298 L300 306" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <rect x="180" y="314" width="16" height="16" rx="3" fill="#0b1422" stroke="#ffffff" stroke-width="4"/>
+    <rect x="230" y="290" width="16" height="16" rx="3" fill="#0b1422" stroke="#ffffff" stroke-width="4"/>
+    <!-- cristal -->
+    <path d="M330 284 l19 22 -19 22 -19 -22 Z" fill="url(#mc)" stroke="#eaf7ff" stroke-width="2"/>
+    <path d="M330 284 V328 M311 306 H349" stroke="#eaf7ff" stroke-width="1.6" stroke-opacity=".55"/>
+  </symbol>
+</defs></svg>
+</body></html>

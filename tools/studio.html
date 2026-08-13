@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio · carte &amp; stratégie</title>
+<link rel="icon" type="image/webp" href="../img/map-studio-icon.webp">
+<link rel="preload" href="../fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../css/fonts.css">
+<!-- la feuille du guide : c'est elle qui donne à l'aperçu son rendu RÉEL -->
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="studio.css">
+<!-- l'atelier carte, confiné sous .ms pour que ses jetons n'écrasent pas
+     ceux du guide dont l'aperçu de la strat a besoin -->
+<link rel="stylesheet" href="studio-map.css">
+<link rel="stylesheet" href="strat-studio.css">
+</head>
+<body>
+<div class="st-app">
+
+  <header class="st-top">
+    <div class="st-brand"><img class="st-logo" src="../img/map-studio-logo.webp" alt="" width="44" height="44"><span class="st-wm">STRAT<b>STUDIO</b></span></div>
+    <span class="st-div"></span>
+
+    <!-- les deux ateliers -->
+    <div class="st-tabs" id="stTabs" role="tablist">
+      <button type="button" class="st-tab" id="stTabMap" role="tab" data-pane="map" aria-selected="false" title="Placer les mobs, les trés et les annotations sur la carte">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 5.2 7.5 3l5 2.2 5-2.2v11.6l-5 2.2-5-2.2-5 2.2z"/><path d="M7.5 3v11.6M12.5 5.2v11.6"/></svg>
+        <span>Carte</span><i></i></button>
+      <button type="button" class="st-tab" id="stTabStrat" role="tab" data-pane="strat" aria-selected="false" title="Écrire ce que chaque job fait, étape par étape">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h9l3.5 3.5V17H4z"/><path d="M13 3v3.5h3.5M7 10h6M7 13.2h4"/></svg>
+        <span>Stratégie</span><i></i></button>
+    </div>
+
+    <!-- le chapitre : commun aux deux ateliers, ils parlent du même contenu -->
+    <div class="st-seg" id="stChap"></div>
+
+    <!-- les commandes de l'atelier actif, déplacées ici depuis leur panneau -->
+    <div class="st-ctx ms" id="stCtxMap"></div>
+    <div class="st-ctx" id="stCtxStrat" hidden></div>
+
+    <div class="st-spacer"></div>
+    <span class="st-file" id="stFile"></span>
+    <span id="stUnsaved" title="Des changements ne sont pas encore sauvegardés">non enregistré</span>
+    <button class="st-btn" id="stReload" title="Repartir de la dernière version sauvegardée — les changements en cours sont perdus">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>Recharger</button>
+    <button class="st-btn primary" id="stSave" title="Sauvegarder la carte, la strat et sa version anglaise (Ctrl+S)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></svg>Enregistrer</button>
+  </header>
+
+  <div class="st-panes">
+    <!-- ── atelier CARTE ── -->
+    <div class="st-pane ms" id="stPaneMap">
+      <div class="app">
+
+        <div class="topbar">
+          <div class="brand"><img class="logo" src="../img/map-studio-logo.webp" alt="Map Studio" width="44" height="44"><span class="brandtxt">MAP<b>STUDIO</b></span></div>
+          <span class="tdiv"></span>
+          <!-- les chapitres viennent de FLOORS : leurs noms sont du contenu -->
+          <div class="seg" id="floorSeg"></div>
+          <span class="tdiv"></span>
+          <div class="ctxbar" id="ctxbar">
+      
+            <span id="pathCtx" style="display:none;align-items:center;gap:6px"></span>
+          </div>
+          <div class="spacer"></div>
+          <span class="fname" id="fname"></span>
+          <span id="unsaved" title="Des changements ne sont pas encore sauvegardés">non enregistré</span>
+          <button class="tbtn" id="btnFit" title="Ajuster (F)"><svg viewBox="0 0 24 24"><path d="M4 9V5.5A1.5 1.5 0 015.5 4H9M20 9V5.5A1.5 1.5 0 0018.5 4H15M4 15v3.5A1.5 1.5 0 005.5 20H9M20 15v3.5a1.5 1.5 0 01-1.5 1.5H15"/></svg>Ajuster</button>
+          <button class="tbtn" id="btnExport" title="Récupérer la carte en image, ou son contenu à coller ailleurs"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Exporter</button>
+          <button class="tbtn" id="btnSync" title="Repartir de la dernière version sauvegardée — les changements en cours sont perdus"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>Recharger</button>
+          <button class="tbtn primary" id="btnSave" title="Sauvegarder la carte (Ctrl+S)"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></svg>Enregistrer</button>
+        </div>
+
+        <div class="body">
+          <div class="rail" id="rail" role="toolbar" aria-label="Outils">
+            <button type="button" class="tool on" data-tool="select" aria-pressed="true" aria-label="Sélection / déplacer (V)" title="Sélection / déplacer (V)"><svg viewBox="0 0 24 24"><path d="M4 3l7 17 2.5-6.5L20 11z"/></svg></button>
+            <button type="button" class="tool" data-tool="pan" aria-pressed="false" aria-label="Main / naviguer (H · ou Espace)" title="Main / naviguer (H · ou Espace)"><svg viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 013 0V12m0-1v-1.5a1.5 1.5 0 013 0V12m0-.5a1.5 1.5 0 013 0V16a5 5 0 01-5 5h-1.6a5 5 0 01-3.5-1.5L5 16.5"/></svg></button>
+            <div class="railsep"></div>
+            <button type="button" class="tool" data-tool="path" aria-pressed="false" aria-label="Tracé multi-points (P)" title="Tracé multi-points (P)"><svg viewBox="0 0 24 24"><path d="M4 20l6-11 5 4 5-9"/><circle cx="4" cy="20" r="1.6"/><circle cx="20" cy="4" r="1.6"/></svg></button>
+            <button type="button" class="tool" data-tool="pin" aria-pressed="false" aria-label="Nouveau marqueur (créer) — N" title="Nouveau marqueur (créer) — N"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21c5-5.5 7-8.5 7-11a7 7 0 10-14 0c0 2.5 2 5.5 7 11z"/></svg></button>
+            <button type="button" class="tool" data-tool="text" aria-pressed="false" aria-label="Texte / annotation (T)" title="Texte / annotation (T)"><svg viewBox="0 0 24 24"><path d="M5 6h14M12 6v13M9 19h6"/></svg></button>
+            <button type="button" class="tool" data-tool="shape" aria-pressed="false" aria-label="Formes : rectangle / ellipse (S)" title="Formes : rectangle / ellipse (S)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><circle cx="16.5" cy="16.5" r="3.5"/></svg></button>
+            <button type="button" class="tool" data-tool="image" aria-pressed="false" aria-label="Poser une image (I)" title="Poser une image (I)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-9 9"/></svg></button>
+            <div class="railsep"></div>
+            <button type="button" class="tool" data-tool="pipette" aria-pressed="false" aria-label="Pipette : prélever une couleur (K)" title="Pipette : prélever une couleur (K)"><svg viewBox="0 0 24 24"><path d="M14 6l4 4M18 2l4 4-3 3-4-4zM14 6L5 15v4h4l9-9"/></svg></button>
+          </div>
+
+          <div class="stage-wrap">
+            <div class="grid-bg"></div><div id="stage"></div><span id="modeChip" class="modehint">Déplacer les marqueurs</span>
+            <div class="loading" id="loading"><div class="spin"></div><span id="loadmsg">Chargement…</span></div>
+          </div>
+
+          <div class="inspector"><button id="inspClose" class="insp-close" aria-label="Fermer le panneau">✕</button>
+            <div class="ipane"><div class="ititle"><span class="dot" id="inspDot"></span><span id="inspTitle">Inspecteur</span></div><div id="inspBody"><div class="empty">Clique un marqueur sur la carte, puis <b>glisse-le</b> ou modifie ses réglages ici.</div></div></div>
+            <div class="ipane"><div class="ititle"><span class="dot" style="background:var(--violet)"></span>Calques</div><div id="layers"></div></div>
+            <div class="ipane"><div class="ititle"><span class="dot" style="background:var(--gold)"></span>Réglages globaux</div>
+              <div class="fld"><label>Taille des mobs · <span id="gsMobVal">100 %</span></label><input id="gsMob" type="range" min="0.5" max="1.8" step="0.05" style="accent-color:var(--gold);padding:0"></div>
+              <div class="fld"><label>Marge des labels · <span id="gsLblVal">0</span></label><input id="gsLbl" type="range" min="0" max="24" step="1" style="accent-color:var(--gold);padding:0"></div>
+              <div class="hintbox">Ces deux réglages valent pour <b>toutes les cartes et pour le guide</b>, pas seulement celle-ci.</div></div>
+            <div class="ipane"><div class="hintbox"><b>Astuce :</b> clique <b>Recharger</b> avant de te lancer si tu viens de modifier la carte ailleurs. <b>Enregistrer</b> sauvegarde toutes les cartes d'un coup, et le guide se met à jour.</div></div>
+          </div>
+        </div>
+
+        <div class="statusbar">
+          <span id="coords">x —  ·  y —</span>
+          <span class="z" id="zoomLbl">Zoom 100 %</span>
+          <span>V déplacer · N marqueur · T texte · P tracé · S forme · I image · K pipette · H/Espace naviguer · F ajuster · Échap désarmer</span>
+          <span class="badge" id="badge">Réglages sur la carte</span>
+        </div>
+      <div id="mBackdrop"></div>
+      <button id="inspFab" class="mfab" aria-label="Ouvrir l'inspecteur"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
+      </div>
+      <div id="toast"></div>
+      <div id="modal" hidden>
+        <div class="mcard" role="alertdialog" aria-modal="true" aria-labelledby="modalTtl" aria-describedby="modalMsg">
+          <div class="mttl"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span id="modalTtl">Confirmer</span></div>
+          <div class="mmsg" id="modalMsg"></div>
+          <div class="mact"><button class="tbtn" id="modalCancel" type="button">Annuler</button><button class="tbtn danger" id="modalOk" type="button">Supprimer</button></div>
+        </div>
+      </div>
+    </div>
+    <!-- ── atelier STRATÉGIE ── -->
+    <div class="st-pane" id="stPaneStrat" hidden>
+      <div class="ss-app">
+
+        <div class="ss-top">
+          <div class="ss-brand"><img class="ss-logo" src="../img/map-studio-logo.webp" alt="" width="44" height="44"><span class="ss-wm">STRAT<b>STUDIO</b></span></div>
+          <span class="ss-div"></span>
+          <!-- les chapitres viennent de FLOORS : leurs noms sont du contenu -->
+          <div class="ss-seg" id="ssFloor"></div>
+
+          <!-- Réglages de la strat, à GAUCHE avec l'étage : ce qu'on édite. Les
+               actions sur le FICHIER restent à droite. Mélangés, « Compo » passait
+               inaperçu au milieu de Recharger et Enregistrer. -->
+          <span class="ss-div"></span>
+          <div class="ss-tools">
+            <button class="ss-tool" id="ssCompo" title="Qui compose le groupe, et qui peut remplacer qui">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5" r="2.4"/><circle cx="11.5" cy="6" r="1.9"/><path d="M1.4 13.2c0-2.4 1.9-3.9 4.1-3.9s4.1 1.5 4.1 3.9"/><path d="M10.6 9.6c2 .1 3.9 1.1 3.9 3.6"/></svg>
+              <span>Compo</span><b id="ssCompoBadge">6</b></button>
+            <button class="ss-tool" id="ssRoles" title="Tank, soin, buff ou DD — ce qui donne sa couleur à chaque job">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6 14.4 8 8 14.4 1.6 8z"/><circle cx="8" cy="8" r="2.2"/></svg>
+              <span>Rôles</span></button>
+          </div>
+
+          <div class="ss-spacer"></div>
+          <span id="ssUnsaved" title="Des changements ne sont pas encore sauvegardés">non enregistré</span>
+          <button class="ss-btn" id="ssReload" title="Repartir de la dernière version sauvegardée — les changements en cours sont perdus">Recharger</button>
+          <button class="ss-btn primary" id="ssSave" title="Sauvegarder la strat et sa version anglaise (Ctrl+S)">Enregistrer</button>
+        </div>
+
+        <div class="ss-body">
+
+          <!-- Les trois colonnes racontent la façon dont on prépare un run :
+               on découpe, on écrit, on relit du point de vue du groupe. -->
+
+          <!-- ─── colonne 1 : les étapes ─── -->
+          <aside class="ss-tree">
+            <div class="ss-ttl"><span class="ss-num">1</span>Le run, étape par étape<button class="ss-mini" id="ssAddPhase" title="Ajouter une étape au run">＋ étape</button></div>
+            <div id="ssTree"></div>
+          </aside>
+
+          <!-- ─── colonne 2 : édition ─── -->
+          <section class="ss-edit">
+            <div class="ss-ttl"><span class="ss-num">2</span><span id="ssEditTtl">La stratégie de l’étape</span><span class="dot" id="ssEditDot" style="margin-left:auto"></span></div>
+            <div id="ssEditBody"></div>
+          </section>
+
+          <!-- ─── colonne 3 : aperçu réel + traductions ─── -->
+          <section class="ss-side">
+            <div class="ss-ttl"><span class="ss-num">3</span>Ce que verra ton groupe
+              <div class="ss-vseg" id="ssVue" title="Relire la strat comme la verra cette composition"></div></div>
+            <div class="ss-preview" id="ssPreview"></div>
+            <div class="ss-ttl" style="margin-top:18px"><span class="dot" style="background:var(--r-buff)"></span>Version anglaise<span class="ss-count" id="ssTrCount">0</span></div>
+            <div id="ssTr"></div>
+          </section>
+
+        </div>
+
+        <div class="ss-status">
+          <span id="ssStat">—</span>
+          <span class="ss-spacer"></span>
+          <span id="ssHint">Ctrl+Z annuler · Ctrl+S enregistrer</span>
+        </div>
+      </div>
+
+      <div id="ssToast"></div>
+      <div id="ssModal" hidden>
+        <div class="ss-mcard" role="alertdialog" aria-modal="true">
+          <div class="ss-mttl" id="ssModalTtl">Confirmer</div>
+          <div class="ss-mmsg" id="ssModalMsg"></div>
+          <div class="ss-mact"><button class="ss-btn" id="ssModalNo" type="button">Annuler</button><button class="ss-btn danger" id="ssModalYes" type="button">Supprimer</button></div>
+        </div>
+      </div>
+
+      <div id="ssCompoPan" hidden>
+        <div class="ss-rcard" role="dialog" aria-modal="true" aria-labelledby="ssCompoTtl">
+          <div class="ss-rhead">
+            <div>
+              <div class="ss-mttl" id="ssCompoTtl">Composition du groupe</div>
+              <p class="ss-rsub">On décide ça <b>avant d'écrire</b> : combien on est, et qui tient quelle place.
+                <b>Une place peut se tenir à plusieurs</b> — la 6ᵉ au PLD ou au DNC, par exemple : c'est un
+                remplaçant, et le guide propose alors les deux façons de jouer. Les jobs placés ici sont ceux
+                que la barre de saisie propose et ceux du filtre « Mon rôle ».</p>
+            </div>
+            <button class="ss-btn" id="ssCompoClose" type="button">Fermer</button>
+          </div>
+          <div class="ss-seg ss-cseg" id="ssCompoTailles"></div>
+          <p class="ss-cinfo" id="ssCompoInfo"></p>
+          <div class="ss-cgrid" id="ssCompoGrid"></div>
+        </div>
+      </div>
+
+      <div id="ssRolesPan" hidden>
+        <div class="ss-rcard" role="dialog" aria-modal="true" aria-labelledby="ssRolesTtl">
+          <div class="ss-rhead">
+            <div>
+              <div class="ss-mttl" id="ssRolesTtl">Rôles des jobs</div>
+              <p class="ss-rsub">Le rôle donne sa <b>couleur au badge</b> du job, dans tout le guide : on
+                repère un tank ou un soigneur sans lire les trois lettres. Il vaut pour <b>cette strat</b> —
+                un NIN peut tanker ici et DPS ailleurs. <b>Un seul rôle par job.</b></p>
+            </div>
+            <button class="ss-btn" id="ssRolesClose" type="button">Fermer</button>
+          </div>
+          <div class="ss-rgrid" id="ssRolesGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/sortie-map-core.js"></script>
+<script src="../js/data-file.js"></script>
+<script src="../js/strat-render.js"></script>
+<script src="../js/strat-core.js"></script>
+<script src="../js/rich-editor.js"></script>
+<script src="vendor/konva.min.js"></script>
+<script src="map-studio.js"></script>
+<script src="strat-studio.js"></script>
+<!-- la coque en DERNIER : elle range les commandes des deux ateliers une fois
+     qu'ils ont fini de se cabler -->
+<script src="studio.js"></script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+/* ============================================================
+   studio-map.css — la feuille de l’éditeur de carte, confinée
+   ------------------------------------------------------------
+   GÉNÉRÉ depuis map-studio.css : chaque sélecteur est préfixé par
+   « .ms », le panneau Carte de l’outil unifié. Sans ça ses jetons
+   de couleur (--line, --dim, --accent, --mono…) écraseraient ceux
+   du guide, dont l’aperçu de la strat a besoin dans la même page.
+   ⚠ Ne pas éditer ici : modifier map-studio.css et regénérer
+     (scratchpad/scope-mapcss.py).
+   ============================================================ */
+.ms{/* ── palette alignée au logo : navy profond · or · cristal cyan ── *//* échelle d'élévation */'Inter''Space Grotesk''JetBrains Mono'
+  --line:rgba(150,180,225,.10);--line2:rgba(150,180,225,.20);--hair:rgba(255,255,255,.05);--tx:#eaf1fb;--tx2:#a4b5cf;--dim:#6c7f9c;--gold:#f6c86a;--cyan:#5bd6ef;--teal:#54d1c4;--blue:#4a9eff;--violet:#8b7cff;--green:#4bd18a;--danger:#ff6b74;--accent:var(--cyan);--sans:'Inter',system-ui,-apple-system,sans-serif;--disp:'Space Grotesk',var(--sans);--mono:'JetBrains Mono',ui-monospace,monospace;--r-sm:8px;--r:11px;--r-lg:15px;--spring:cubic-bezier(.34,1.56,.64,1);--ease:cubic-bezier(.4,0,.2,1);--sh1:0 1px 2px rgba(0,0,0,.45);--sh2:0 10px 30px -10px rgba(0,0,0,.6);--sh3:0 24px 60px -16px rgba(0,0,0,.75);--hi:inset 0 1px 0 rgba(255,255,255,.07);--glow-cy:0 0 22px -6px color-mix(in srgb,var(--cyan) 70%,transparent)}
+.ms{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+.ms ::selection{background:color-mix(in srgb,var(--cyan) 34%,transparent);color:#fff}
+
+.ms{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);overflow:hidden;font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+.ms{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
+
+.ms ::-webkit-scrollbar{width:11px;height:11px}
+.ms ::-webkit-scrollbar-track{background:transparent}
+.ms ::-webkit-scrollbar-thumb{background:rgba(150,180,225,.16);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+.ms ::-webkit-scrollbar-thumb:hover{background:rgba(150,180,225,.34);background-clip:padding-box}/* ── contrôles génériques ── */
+.ms input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;height:16px}
+.ms input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:99px;background:rgba(150,180,225,.20)}
+.ms input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:-5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#bfeefb);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 32%,transparent),0 2px 7px rgba(0,0,0,.55);transition:box-shadow .15s var(--ease)}
+.ms input[type=range]:hover::-webkit-slider-thumb{box-shadow:0 0 0 4px color-mix(in srgb,var(--cyan) 40%,transparent),0 2px 8px rgba(0,0,0,.6)}
+.ms input[type=range]::-moz-range-track{height:5px;border-radius:99px;background:rgba(150,180,225,.20)}
+.ms input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-radius:50%;background:#eafaff;box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 32%,transparent)}
+.ms input[type=color]{-webkit-appearance:none;appearance:none;border:1px solid var(--line2);border-radius:var(--r-sm);background:var(--s1);cursor:pointer}
+.ms input[type=color]::-webkit-color-swatch-wrapper{padding:2px}
+.ms input[type=color]::-webkit-color-swatch{border:none;border-radius:6px}
+.ms input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px}/* ── TOPBAR ── */
+
+.ms .tdiv{width:1px;height:22px;background:var(--line);flex:none}
+
+.ms .seg button:not(.on):hover{color:var(--tx)}
+.ms .ctxbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+.ms .spacer{flex:1}
+
+.ms .tbtn:hover{background:linear-gradient(180deg,rgba(150,180,225,.14),rgba(150,180,225,.06));color:#fff;border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--hi),0 6px 16px -8px rgba(0,0,0,.6)}
+.ms .tbtn:active{transform:translateY(0) scale(.98)}
+.ms .tbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+.ms .tbtn.primary::after{""content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform .6s var(--ease)}
+
+.ms .tbtn.primary:hover::after{transform:translateX(120%)}
+.ms .tbtn.danger{color:#ffd7da;background:linear-gradient(180deg,color-mix(in srgb,var(--danger) 22%,transparent),color-mix(in srgb,var(--danger) 10%,transparent));border-color:color-mix(in srgb,var(--danger) 40%,var(--line2))}
+.ms .tbtn.danger:hover{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--danger) 34%,transparent),color-mix(in srgb,var(--danger) 16%,transparent))}
+.ms .fname{font-family:var(--mono);font-size:11px;color:var(--dim);max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.85}/* ── CORPS ── */
+
+.ms .tool svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s var(--spring)}
+
+.ms .tool:not(.on):hover svg{transform:scale(1.1)}
+
+.ms .tool:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.ms .tool[data-soon]{opacity:.5}
+.ms .tool[data-soon]::after{""content:"";position:absolute;top:7px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.ms .railsep{width:24px;height:1px;background:var(--line);margin:5px 0}
+
+.ms #stage{position:absolute;inset:0}
+.ms .grid-bg{position:absolute;inset:0;pointer-events:none;opacity:.5;mask-image:radial-gradient(circle at 50% 45%,#000 55%,transparent 100%);background-image:linear-gradient(rgba(150,180,225,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(150,180,225,.05) 1px,transparent 1px);background-size:30px 30px}
+.ms .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--dim);font-family:var(--mono);font-size:13px;z-index:3;background:rgba(8,12,20,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.ms .spin{width:30px;height:30px;border-radius:50%;background:conic-gradient(from 0deg,transparent,var(--cyan));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 0);mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 0);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}/* ── INSPECTEUR ── */
+
+.ms .ipane{padding:16px 16px;border-bottom:1px solid var(--hair)}
+
+.ms .ititle .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.ms .fld{margin:12px 0}
+.ms .fld label{display:block;font-size:10px;color:var(--dim);margin-bottom:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.ms .fld .in,.ms .fld input,.ms .fld select,.ms .fld textarea{width:100%;font-family:var(--sans);font-weight:500;font-size:13px;color:#fff;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none;transition:border-color .16s,box-shadow .16s,background .16s}
+.ms .fld textarea{font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;min-height:70px}/* éditeur de texte enrichi (contenteditable) */
+.ms .reditor{width:100%;min-height:66px;max-height:190px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55;color:#fff;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none;white-space:pre-wrap;word-break:break-word}
+.ms .reditor:focus{border-color:color-mix(in srgb,var(--cyan) 60%,transparent);background:rgba(0,0,0,.36);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 18%,transparent)}
+.ms .reditor:empty:before{content:attr(data-ph);color:var(--dim)}
+.ms .reditor s,.ms .reditor strike{text-decoration:line-through}
+.ms .rtb{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:7px}
+.ms .rtb button{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:14px;color:var(--tx2);background:var(--s1);border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.14s var(--ease)}
+.ms .rtb button:hover{color:#fff;border-color:color-mix(in srgb,var(--cyan) 45%,transparent);transform:translateY(-1px)}
+.ms .rtb button.on{background:linear-gradient(145deg,var(--blue),var(--violet));color:#fff;border-color:transparent;box-shadow:0 3px 10px -4px color-mix(in srgb,var(--violet) 80%,transparent)}
+.ms .rtb .rsep{width:1px;height:20px;background:var(--line2);margin:0 3px}
+.ms .rtb input[type=color]{width:30px;height:30px;padding:2px;border-radius:8px}
+.ms .rtb .rsw{width:17px;height:17px;border-radius:5px;border:1px solid rgba(255,255,255,.25);cursor:pointer}/* ÉDITION SUR LA CARTE — popover confortable (barre d'outils + zone de saisie) ancré au texte */
+.ms #mapedit{position:absolute;z-index:46;display:none}
+.ms #mapedit.on{display:block}
+.ms #mapedit .mecard{position:relative;transform:translate(-50%,-100%);margin-top:-14px;width:max-content;min-width:250px;max-width:min(440px,60vw);background:linear-gradient(180deg,rgba(24,35,54,.985),rgba(15,23,36,.985));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line2);border-radius:14px;box-shadow:0 22px 50px -14px rgba(0,0,0,.72),var(--hi);padding:9px}
+.ms #mapedit.below .mecard{transform:translate(-50%,0);margin-top:14px}
+.ms #mapedit .mecard::after{""content:"";position:absolute;left:var(--arrow,50%);bottom:-6px;width:12px;height:12px;transform:translateX(-50%) rotate(45deg);background:rgba(15,23,36,.985);border-right:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.ms #mapedit.below .mecard::after{bottom:auto;top:-6px;background:rgba(24,35,54,.985);border:0;border-left:1px solid var(--line2);border-top:1px solid var(--line2)}
+.ms #mapedit .rtb{margin:0 0 8px;flex-wrap:wrap;justify-content:center;background:none;border:0;padding:0;box-shadow:none}
+.ms #mped{min-height:42px;max-height:34vh;overflow:auto;outline:none;font-family:var(--mono);font-size:14px;line-height:1.5;color:#fff;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:9px;padding:8px 10px;white-space:pre-wrap;word-break:break-word;caret-color:#3ad0ff}
+.ms #mped:focus{border-color:color-mix(in srgb,var(--cyan) 55%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 16%,transparent)}
+.ms #mped:empty:before{content:attr(data-ph);color:rgba(255,255,255,.4)}
+.ms #mped s,.ms #mped strike{text-decoration:line-through}
+.ms #mped b,.ms #mped strong{font-weight:900}
+.ms .rtb button[data-case]{font-size:12px;font-weight:700}/* poignée de déplacement + réglages bloc dans le popover */
+.ms #mapedit .megrip{cursor:grab;color:var(--dim);touch-action:none}
+.ms #mapedit .megrip:hover{color:#fff}
+.ms #mapedit .megrip:active{cursor:grabbing}
+.ms #mapedit .meblock{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.ms #mapedit .meblock .melbl{font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.ms #mapedit .meblock input[type=range]{flex:1;min-width:68px;accent-color:var(--cyan)}
+.ms #mapedit .meseg{display:flex;gap:3px}
+.ms #mapedit .meseg button{font-family:var(--sans);font-size:11px;font-weight:600;padding:3px 9px;color:var(--tx2);background:var(--s1);border:1px solid var(--line);border-radius:7px;cursor:pointer;transition:.14s var(--ease)}
+.ms #mapedit .meseg button:hover{color:#fff;border-color:color-mix(in srgb,var(--cyan) 45%,transparent)}
+.ms #mapedit .meseg button.on{background:linear-gradient(145deg,var(--blue),var(--violet));color:#fff;border-color:transparent}
+.ms #mapedit .mechk{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--tx2);cursor:pointer;white-space:nowrap}
+.ms #mapedit .metrash{margin-left:auto;color:#ff9aa0;background:none;border:1px solid transparent;border-radius:7px;padding:3px 5px;cursor:pointer;display:inline-flex}
+.ms #mapedit .metrash:hover{color:#fff;background:color-mix(in srgb,var(--danger) 38%,transparent)}
+.ms #mapedit .metrash svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}/* CARTE FLOTTANTE DE PROPRIÉTÉS (marqueurs) — même ergonomie que l'édition de texte */
+.ms #mappanel{position:absolute;z-index:46;display:none}
+.ms #mappanel.on{display:block}
+.ms #mappanel .mecard{position:relative;transform:translate(-50%,-100%);margin-top:-14px;width:max-content;min-width:224px;max-width:min(320px,62vw);background:linear-gradient(180deg,rgba(24,35,54,.985),rgba(15,23,36,.985));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line2);border-radius:14px;box-shadow:0 22px 50px -14px rgba(0,0,0,.72),var(--hi);padding:11px 12px}
+.ms #mappanel.below .mecard{transform:translate(-50%,0);margin-top:14px}
+.ms #mappanel .mecard::after{""content:"";position:absolute;left:var(--arrow,50%);bottom:-6px;width:12px;height:12px;transform:translateX(-50%) rotate(45deg);background:rgba(15,23,36,.985);border-right:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.ms #mappanel.below .mecard::after{bottom:auto;top:-6px;background:rgba(24,35,54,.985);border:0;border-left:1px solid var(--line2);border-top:1px solid var(--line2)}
+.ms #mappanel .mptitle{font-family:var(--sans);font-weight:700;font-size:13px;color:#fff;margin:0 0 9px;display:flex;align-items:center;gap:7px}
+.ms #mappanel .mptitle::before{""content:"";width:9px;height:9px;border-radius:50%;background:var(--dot,var(--cyan));box-shadow:0 0 8px var(--dot,var(--cyan));flex:none}
+.ms #mappanel .mprow{display:flex;align-items:center;gap:9px;margin-top:8px}
+.ms #mappanel .mplbl{font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;min-width:56px}
+.ms #mappanel .mpsw{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+.ms #mappanel .mpsw .sw{width:18px;height:18px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:.14s var(--ease)}
+.ms #mappanel .mpsw .sw:hover{transform:scale(1.12)}
+.ms #mappanel .mpsw .sw.on{border-color:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+.ms #mappanel .mpin{flex:1;min-width:0;font-family:var(--mono);font-size:12px;color:#fff;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:8px;padding:5px 8px;outline:none}
+.ms #mappanel .mpin:focus{border-color:color-mix(in srgb,var(--cyan) 55%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 16%,transparent)}
+.ms #mappanel .mpseg{display:flex;gap:3px}
+.ms #mappanel .mpseg button{font-family:var(--sans);font-size:13px;font-weight:600;width:28px;height:26px;color:var(--tx2);background:var(--s1);border:1px solid var(--line);border-radius:7px;cursor:pointer;transition:.14s var(--ease)}/* segments a libelle long (formats et tailles d'export) : la largeur fixe de 28px
+   tronquait « 2048 ». Les segments a un seul signe gardent leur gabarit carre. */
+.ms #mappanel .mpseg.wide button{width:auto;min-width:34px;padding:0 10px;font-family:var(--mono);font-size:11.5px}
+.ms #mappanel .mpseg button:hover{color:#fff;border-color:color-mix(in srgb,var(--cyan) 45%,transparent)}
+.ms #mappanel .mpseg button.on{background:linear-gradient(145deg,var(--blue),var(--violet));color:#fff;border-color:transparent}
+.ms #mappanel .mpchk{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--tx2);cursor:pointer}
+.ms #mappanel .mpacts{display:flex;gap:7px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.ms #mappanel .mpbtn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--sans);font-size:12px;font-weight:600;padding:7px 10px;border-radius:9px;cursor:pointer;border:1px solid var(--line);background:var(--s1);color:var(--tx2);transition:.14s var(--ease)}
+.ms #mappanel .mpbtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ms #mappanel .mpbtn.primary{flex:1;background:linear-gradient(145deg,var(--blue),var(--violet));color:#fff;border-color:transparent}
+.ms #mappanel .mpbtn.primary:hover{filter:brightness(1.08)}
+.ms #mappanel .mpbtn.danger{flex:none;color:#ff9aa0}
+.ms #mappanel .mpbtn.danger:hover{color:#fff;background:color-mix(in srgb,var(--danger) 38%,transparent);border-color:transparent}
+.ms .fld .in{color:var(--tx2)}
+.ms .fld input:focus,.ms .fld select:focus,.ms .fld textarea:focus{border-color:color-mix(in srgb,var(--cyan) 60%,transparent);background:rgba(0,0,0,.36);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 18%,transparent)}
+.ms .fld input[type=color]{height:38px;padding:3px}
+.ms .fld.two{display:flex;gap:9px}.ms .fld.two>div{flex:1}
+.ms .lppick{display:flex;align-items:center;gap:5px}
+.ms .lppick button[data-lp]{width:31px;height:31px;font-size:15px;color:var(--tx2);background:var(--s1);border:1px solid var(--line);border-radius:9px;cursor:pointer;transition:.14s var(--ease)}
+.ms .lppick button[data-lp]:hover{color:#fff;border-color:color-mix(in srgb,var(--cyan) 50%,transparent);transform:translateY(-1px)}
+.ms .lppick button[data-lp].on{background:linear-gradient(145deg,var(--blue),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 12px -4px color-mix(in srgb,var(--violet) 80%,transparent)}
+.ms .lppick input{width:54px;font-family:var(--mono);font-size:12px;color:#fff;background:var(--s1);border:1px solid var(--line);border-radius:9px;padding:7px 8px;margin-left:4px}
+.ms .swatches{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ms .sw{width:23px;height:23px;border-radius:7px;border:2px solid transparent;cursor:pointer;position:relative;transition:transform .14s var(--spring),box-shadow .14s}
+.ms .sw:hover{transform:scale(1.14)}
+.ms .sw.on{border-color:#fff;box-shadow:0 0 0 2px var(--s2),0 0 12px -2px currentColor}
+.ms .empty{color:var(--dim);font-size:12.5px;font-style:italic;line-height:1.55}
+.ms .lay{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--tx2);padding:8px 9px;border-radius:9px;cursor:pointer;transition:background .14s}
+.ms .lay:hover{background:rgba(150,180,225,.07)}.ms .lay.off{opacity:.4}
+.ms .lay .eye svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7}
+.ms .lay .cnt{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.ms .hintbox{font-size:11.5px;color:var(--tx2);line-height:1.6;background:linear-gradient(180deg,rgba(91,214,239,.06),rgba(150,180,225,.03));border:1px solid var(--hair);border-left:2px solid color-mix(in srgb,var(--cyan) 55%,transparent);border-radius:10px;padding:11px 13px}
+.ms .hintbox b{color:var(--tx)}/* ── palette de création (Phase 3) ── */
+.ms .palgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-height:300px;overflow:auto;margin-top:5px;padding:2px}
+.ms .palbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;background:rgba(0,0,0,.26);border:1px solid var(--line);border-radius:11px;color:var(--tx2);font-size:10px;cursor:pointer;font-family:var(--sans);transition:transform .15s var(--spring),border-color .15s,background .15s,box-shadow .15s}
+.ms .palbtn:hover{background:rgba(150,180,225,.09);color:#fff;border-color:color-mix(in srgb,var(--cyan) 45%,transparent);transform:translateY(-2px);box-shadow:0 8px 18px -8px rgba(0,0,0,.6)}
+.ms .palbtn.on{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 16%,transparent);color:#fff;box-shadow:var(--glow-cy)}
+.ms .palbtn img{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.ms .palbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ms .chk{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:12.5px;color:var(--tx2);text-transform:none;letter-spacing:0;cursor:pointer}/* ── chips de tracé ── */
+.ms .rchip{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--tx2);background:rgba(150,180,225,.06);border:1px solid var(--hair);border-left:3px solid var(--rc,var(--line2));border-radius:9px;padding:6px 11px;cursor:pointer;transition:.15s var(--ease);white-space:nowrap}
+.ms .rchip:hover{background:rgba(150,180,225,.12);color:#fff;transform:translateY(-1px)}
+.ms .rchip.on{background:color-mix(in srgb,var(--rc,var(--cyan)) 26%,rgba(0,0,0,.2));color:#fff;box-shadow:0 0 14px -4px var(--rc,var(--cyan))}/* ── barre de statut ── */
+
+.ms .statusbar .z{cursor:pointer;color:var(--tx2);transition:color .14s}.ms .statusbar .z:hover{color:var(--cyan)}
+.ms .badge{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 34%,var(--line2));border-radius:99px;padding:3px 11px;background:color-mix(in srgb,var(--gold) 8%,transparent);box-shadow:0 0 14px -6px color-mix(in srgb,var(--gold) 60%,transparent)}
+
+.ms #toast{position:fixed;bottom:56px;left:50%;transform:translateX(-50%) translateY(6px);background:linear-gradient(180deg,rgba(23,34,52,.96),rgba(15,23,36,.96));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line2);color:#fff;font-family:var(--mono);font-size:12px;padding:10px 16px;border-radius:12px;z-index:30;box-shadow:var(--sh3);opacity:0;transition:opacity .25s,transform .25s var(--spring);pointer-events:none}"opacity:1"
+.ms #toast[style*="opacity:1"],.ms #toast.show{transform:translateX(-50%) translateY(0)}
+.ms #toast.ok{border-color:color-mix(in srgb,var(--green) 50%,var(--line2));box-shadow:var(--sh3),0 0 22px -8px color-mix(in srgb,var(--green) 60%,transparent)}
+.ms #toast.err{border-color:color-mix(in srgb,var(--danger) 55%,var(--line2));box-shadow:var(--sh3),0 0 22px -8px color-mix(in srgb,var(--danger) 60%,transparent)}/* modale de confirmation maison (remplace confirm() du navigateur) */
+.ms #modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(4,7,12,.5);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);opacity:0;transition:opacity .16s var(--ease)}
+.ms #modal[hidden]{display:none}
+.ms #modal.show{opacity:1}
+.ms #modal .mcard{width:min(392px,94vw);background:linear-gradient(180deg,rgba(26,37,56,.98),rgba(16,24,38,.98));border:1px solid var(--line2);border-radius:16px;box-shadow:0 24px 60px -12px rgba(0,0,0,.7),var(--hi);padding:20px 20px 18px;transform:translateY(8px) scale(.97);opacity:.6;transition:transform .2s var(--spring),opacity .2s var(--ease)}
+.ms #modal.show .mcard{transform:none;opacity:1}
+.ms #modal .mttl{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-size:15px;font-weight:700;color:#fff;margin-bottom:9px}
+.ms #modal .mttl svg{width:19px;height:19px;fill:none;stroke:var(--danger);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ms #modal .mmsg{font-family:var(--sans);font-size:13px;color:var(--tx2);line-height:1.55;margin-bottom:18px}
+.ms #modal .mmsg b{color:#fff}
+.ms #modal .mact{display:flex;gap:10px;justify-content:flex-end}
+.ms #modal .mact .tbtn{min-width:96px;justify-content:center}
+
+@media (prefers-reduced-motion:reduce){.ms{animation-duration:.001ms!important;transition-duration:.001ms!important}}/* ═══════════ Panneaux flottants, aurore de fond et chrome sombre ═══════════ */
+@keyframes aurora{0%{transform:translate(0,0) scale(1) rotate(0deg)}50%{transform:translate(3%,2.5%) scale(1.14) rotate(1.5deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+.ms::before{""content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:
+    radial-gradient(46% 40% at 16% 6%,color-mix(in srgb,var(--blue) 34%,transparent),transparent 68%),
+    radial-gradient(44% 46% at 90% 12%,color-mix(in srgb,var(--violet) 32%,transparent),transparent 70%),
+    radial-gradient(52% 48% at 64% 98%,color-mix(in srgb,var(--cyan) 26%,transparent),transparent 72%),
+    radial-gradient(40% 42% at 6% 94%,color-mix(in srgb,var(--gold) 13%,transparent),transparent 70%);animation:aurora 20s ease-in-out infinite;will-change:transform}/* grain premium */
+.ms::after{"""data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}/* topbar : glow bas + wordmark dégradé */
+.ms .topbar{display:flex;align-items:center;gap:12px;flex:none;z-index:6;background:linear-gradient(180deg,rgba(16,25,40,.88),rgba(10,16,26,.7));backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid transparent;box-shadow:0 1px 0 color-mix(in srgb,var(--cyan) 24%,transparent),0 12px 34px -20px #000}
+
+.ms .brand b{color:#fff;font-weight:700;background:linear-gradient(180deg,#ffffff,#b7cff0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}/* CORPS : 3 cartes flottantes sur l'aurora */
+.ms .body{flex:1;display:flex;min-height:0;padding:14px;gap:14px}
+.ms .rail{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0;flex:none;width:62px;border-radius:20px;border:1px solid var(--line);box-shadow:var(--sh2),var(--hi);background:linear-gradient(180deg,rgba(22,33,52,.74),rgba(13,20,33,.62))}
+.ms .stage-wrap{flex:1;position:relative;min-width:0;overflow:hidden;background:
+  radial-gradient(1000px 620px at 46% 22%,#14203200,#0a0f18 78%),
+  radial-gradient(700px 500px at 70% 90%,color-mix(in srgb,var(--violet) 9%,transparent),transparent 60%),
+  linear-gradient(180deg,#0e1626,#080c14);border-radius:20px;border:1px solid var(--line);box-shadow:var(--sh2),inset 0 0 0 1px rgba(255,255,255,.02)}
+.ms .inspector{backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);flex:none;display:flex;flex-direction:column;overflow:auto;width:284px;border-radius:20px;border:1px solid var(--line);border-left:1px solid var(--line);box-shadow:var(--sh2),var(--hi);background:linear-gradient(180deg,rgba(22,33,52,.72),rgba(13,20,33,.64))}/* titres de section en dégradé */
+.ms .ititle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px;display:flex;align-items:center;gap:8px;font-size:10.5px}
+.ms .ititle span:last-child,.ms .ititle{color:var(--tx2)}/* accents plus francs */
+
+.ms .seg{display:flex;gap:3px;padding:3px;border:1px solid var(--hair);border-radius:12px;box-shadow:var(--hi);background:rgba(0,0,0,.34)}
+.ms .statusbar{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,rgba(11,18,29,.7),rgba(8,13,21,.8));border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--dim);flex:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 18px}/* ═══════════ Boutons : lisere degrade, icones animees, bouton principal ═══════════ *//* --- boutons header : bordure dégradée au masque + lift + glow --- */
+.ms .tbtn{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--tx2);background:linear-gradient(180deg,rgba(150,180,225,.08),rgba(150,180,225,.03));border-radius:10px;padding:8px 13px;cursor:pointer;transition:transform .16s var(--ease),background .16s,color .16s,box-shadow .16s,border-color .16s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;box-shadow:var(--hi);border:1px solid transparent;background-clip:padding-box}
+.ms .tbtn::before{""content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;background:linear-gradient(180deg,rgba(165,195,240,.34),rgba(165,195,240,.04));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;transition:background .22s}
+.ms .tbtn:hover::before{background:linear-gradient(180deg,color-mix(in srgb,var(--cyan) 75%,transparent),color-mix(in srgb,var(--cyan) 12%,transparent))}
+.ms .tbtn:hover svg{transform:scale(1.12) rotate(-3deg);transition:transform .22s var(--spring)}
+.ms .tbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .22s var(--spring)}
+.ms .tbtn.danger::before{background:linear-gradient(180deg,color-mix(in srgb,var(--danger) 60%,transparent),transparent)}/* --- primaire : dégradé animé + double glow + sheen --- */
+.ms .tbtn.primary{color:#04141a;border:none;font-weight:700;position:relative;overflow:hidden;box-shadow:var(--hi),0 8px 26px -6px color-mix(in srgb,var(--cyan) 85%,transparent),0 0 30px -10px color-mix(in srgb,var(--cyan) 70%,transparent);background:linear-gradient(115deg,var(--cyan),var(--teal),var(--blue),var(--cyan));background-size:280% 100%;animation:primaryflow 7s linear infinite}
+.ms .tbtn.primary::before{background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.05))}
+@keyframes primaryflow{to{background-position:280% 0}}
+.ms .tbtn.primary:hover{transform:translateY(-1px);box-shadow:0 10px 26px -6px color-mix(in srgb,var(--cyan) 80%,transparent);filter:brightness(1.08) saturate(1.08)}/* --- segmented (étages) : actif avec liseré + glow --- */
+.ms .seg button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--dim);background:transparent;border:none;border-radius:9px;padding:7px 14px;cursor:pointer;transition:color .18s,background .18s,box-shadow .18s;white-space:nowrap;position:relative}
+.ms .seg button.on{color:#fff;background:linear-gradient(180deg,var(--s4),var(--s3));box-shadow:var(--hi),0 3px 10px rgba(0,0,0,.4),0 0 0 1px color-mix(in srgb,var(--cyan) 30%,transparent),0 0 16px -6px color-mix(in srgb,var(--cyan) 55%,transparent)}
+.ms .seg button:active{transform:scale(.96)}/* --- chips de contexte : matière + filet --- */
+.ms .ctxbar .chip{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--tx2);padding:7px 12px;border-radius:10px;border:1px solid var(--hair);display:inline-flex;align-items:center;gap:8px;cursor:default;background:linear-gradient(180deg,rgba(165,195,240,.09),rgba(165,195,240,.03));box-shadow:var(--hi)}/* --- RAIL : touches tactiles, hover glow, actif pulsant, press --- */
+.ms .tool{width:40px;height:40px;border:none;padding:0;appearance:none;-webkit-appearance:none;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--dim);cursor:pointer;transition:color .18s var(--ease),background .18s,box-shadow .2s,transform .18s var(--spring);position:relative;background:linear-gradient(180deg,rgba(165,195,240,.05),rgba(165,195,240,.01));box-shadow:var(--hi)}
+.ms .tool:not(.on):hover{background:linear-gradient(180deg,rgba(165,195,240,.15),rgba(165,195,240,.05));color:#fff;box-shadow:var(--hi),0 6px 16px -8px #000,0 0 0 1px color-mix(in srgb,var(--cyan) 34%,transparent),0 0 16px -7px color-mix(in srgb,var(--cyan) 55%,transparent)}
+.ms .tool.on{color:#fff;background:linear-gradient(145deg,var(--blue),var(--violet));box-shadow:var(--hi),0 10px 26px -8px color-mix(in srgb,var(--violet) 90%,transparent),0 0 0 1px color-mix(in srgb,var(--blue) 55%,transparent),0 0 22px -6px color-mix(in srgb,var(--blue) 70%,transparent);animation:toolpulse 2.6s ease-in-out infinite}
+@keyframes toolpulse{
+  0%,100%{box-shadow:var(--hi),0 8px 22px -8px color-mix(in srgb,var(--violet) 85%,transparent),0 0 0 1px color-mix(in srgb,var(--blue) 55%,transparent),0 0 16px -7px color-mix(in srgb,var(--blue) 60%,transparent)}
+  50%{box-shadow:var(--hi),0 11px 28px -8px color-mix(in srgb,var(--violet) 95%,transparent),0 0 0 1px color-mix(in srgb,var(--cyan) 70%,transparent),0 0 28px -4px color-mix(in srgb,var(--cyan) 80%,transparent)}}
+.ms .tool:active{transform:scale(.9)}
+.ms .tool.on:active{transform:scale(.94)}
+.ms .tool.on::before{""content:"";position:absolute;left:-9px;top:50%;transform:translateY(-50%);border-radius:99px;background:linear-gradient(var(--cyan),var(--blue));width:3.5px;height:24px;box-shadow:0 0 12px var(--cyan),0 0 4px #fff}/* ═══════════ Header, rail et inspecteur — tailles et responsive ═══════════ */
+
+.ms .brand:hover .logo{transform:translateY(-1px) scale(1.03) rotate(0deg)}/* éléments mobiles masqués sur desktop */
+.ms .insp-close,.ms #mBackdrop,.ms #inspFab{display:none}
+.ms .insp-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--tx2);font-size:15px;cursor:pointer;z-index:2}/* ── TABLETTE ── */
+@media (max-width:1180px){
+  .ms .inspector{width:248px}
+  .ms .rail{width:56px}
+  .ms .topbar{gap:8px}
+  .ms .fname{max-width:110px}
+}/* ── MOBILE / petite tablette : outils EN HAUT, carte au MAX, inspecteur en tiroir ── */
+@media (max-width:820px){
+  .ms .topbar{padding:7px 11px;gap:8px;flex-wrap:wrap}
+
+  .ms .fname,.ms .tdiv,.ms #modeChip{display:none!important}
+  .ms .seg button{padding:6px 10px;font-size:12px}
+  .ms .tbtn{padding:7px 10px;font-size:12px}
+  .ms .spacer{flex:1 1 100%;order:5;height:0}/* pousse pathCtx/boutons sur une 2e ligne si besoin */
+
+  .ms .body{flex-direction:column;padding:8px;gap:8px}/* rail horizontal en haut */
+  .ms .rail{width:auto;height:auto;flex-direction:row;justify-content:flex-start;padding:7px 9px;gap:6px;overflow-x:auto;overflow-y:hidden;border-radius:16px;order:0;-webkit-overflow-scrolling:touch}
+  .ms .rail .railsep{width:1px;height:26px;margin:0 3px}
+  .ms .tool{flex:none}
+  .ms .tool.on::before{display:none}/* carte : tout l'espace restant */
+  .ms .stage-wrap{order:1;flex:1;border-radius:16px}/* inspecteur = tiroir bas superposé (n'ampute pas la carte) */
+  .ms .inspector{position:fixed;left:0;right:0;bottom:0;width:auto;max-height:76vh;border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:none;transform:translateY(105%);transition:transform .32s var(--spring);z-index:60}
+  .ms .inspector::before{""content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:44px;height:4px;border-radius:99px;background:var(--line2)}
+  .ms .ipane:first-child{padding-top:20px}
+  .ms body.insp-open .inspector{transform:translateY(0)}
+  .ms .insp-close{display:block}
+
+  .ms #mBackdrop{display:block;position:fixed;inset:0;background:rgba(4,7,12,.55);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .3s;z-index:55}
+  .ms body.insp-open #mBackdrop{opacity:1;pointer-events:auto}/* FAB inspecteur */
+  .ms #inspFab{display:flex;align-items:center;justify-content:center;position:fixed;right:14px;bottom:14px;width:54px;height:54px;border-radius:17px;border:none;color:#04141a;background:linear-gradient(135deg,var(--cyan),var(--teal));box-shadow:0 8px 24px -6px color-mix(in srgb,var(--cyan) 80%,transparent),var(--hi);cursor:pointer;z-index:58;transition:transform .18s var(--spring)}
+  .ms #inspFab:active{transform:scale(.92)}
+  .ms body.insp-open #inspFab{transform:translateY(-77vh) scale(.9);opacity:.85}
+
+  .ms .statusbar{display:none}
+}
+@media (max-width:820px) and (min-width:521px){
+  .ms .inspector{left:auto;right:0;top:0;bottom:0;width:min(360px,86vw);max-height:none;border-radius:22px 0 0 22px;border:1px solid var(--line);border-right:none;transform:translateX(105%)}
+  .ms .inspector::before{display:none}
+  .ms body.insp-open .inspector{transform:translateX(0)}
+  .ms body.insp-open #inspFab{transform:translateX(-88vw) scale(.9)}
+}
+@media (prefers-reduced-motion:reduce){.ms::before{animation:none}}/* ═══════════ Petit ecran : chrome opaque (le flou coutait trop cher) ═══════════ */
+@media (max-width:820px){
+  .ms .inspector{background:linear-gradient(180deg,#141d2e,#0b1220)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 -18px 50px -12px rgba(0,0,0,.75)}
+  .ms .topbar{background:#0a0f18!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .ms .rail{background:#0e1626!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .ms #mBackdrop{background:rgba(3,6,11,.66)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .ms .hintbox{background:rgba(91,214,239,.08)}
+}/* ═══════════ Wordmark et logo du header ═══════════ */
+.ms .topbar{padding:9px 18px}
+.ms .brand{display:flex;font-family:var(--disp);font-weight:600;letter-spacing:.2px;color:var(--tx2);white-space:nowrap;font-size:15px;gap:11px;align-items:center}
+.ms .brand .logo{object-fit:cover;flex:none;transition:transform .3s var(--spring);border-radius:12px;box-shadow:0 0 0 1px var(--line2),0 6px 20px -6px #000,0 0 30px -8px color-mix(in srgb,var(--cyan) 72%,transparent);width:44px;height:44px}
+
+.ms .brandtxt{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:2px;line-height:1;display:inline-flex;gap:7px;white-space:nowrap;background:linear-gradient(180deg,#ffffff,#c2d6f2);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ms .brandtxt b{font-weight:700;background:linear-gradient(180deg,var(--cyan),var(--teal));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px color-mix(in srgb,var(--cyan) 45%,transparent))}
+@media (max-width:820px){ .ms .brandtxt{font-size:17px;letter-spacing:1.5px} .ms .brand .logo{width:38px;height:38px} }
+@media (max-width:430px){ .ms .brandtxt{display:none} }/* ═══════════ Nom de fichier masque et etiquette de mode ═══════════ */
+.ms .fname{display:none!important}
+
+.ms .modehint{position:absolute;top:14px;left:14px;z-index:4;display:inline-flex;align-items:center;gap:7px;color:var(--tx);font-family:var(--sans);font-size:12px;padding:6px 13px;background:linear-gradient(180deg,rgba(15,23,37,.92),rgba(10,16,26,.9));border:1px solid var(--line2);border-radius:99px;box-shadow:var(--sh2),var(--hi);pointer-events:none}
+@media (max-width:820px){.ms .modehint{top:10px;left:10px;font-size:11px;padding:5px 11px}}/* ═══════════ Icones SVG des boutons ═══════════ */
+.ms .bi{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ms .rchip.mini{border-left:1px solid var(--hair);padding:6px 10px;font-size:14px;background:rgba(150,180,225,.07);display:inline-flex;align-items:center;justify-content:center}
+.ms .rchip.mini .bi{width:15px;height:15px}
+.ms .tbtn .bi{margin-right:1px}
+.ms .modehint{border:1px solid var(--hair)!important;box-shadow:none!important;letter-spacing:.2px;font-size:11px!important;padding:5px 11px!important;background:rgba(9,14,23,.72)!important;border-color:var(--hair)!important;color:var(--tx2)!important;font-weight:600}
+.ms .modehint .mhi{fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none;width:14px;height:14px;stroke:var(--tx2)}/* ═══════════ Temoin « modifications non enregistrees » ═══════════ */
+.ms #unsaved{display:none;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--gold);padding:5px 11px;border:1px solid color-mix(in srgb,var(--gold) 34%,transparent);border-radius:99px;background:color-mix(in srgb,var(--gold) 10%,transparent);white-space:nowrap}
+.ms #unsaved.on{display:inline-flex}
+.ms #unsaved::before{""content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:unsavedpulse 1.7s ease-in-out infinite}
+@keyframes unsavedpulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (max-width:820px){.ms #unsaved{font-size:0;padding:6px;gap:0}}/* ═══════════ Avertissements de la carte flottante ═══════════ */
+.ms #mappanel .mpwarn{font-family:var(--mono);font-size:10px;line-height:1.35;color:var(--gold);margin-top:7px;display:none}
+.ms #mappanel .mpwarn.on{display:block}
+.ms #mappanel .mpnote{font-family:var(--mono);font-size:9.5px;line-height:1.4;color:var(--dim);margin-top:7px}/* ═══════════ Barre d'armement (outil Marqueur) — on choisit QUOI poser ═══════════
+   z-index 47 > #mappanel (46) : la carte de réglages du marqueur qu'on vient de poser ne doit
+   jamais recouvrir la barre, sinon « rester armé » devient inutilisable en haut de la carte. */
+.ms #armbar{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:47;display:none;width:min(560px,92%)}
+.ms #armbar.on{display:block}
+.ms .stage-wrap:has(#armbar.on) .modehint{display:none}/* la barre dit déjà dans quel mode on est */
+.ms #armbar .arcard{background:linear-gradient(180deg,rgba(24,35,54,.985),rgba(15,23,36,.985));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line2);border-radius:14px;box-shadow:0 22px 50px -14px rgba(0,0,0,.72),var(--hi);padding:11px 12px}
+.ms #armbar .arhead{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
+.ms #armbar .artitle{font-family:var(--sans);font-weight:700;font-size:13px;color:#fff;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.ms #armbar .artitle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ms #armbar .arseg{display:flex;gap:3px}
+.ms #armbar .arseg button{font-family:var(--sans);font-size:12px;font-weight:600;padding:4px 12px;color:var(--tx2);background:var(--s1);border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.14s var(--ease)}
+.ms #armbar .arseg button:hover{color:#fff;border-color:color-mix(in srgb,var(--cyan) 45%,transparent)}
+.ms #armbar .arseg button.on{background:linear-gradient(145deg,var(--blue),var(--violet));color:#fff;border-color:transparent}
+.ms #armbar .arsearch{flex:1;min-width:120px;font-family:var(--mono);font-size:12px;color:#fff;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:8px;padding:6px 10px;outline:none;-webkit-user-select:text;user-select:text}
+.ms #armbar .arsearch:focus{border-color:color-mix(in srgb,var(--cyan) 55%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 16%,transparent)}
+.ms #armbar .arcol{flex:none;width:36px;height:26px;padding:2px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.ms #armbar .arclose{margin-left:auto;color:var(--dim);background:none;border:0;cursor:pointer;display:inline-flex;padding:2px}
+.ms #armbar .arclose:hover{color:#fff}
+.ms #armbar .arclose svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.ms #armbar .argrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:7px;max-height:196px;overflow:auto;padding:2px}/* une fois la créature armée, la grille masquerait le haut de la carte pour rien :
+   la barre se replie sur une seule ligne et se rouvre au clic sur la recherche ou une catégorie */
+.ms #armbar.armed .argrid{display:none!important}
+.ms #armbar .argrid .palbtn{font-size:9.5px}
+.ms #armbar .argrid .palbtn img{width:34px;height:34px}
+.ms #armbar .arhint{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--dim);margin-top:8px}
+.ms #armbar .arhint b{color:#7fe7d8}
+@media (max-width:820px){.ms #armbar{top:10px;width:96%}.ms #armbar .argrid{max-height:150px}}/* ═══════════ Popovers : ne bloquer que leur surface VISIBLE ═══════════
+   #mapedit / #mappanel sont ancrés au point de l'objet, mais leur .mecard est décalée par
+   transform : le conteneur laissait donc une zone morte invisible (~300×200 px) en bas à
+   droite de l'objet, qui mangeait les clics sur la carte (pose de marqueur, ajout de point
+   de tracé, création de texte). Seule la carte elle-même reçoit les clics. */
+.ms #mapedit,.ms #mappanel{pointer-events:none}
+.ms #mapedit .mecard,.ms #mappanel .mecard{pointer-events:auto}/* ═══════════ Barre de titre : deplacer la boite comme une fenetre ═══════════
+   La carte de reglages et la barre d'armement se posent sur la carte : il faut pouvoir les
+   ecarter du chemin. Toute la zone haute deplace LA BOITE (pas l'objet, contrairement a la
+   poignee du popover de texte). Double-clic dessus = retour a la position d'origine.
+   Les commandes qu'elle contient (segments, recherche, fermeture) gardent leur comportement. *//* padding + marge negative de meme valeur : la zone cliquable deborde sans decaler la mise en page,
+   et le 6px du bas restitue l'ecart d'origine (9px) une fois le padding compte */
+.ms .boxdrag{cursor:grab;touch-action:none;border-radius:8px;margin:-3px -4px 6px;padding:3px 4px;transition:background .14s var(--ease)}
+.ms .boxdrag:hover{background:rgba(150,180,225,.07)}
+.ms .boxdrag.grabbing{cursor:grabbing;background:color-mix(in srgb,var(--cyan) 12%,transparent)}/* deplacee : la fleche qui pointait l'objet n'a plus de sens */
+.ms #mappanel.moved .mecard::after{display:none}
+.ms #mappanel.moved .mecard{box-shadow:0 26px 60px -16px rgba(0,0,0,.8),var(--hi),0 0 0 1px color-mix(in srgb,var(--cyan) 22%,transparent)}
+.ms #armbar.moved{left:0;top:0;transform:none;width:min(560px,92%)}/* ═══════════ Carte flottante du trace ═══════════ */
+.ms #mappanel .mprange{flex:1;min-width:96px;accent-color:var(--cyan);cursor:pointer}
+.ms #mappanel .mpval{font-family:var(--mono);font-size:10px;color:var(--tx2);min-width:34px;text-align:right}
+.ms #mappanel .mpsize{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:8px;padding:4px 9px}
+.ms #mappanel .mprot{font-family:var(--mono);font-size:11px;color:var(--gold);margin-left:auto}
+.ms #mappanel .mpcol{flex:none;width:42px;height:26px;padding:2px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+
