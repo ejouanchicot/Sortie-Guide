@@ -102,6 +102,11 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 .st-btn svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;
   stroke-linecap:round;stroke-linejoin:round}
 .st-btn:hover{color:#fff;border-color:var(--accent2)}
+/* Sans ça, l'attribut `hidden` ne cache RIEN : le display:none que le
+   navigateur lui associe est une règle par défaut, et n'importe quel
+   display d'auteur la bat. Le bouton « Installer » restait donc visible
+   dans l'app alors que le code l'avait bien masqué. */
+[hidden]{display:none!important}
 .st-btn.primary{color:#fff;border-color:transparent;font-weight:700;
   background:linear-gradient(135deg,var(--accent),var(--violet))}
 .st-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
