@@ -210,6 +210,12 @@
     g.on('mouseleave',()=>{stage.container().style.cursor=(tool==='pan'||spaceDown)?'grab':'default';});
   }
   async function addPin(kind,o,sizeFrac,MOBimg){
+    // Le groupe d'accueil est retenu AVANT d'attendre la vignette : si un autre
+    // etage se dessine pendant ce temps, gPins ne designe plus le meme groupe,
+    // et le marqueur irait se poser sur la carte d'a cote. Ajoute au groupe
+    // d'origine — detruit entre-temps — il disparait simplement, et le prochain
+    // rendu le redessine au bon endroit depuis la donnee, qui est intacte.
+    const cible=gPins;
     const col=elc(o.el);
     const g=new Konva.Group({x:C(o.x),y:C(o.y),name:'pin',opacity:kind==='mid'?.8:1});g._meta={kind,o};g._base=sizeFrac;
     const src=MOBimg[o.name]?BASE+MOBimg[o.name]:null,im=src?await loadImg(src):null;let iw,ih;
@@ -225,8 +231,8 @@
     g.on('click tap',e=>{e.cancelBubble=true;if(mapEd&&mapEd.cfg.o===o)return;if(selNode===g)editLabelOnMap(o);else select(g);});
     g.on('dragmove',()=>{o.x=r1(U(g.x()));o.y=r1(U(g.y()));liveUpdate();});
     g.on('dragend',commit);
-    gPins.add(g);
-    if(kind==='boss'&&o.nx!=null)addMarker(o,col);
+    cible.add(g);
+    if(kind==='boss'&&o.nx!=null)addMarker(o,col,cible);   // sa pastille suit le meme groupe
   }
   // texte du label : label perso s'il existe, sinon nom (+ quantité du pack quand pas de label perso)
   // source du label : HTML enrichi perso (o.label) sinon le nom en gras (+ quantité)
@@ -252,14 +258,14 @@
     else if(lp==='right'){lbl.position({x:iw/2+m,y:0});lbl.offset({x:0,y:h/2});}
     else{lbl.position({x:0,y:ih/2+m});lbl.offset({x:w/2,y:0});}}
   function replaceAllLabels(){if(gPins)gPins.getChildren().forEach(n=>{if(n.name()==='pin')placeLabel(n);});draw();}
-  function addMarker(o,col){const R=21;const g=new Konva.Group({x:C(o.nx),y:C(o.ny),name:'marker'});g._meta={kind:'marker',o};
+  function addMarker(o,col,cible){const R=21;const g=new Konva.Group({x:C(o.nx),y:C(o.ny),name:'marker'});g._meta={kind:'marker',o};
     g.add(new Konva.Circle({radius:R,fill:BK.INK}),new Konva.Circle({radius:R-1.5,fill:BK.CREAM}),new Konva.Circle({radius:R-4.5,fill:col,shadowColor:col,shadowBlur:8,shadowOpacity:.5}));
     g.add(new Konva.Text({text:String(o.n),fontFamily:'JetBrains Mono',fontStyle:'bold',fontSize:20,fill:'#fff',width:R*2,height:R*2,align:'center',verticalAlign:'middle',offsetX:R,offsetY:R,shadowColor:'#000',shadowBlur:2,shadowOpacity:.5}));
     wireHover(g);
     g.on('click tap',e=>{e.cancelBubble=true;select(g);});
     g.on('dragmove',()=>{o.nx=r1(U(g.x()));o.ny=r1(U(g.y()));liveUpdate();});
     g.on('dragend',commit);
-    o._mk=g;gPins.add(g);}
+    o._mk=g;(cible||gPins).add(g);}
 
   function setToolMode(){const drag=(tool==='select'&&!spaceDown);
     // marqueurs cliquables/déplaçables en Sélection (et cliquables en Navigation) ; en Tracé/Marqueur/Texte les clics vont à la scène
@@ -1590,7 +1596,12 @@
   window.addEventListener('keydown',e=>{if(inField(e)||modalOpen)return;
     const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
     // --- raccourcis globaux façon appli Windows (n'importe où) ---
-    if(mod&&k==='s'){e.preventDefault();save();return;}
+    // Dans la coque à onglets, c'est ELLE qui enregistre — carte et strat en une
+    // seule passe sur le fichier. Garder ce raccourci actif ici lançait DEUX
+    // écritures concurrentes sur data.js : chacune lisait le fichier avant que
+    // l'autre n'écrive, et la dernière arrivée effaçait les blocs de la première.
+    // Le bouton de cette barre, lui, était déjà masqué par la coque.
+    if(mod&&k==='s'){e.preventDefault();if(!document.getElementById('stSave'))save();return;}
     if(mod&&k==='z'&&!e.shiftKey){e.preventDefault();undo();return;}
     if(mod&&(k==='y'||(k==='z'&&e.shiftKey))){e.preventDefault();redo();return;}
     if(mod&&k==='c'){if(selNode){e.preventDefault();copySel();}return;}

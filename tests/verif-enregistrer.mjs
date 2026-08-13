@@ -40,13 +40,16 @@ async function page(opts) {
   await p.evaluateOnNewDocument(o => {
     window.__vus = {fichier:0, dossier:0};
     window.__ecrit = {};
+    window.__suite = [];
     const fichier = (nom, texte) => ({
       kind:'file', name:nom,
       queryPermission:async()=>'granted', requestPermission:async()=>'granted',
       getFile:async()=>({text:async()=>texte}),
       createWritable:async()=>({
+        // en LISTE autant qu'en table : deux ecritures du meme fichier ne
+        // laissent qu'une entree dans __ecrit, et passeraient inapercues
         write:async t => { await new Promise(r=>setTimeout(r, o.lenteur||0));
-                           window.__ecrit[nom] = t; },
+                           window.__ecrit[nom] = t; window.__suite.push(nom); },
         close:async()=>{} })
     });
     window.showOpenFilePicker = async () => {
@@ -170,6 +173,36 @@ const annonce = await p.evaluate(() => {
 });
 dit('on ne propose plus de « choisir le dossier img »',
     !/choisir le dossier/i.test(annonce), annonce.slice(0, 80) || '(aucune boite)');
+await p.close();
+
+/* ---------------- 2 ter. un seul Ctrl+S, un seul enregistrement ---------------- */
+console.log('\n— Ctrl+S ne doit declencher QU\'UNE ecriture —');
+// Les deux ateliers gardent leur propre Ctrl+S, pour quand on les ouvre seuls.
+// Sous la coque, ils s'effacent devant elle : sinon un seul appui lançait deux
+// ecritures concurrentes sur data.js, chacune lisant le fichier avant que
+// l'autre n'ecrive — la derniere arrivee effaçait les blocs de la premiere.
+p = await page({});
+dit('le bouton Enregistrer de l\'atelier Carte est masque par la coque',
+    await p.evaluate(() => { const el = document.getElementById('btnSave');
+      return !el || el.offsetParent === null; }));
+
+p.evaluate(() => document.getElementById('stSave').click());
+await new Promise(r => setTimeout(r, 350));
+await repondreModale(p);
+await new Promise(r => setTimeout(r, 1500));
+// tout est autorise : on repart a zero et on tape le raccourci
+await p.evaluate(() => { window.__vus = {fichier:0, dossier:0};
+                         window.__ecrit = {}; window.__suite = []; });
+await p.keyboard.down('Control'); await p.keyboard.press('s'); await p.keyboard.up('Control');
+await new Promise(r => setTimeout(r, 2000));
+dit('aucun second selecteur ne surgit',
+    JSON.stringify(await p.evaluate(() => window.__vus)) === '{"fichier":0,"dossier":0}',
+    JSON.stringify(await p.evaluate(() => window.__vus)));
+const suite = await p.evaluate(() => window.__suite);
+dit('data.js n\'est ecrit QU\'UNE fois',
+    suite.filter(n => n === 'data.js').length === 1, JSON.stringify(suite));
+dit('et la version anglaise aussi',
+    suite.filter(n => n === 'i18n.js').length === 1, JSON.stringify(suite));
 await p.close();
 
 /* ---------------- 3. le mauvais dossier ---------------- */

@@ -889,7 +889,11 @@
       if(!$('ssRolesPan').hidden){ fermerRoles(); return; }
       if(!$('ssCompoPan').hidden){ fermerCompo(); return; }
     }
-    if(mod && k==='s'){ e.preventDefault(); enregistrer(); return; }
+    // Même raison que dans l'atelier Carte : sous la coque, c'est elle qui
+    // enregistre, et deux écritures concurrentes sur data.js se perdent l'une
+    // l'autre. Seul l'atelier ouvert tout seul garde son raccourci.
+    if(mod && k==='s'){ e.preventDefault();
+      if(!document.getElementById('stSave')) enregistrer(); return; }
     if(mod && k==='z' && !e.shiftKey){ e.preventDefault(); annuler(); return; }
     if(mod && (k==='y' || (k==='z' && e.shiftKey))){ e.preventDefault(); retablir(); }
   });
