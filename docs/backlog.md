@@ -35,6 +35,9 @@
 - **Sélecteur d'étage** haut / sous-sol.
 - **Images des mobs** en WebP 256 px — le guide est passé de 732 à 544 Ko.
 - **Squelette du sous-sol** (E–H) avec sa carte d'ensemble *et* une carte par secteur.
+- **Le guide porte la marque de l'outil** : son onglet et son aperçu Discord annoncent
+  la strat *et* « FFXI Strat Studio », et le logo de l'en-tête ramène à l'atelier. Dans un
+  fichier exporté, le logo reste mais cesse d'être un lien — il n'y aurait rien au bout.
 
 ## ✅ Les fondations
 
@@ -63,10 +66,8 @@ Ce qui manque ici n'est pas du code : c'est ce qui se sait en run. L'outil est p
 
 ## 📋 Ce qui reste de mon côté
 
-- [ ] **La marque sur le guide** — l'atelier s'annonce « FFXI Strat Studio », le guide non :
-      son onglet et son aperçu Discord affichent encore « SORTIE · Guide de run ». À reprendre
-      du brief `docs/archive/2026-08-13-integration-branding.md` §3.1, **sauf** la police
-      chargée depuis Google : les polices sont locales ici, et ça ne se rediscute pas.
+Rien pour l'instant. Le sous-sol attend un run, pas du code — et tout le reste de
+cette page est du contenu à écrire.
 
 ## 📋 Contenu à compléter
 
