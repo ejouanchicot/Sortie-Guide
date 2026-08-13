@@ -88,96 +88,127 @@
     }).join('\n');
   }
 
-  /* ---------------- UNE ÉTAPE ENTIÈRE <-> UN SEUL TEXTE ----------------
-     Le run se pense en P1 P2 P3 P4, pas en arborescence. Tout le contenu d'une
-     étape tient donc dans une page qu'on lit de haut en bas, dans l'ordre du
-     guide, au lieu de douze endroits où cliquer.
-
-       ## farm  Nom du bloc            bloc de farm
-       ## boss  Nom du bloc            bloc de boss
-       ## farm  Nom  [MIDBOSS]         étiquette au lieu de FARM
-       ## farm  Nom  [sans portrait]   pas de vignette en en-tête
-       ~ résumé du bloc                la ligne grise sous le titre
-       # Titre de rubrique  [tank]     rubrique + son thème
-       ~ remarque                      l'italique sous le titre de rubrique
-       # Titre  [img:Fomor]            portrait de mob dans la rubrique
-       PLD  action                     les lignes, comme partout ailleurs
-     ------------------------------------------------------------------ */
   var THEMES = {'':'neutre', tank:'tank', buff:'buffs', dd:'dégâts', heal:'soin',
                 rules:'règles', 'rules proc':'procs', mb:'magic burst'};
   var THEME_INV = (function(){ var o={}; for(var k in THEMES) o[THEMES[k]] = k; return o; })();
 
-  function phaseToText(ph){
+  /* ---------------- UN BLOC <-> UN TEXTE, SANS SYNTAXE ----------------
+     On écrit comme on le dirait à quelqu'un :
+
+         Règle
+         ALL : NE PAS fermer de SC Light si Degei est Fire
+         ALL : 1 proc suffit en général
+
+         PLD
+         PLD : +30 yalm = safe
+         PLD : sous 30 yalm, build l'aggro
+
+     Une ligne qui COMMENCE par un ou plusieurs jobs est une action ; toute
+     autre ligne est un titre de rubrique. Le séparateur peut être « : »,
+     « — », « - » ou simplement deux espaces.
+
+     Le thème d'une rubrique (sa couleur) est DEVINÉ depuis son titre — « PLD »
+     donne tank, « Buffs · COR » donne buffs, « Règle » donne règles. Il n'est
+     écrit entre crochets que lorsque la devinette tomberait à côté, pour ne
+     jamais modifier en silence une rubrique existante.
+
+     Plusieurs actions d'affilée pour un même job : on INDENTE les suivantes.
+
+         COR : Chaos Roll
+               Samurai Roll
+
+     Ce qui se lit comme une liste, et se rend comme une liste a puces.
+     ------------------------------------------------------------------ */
+  var JOBS_CONNUS = ['MNK','BRD','COR','GEO','RDM','PLD','DNC','WHM','WAR','RUN','SAM','NIN','THF','DRK','BLM','SMN','BLU','PUP','DRG','BST','RNG','SCH','GEO','ALL'];
+  function estJob(t){ return JOBS_CONNUS.indexOf(t) >= 0; }
+  // « PLD, COR : texte » · « PLD — texte » · « PLD  texte »
+  var RE_NAT = /^([A-Za-z]{2,4}(?:\s*[,\/+]\s*[A-Za-z]{2,4})*)(!?)(?:\s*@\s*([A-Za-z]+))?\s*(?::|—|–|\s-\s|\s\s)\s*(.+)$/;
+
+  function ligneNaturelle(l){
+    var m = l.match(RE_NAT);
+    if(!m) return null;
+    var jobs = m[1].split(/[,\/+]/).map(function(x){ return x.trim().toUpperCase(); });
+    if(!jobs.length || !jobs.every(estJob)) return null;
+    return {jobs:jobs, warn:!!m[2], comp:m[3]?m[3].toUpperCase():null, reste:m[4].trim()};
+  }
+  // devine le thème d'une rubrique d'après son titre — l'ordre compte
+  function themeDevine(titre){
+    var t = String(titre||'');
+    if(/magic burst|\bMB\b/i.test(t)) return 'mb';
+    if(/\bproc/i.test(t) && /^proc|·\s*proc|contre par/i.test(t)) return 'rules proc';
+    if(/r[èe]gle/i.test(t)) return 'rules';
+    if(/buff/i.test(t)) return 'buff';
+    if(/^\s*(PLD|RUN)\b|tank/i.test(t)) return 'tank';
+    if(/^\s*(RDM|WHM)\b|soin|heal/i.test(t)) return 'heal';
+    if(/^\s*(DD|MNK|DNC|COR|SAM)\b|d[ée]g[âa]t|\bSC\b/i.test(t)) return 'dd';
+    return '';
+  }
+  function blocToText(c){
     var out = [];
-    ((ph && ph.cards) || []).forEach(function(c, i){
+    (c.groups||[]).forEach(function(g, i){
       if(i) out.push('');
-      var mods = [];
-      if(c.klabel) mods.push('[' + c.klabel + ']');
-      if(c.noHeadImg) mods.push('[sans portrait]');
-      out.push('## ' + (c.kind === 'boss' ? 'boss' : 'farm') + '  ' + (c.name || '')
-        + (mods.length ? '  ' + mods.join(' ') : ''));
-      if(c.tag) out.push('~ ' + c.tag);
-      (c.groups || []).forEach(function(g){
-        out.push('');
-        var gm = [];
-        if(g.cls) gm.push('[' + (THEMES[g.cls] !== undefined ? THEMES[g.cls] : g.cls) + ']');
-        if(g.img) gm.push('[img:' + g.img + ']');
-        out.push('# ' + (g.label || '') + (gm.length ? '  ' + gm.join(' ') : ''));
-        if(g.note) out.push('~ ' + g.note);
-        var t = linesToText(g.lines || []);
-        if(t) out.push(t);
+      var titre = g.label || '';
+      var extra = [];
+      // thème écrit seulement si la devinette se tromperait
+      if((g.cls||'') !== themeDevine(titre)) extra.push('[' + (THEMES[g.cls]!==undefined?THEMES[g.cls]:g.cls) + ']');
+      if(g.img) extra.push('[img:' + g.img + ']');
+      out.push(titre + (extra.length ? '  ' + extra.join(' ') : ''));
+      if(g.note) out.push('(' + g.note + ')');
+      (g.lines||[]).forEach(function(l){
+        var tete = (l.r||['ALL']).join(',') + (l.warn?'!':'') + (l.comp?'@'+l.comp:'') + ' : ';
+        var actions = Array.isArray(l.t) ? l.t : [l.t];
+        var creux = new Array(tete.length + 1).join(' ');
+        actions.forEach(function(a, k){
+          out.push((k === 0 ? tete : creux) + a + (k === 0 && l.cond ? '  ?' + l.cond : ''));
+        });
       });
     });
     return out.join('\n');
   }
-  var RE_MOD = /\[([^\]]+)\]/g;
-  function textToPhase(txt, base){
-    var ph = base || {};
-    var cards = [], carte = null, groupe = null, tampon = [];
-    function videTampon(){
-      if(groupe && tampon.length) groupe.lines = parseLines(tampon.join('\n'));
-      tampon = [];
+  var RE_CROCHET = /\[([^\]]+)\]/g;
+  function textToBloc(txt, base){
+    var c = base || {};
+    var groups = [], g = null;
+    function pousse(l){
+      if(!g){ g = {label:'', cls:'', lines:[]}; groups.push(g); }
+      g.lines.push(l);
     }
-    String(txt == null ? '' : txt).split('\n').forEach(function(brut){
-      var l = brut.replace(/\s+$/, ''), m;
-
-      if((m = l.match(/^##\s+(\S+)\s*(.*)$/))){          // ---- bloc farm / boss ----
-        videTampon(); groupe = null;
-        var reste = m[2], mods = [], klabel = null, sansImg = false;
-        reste = reste.replace(RE_MOD, function(_, v){ mods.push(v.trim()); return ''; }).replace(/\s+$/, '');
-        mods.forEach(function(v){ if(/^sans portrait$/i.test(v)) sansImg = true; else klabel = v; });
-        carte = {kind: (/^boss$/i.test(m[1]) ? 'boss' : 'pack'), name: reste.trim(), tag: '', groups: []};
-        if(klabel) carte.klabel = klabel;
-        if(sansImg) carte.noHeadImg = true;
-        cards.push(carte);
+    String(txt==null?'':txt).split('\n').forEach(function(brut){
+      var ligne = brut.replace(/\s+$/,'');
+      if(!ligne.trim()) return;
+      // ligne INDENTEE : action de plus pour le job du dessus (une puce de la meme ligne)
+      if(/^\s/.test(ligne) && g && g.lines.length){
+        var prec = g.lines[g.lines.length-1];
+        if(!Array.isArray(prec.t)) prec.t = [prec.t];
+        prec.t.push(ligne.trim());
         return;
       }
-      if((m = l.match(/^#\s+(.*)$/))){                    // ---- rubrique ----
-        videTampon();
-        if(!carte){ carte = {kind:'pack', name:'', tag:'', groups:[]}; cards.push(carte); }
-        var t = m[1], gm = [], cls = '', img = null;
-        t = t.replace(RE_MOD, function(_, v){ gm.push(v.trim()); return ''; }).replace(/\s+$/, '');
-        gm.forEach(function(v){
-          var mi = v.match(/^img\s*:\s*(.+)$/i);
-          if(mi){ img = mi[1].trim(); return; }
-          cls = (THEME_INV[v] !== undefined) ? THEME_INV[v] : v;
-        });
-        groupe = {label: t.trim(), cls: cls, lines: []};
-        if(img) groupe.img = img;
-        carte.groups.push(groupe);
+      var nat = ligneNaturelle(ligne.trim());
+      if(nat){
+        var d = decoupeCond(nat.reste);
+        var l = {r:nat.jobs, t:d.texte};
+        if(d.cond) l.cond = d.cond;
+        if(nat.warn) l.warn = 1;
+        if(nat.comp) l.comp = nat.comp;
+        pousse(l);
         return;
       }
-      if((m = l.match(/^~\s*(.*)$/))){                    // ---- résumé / remarque ----
-        videTampon();
-        if(groupe){ if(m[1].trim()) groupe.note = m[1].trim(); }
-        else if(carte) carte.tag = m[1].trim();
-        return;
-      }
-      if(l.trim()) tampon.push(l); else videTampon();
+      var mp = ligne.trim().match(/^\((.*)\)$/);          // remarque de la rubrique
+      if(mp && g){ if(mp[1].trim()) g.note = mp[1].trim(); return; }
+      // sinon : titre de rubrique
+      var t = ligne.trim(), cls = null, img = null;
+      t = t.replace(RE_CROCHET, function(_, v){
+        var mi = v.match(/^img\s*:\s*(.+)$/i);
+        if(mi){ img = mi[1].trim(); return ''; }
+        cls = (THEME_INV[v.trim()] !== undefined) ? THEME_INV[v.trim()] : v.trim();
+        return '';
+      }).replace(/\s+$/,'').trim();
+      g = {label:t, cls:(cls===null ? themeDevine(t) : cls), lines:[]};
+      if(img) g.img = img;
+      groups.push(g);
     });
-    videTampon();
-    ph.cards = cards;
-    return ph;
+    c.groups = groups;
+    return c;
   }
 
   /* ---------------- SÉRIALISATION data.js ---------------- */
@@ -284,7 +315,8 @@
 
   global.STRATCORE = {
     parseLines: parseLines, linesToText: linesToText,
-    phaseToText: phaseToText, textToPhase: textToPhase, THEMES: THEMES,
+    THEMES: THEMES,
+    blocToText: blocToText, textToBloc: textToBloc, themeDevine: themeDevine, ligneNaturelle: ligneNaturelle,
     phasesConst: phasesConst, buffsConst: buffsConst, trConst: trConst,
     collecteTextes: collecteTextes, manquantes: manquantes
   };

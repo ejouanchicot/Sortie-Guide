@@ -102,8 +102,8 @@
       + 'Il écrit directement dans les fichiers du site.</p>'
       + '<ol class="ss-steps">'
       + '<li><b>Choisis une étape</b> à gauche — le run en compte quatre.</li>'
-      + '<li><b>Écris son contenu</b> dans une seule page, de haut en bas : les blocs, leurs rubriques, les actions. '
-      + 'Des boutons insèrent la mise en forme et l’outil relit chaque ligne sous tes yeux.</li>'
+      + '<li><b>Écris comme tu le dirais</b> : un titre de rubrique sur sa ligne, puis les actions, '
+      + 'une par ligne, en commençant par le job — <code>PLD : tank sur place</code>. Rien d’autre à retenir.</li>'
       + '<li><b>Regarde à droite</b> — c’est le rendu réel du guide, mis à jour pendant que tu écris. '
       + 'Rien n’est écrit sur disque tant que tu ne cliques pas <b>Enregistrer</b>.</li>'
       + '</ol>'
@@ -134,20 +134,10 @@
       + '</select></div></div>'
       + '<div class="ss-f"><label for="f_route">Comment on y va</label>'
       +   '<input type="text" id="f_route" value="'+esc(ph.route||'')+'" placeholder="Mur de droite, plein SUD → coin bas-gauche."></div>'
-      + '<div class="ss-f"><label for="f_txt">Le contenu de l’étape</label>'
-      + '<div class="ss-tb" id="f_tb">'
-      +   '<button type="button" data-ins="bloc" class="wide">＋ bloc</button>'
-      +   '<button type="button" data-ins="rub" class="wide">＋ rubrique</button>'
-      +   '<span class="ss-tbsep"></span><span class="ss-tbl">job</span>'
-      +   JOBSL.map(function(j){ return '<button type="button" data-job="'+j+'">'+j+'</button>'; }).join('')
-      +   '<span class="ss-tbsep"></span>'
-      +   '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
-      +   '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'
-      +   '<button type="button" data-mk="comp" title="Réserver la ligne à une composition">@ comp</button>'
-      +   '<button type="button" data-mk="sub" title="Ajouter une action à la ligne précédente">＋ action</button>'
-      + '</div>'
-      + '<textarea id="f_txt" spellcheck="false" placeholder="## boss  Boss · Degei"></textarea>'
-      + '<div class="ss-read" id="f_read"></div></div>';
+      + '<div id="ssBlocs"></div>'
+      + '<div class="ss-addrow">'
+      +   '<button type="button" class="ss-btn" id="ssAddFarm">＋ ajouter un farm</button>'
+      +   '<button type="button" class="ss-btn" id="ssAddBoss">＋ ajouter un boss</button></div>';
 
     lie('f_boss', function(v){ ph.boss=v; });
     lie('f_title', function(v){ ph.title=v; });
@@ -155,28 +145,76 @@
     $('f_buffs').addEventListener('change', function(e){
       if(e.target.value) ph.buffs = BUFFS[e.target.value]; else delete ph.buffs;
       touche(); rendre(); });
+    $('ssAddFarm').addEventListener('click', function(){ ajouteBloc(ph,'pack'); });
+    $('ssAddBoss').addEventListener('click', function(){ ajouteBloc(ph,'boss'); });
+    dessineBlocs(ph);
+  }
+  function ajouteBloc(ph, nature){
+    ph.cards = ph.cards || [];
+    ph.cards.push({kind:nature, name:(nature==='boss'?'Boss · ':'Pack · '), tag:'', groups:[]});
+    touche(); dessineBlocs(ph); rendre(); buildTree();
+  }
+  // Un bloc = une carte de formulaire. Sa nature, son nom et son résumé sont des CHAMPS ;
+  // seul son contenu est du texte, et ce texte n'a plus aucun signe de structure.
+  function dessineBlocs(ph){
+    var host = $('ssBlocs');
+    host.innerHTML = (ph.cards||[]).map(function(c, ci){
+      return '<div class="ss-bloc" data-c="'+ci+'">'
+        + '<div class="ss-bhead">'
+        +   '<div class="ss-chips ss-kind">'
+        +     '<button type="button" data-v="pack"'+(c.kind!=='boss'?' class="on"':'')+'>farm</button>'
+        +     '<button type="button" data-v="boss"'+(c.kind==='boss'?' class="on"':'')+'>boss</button></div>'
+        +   '<input type="text" class="ss-bname" value="'+esc(c.name||'')+'" placeholder="Nom du bloc — ex. Pack · Ghost ×3">'
+        +   '<button type="button" class="ss-bdel" title="Supprimer ce bloc">✕</button>'
+        + '</div>'
+        + '<input type="text" class="ss-btag" value="'+esc(c.tag||'')+'" placeholder="Résumé en une ligne (facultatif)">'
+        + '<div class="ss-tb">'
+        +   '<span class="ss-tbl">job</span>'
+        +   JOBSL.map(function(j){ return '<button type="button" data-job="'+j+'">'+j+'</button>'; }).join('')
+        +   '<span class="ss-tbsep"></span>'
+        +   '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
+        +   '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'
+        +   '<button type="button" data-mk="comp" title="Réserver la ligne à une composition">@ comp</button>'
+        +   '<button type="button" data-mk="sub" title="Action de plus pour le même job">＋ action</button>'
+        + '</div>'
+        + '<textarea class="ss-btxt" spellcheck="false" placeholder="Règle&#10;ALL : ne jamais fermer de SC Light"></textarea>'
+        + '<div class="ss-read"></div></div>';
+    }).join('');
 
-    var ta = $('f_txt');
-    ta.value = SC.phaseToText(ph);
-    var t=null;
-    function relit(){
-      clearTimeout(t);
-      t = setTimeout(function(){ SC.textToPhase(ta.value, ph); touche(); rendre(); buildTree(); }, 240);
-      lecture(ta);
-    }
-    ta.addEventListener('input', relit);
-    ['click','keyup','focus'].forEach(function(ev){ ta.addEventListener(ev, function(){ lecture(ta); }); });
-    lecture(ta);
-    $('f_tb').addEventListener('click', function(e){
-      var b = e.target.closest('button'); if(!b) return;
-      if(b.dataset.job) insereDebut(ta, b.dataset.job+'  ');
-      else if(b.dataset.ins==='bloc') insereApres(ta, '\n## boss  Nom du bloc\n~ résumé en une ligne\n');
-      else if(b.dataset.ins==='rub') insereApres(ta, '\n# Titre de la rubrique  [tank]\n');
-      else if(b.dataset.mk==='warn') marqueWarn(ta);
-      else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
-      else if(b.dataset.mk==='comp') insereApresRoles(ta, '@DNC');
-      else if(b.dataset.mk==='sub') insereFin(ta, '\n-  ');
-      ta.dispatchEvent(new Event('input', {bubbles:true}));
+    host.querySelectorAll('.ss-bloc').forEach(function(el){
+      var ci = +el.dataset.c, c = ph.cards[ci];
+      el.querySelectorAll('.ss-kind button').forEach(function(b){
+        b.addEventListener('click', function(){
+          c.kind = b.dataset.v;
+          el.querySelectorAll('.ss-kind button').forEach(function(x){ x.classList.remove('on'); });
+          b.classList.add('on'); touche(); rendre(); buildTree(); }); });
+      var nm = el.querySelector('.ss-bname');
+      nm.addEventListener('input', function(){ c.name = nm.value; touche(); rendre(); buildTree(); });
+      var tg = el.querySelector('.ss-btag');
+      tg.addEventListener('input', function(){ c.tag = tg.value; touche(); rendre(); });
+      el.querySelector('.ss-bdel').addEventListener('click', function(){
+        demande('Supprimer le bloc <b>'+esc(c.name||'sans nom')+'</b> et tout son contenu ?', {titre:'Supprimer le bloc'})
+          .then(function(v){ if(!v) return; ph.cards.splice(ci,1); touche(); dessineBlocs(ph); rendre(); buildTree(); }); });
+
+      var ta = el.querySelector('.ss-btxt'), lu = el.querySelector('.ss-read'), t = null;
+      ta.value = SC.blocToText(c);
+      function relit(){
+        clearTimeout(t);
+        t = setTimeout(function(){ SC.textToBloc(ta.value, c); touche(); rendre(); buildTree(); }, 240);
+        lecture(ta, lu);
+      }
+      ta.addEventListener('input', relit);
+      ['click','keyup','focus'].forEach(function(ev){ ta.addEventListener(ev, function(){ lecture(ta, lu); }); });
+      lecture(ta, lu);
+      el.querySelector('.ss-tb').addEventListener('click', function(e){
+        var b = e.target.closest('button'); if(!b) return;
+        if(b.dataset.job) insereDebut(ta, b.dataset.job+' : ');
+        else if(b.dataset.mk==='warn') marqueWarn(ta);
+        else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
+        else if(b.dataset.mk==='comp') insereApresRoles(ta, '@DNC');
+        else if(b.dataset.mk==='sub') insereFin(ta, '\n      ');
+        ta.dispatchEvent(new Event('input', {bubbles:true}));
+      });
     });
   }
   function lie(id, fn){ var e=$(id); if(!e)return;
@@ -195,25 +233,25 @@
     var pos = b.d + (curseur==null ? neuve.length : curseur);
     ta.focus(); ta.setSelectionRange(pos,pos);
   }
-  var RE_TETE = /^([A-Z]{2,4}(?:\s*,\s*[A-Z]{2,4})*)(!?)(@[A-Za-z]+)?(\s*)/;
+  var RE_TETE = /^([A-Za-z]{2,4}(?:\s*[,\/+]\s*[A-Za-z]{2,4})*)(!?)(@[A-Za-z]+)?(\s*(?::|—|–)?\s*)/;
   function insereDebut(ta, txt){
     var b = bornesLigne(ta), m = b.txt.match(RE_TETE);
     if(m){
       var jobs = m[1].split(',').map(function(x){return x.trim();}), nouveau = txt.trim();
       if(jobs.indexOf(nouveau) < 0) jobs.push(nouveau);
-      poseLigne(ta, b, jobs.join(',')+m[2]+(m[3]||'')+'  '+b.txt.slice(m[0].length));
+      poseLigne(ta, b, jobs.join(',')+m[2]+(m[3]||'')+' : '+b.txt.slice(m[0].length));
     } else poseLigne(ta, b, txt + b.txt, txt.length);
   }
   function marqueWarn(ta){
     var b = bornesLigne(ta), m = b.txt.match(RE_TETE);
-    if(!m){ poseLigne(ta, b, 'ALL!  ' + b.txt); return; }
-    poseLigne(ta, b, m[1] + (m[2]==='!'?'':'!') + (m[3]||'') + '  ' + b.txt.slice(m[0].length));
+    if(!m){ poseLigne(ta, b, 'ALL! : ' + b.txt); return; }
+    poseLigne(ta, b, m[1] + (m[2]==='!'?'':'!') + (m[3]||'') + ' : ' + b.txt.slice(m[0].length));
   }
   function insereApresRoles(ta, txt){
     var b = bornesLigne(ta), m = b.txt.match(RE_TETE);
-    if(!m){ poseLigne(ta, b, 'ALL'+txt+'  '+b.txt); return; }
+    if(!m){ poseLigne(ta, b, 'ALL'+txt+' : '+b.txt); return; }
     if(m[3]) return;
-    poseLigne(ta, b, m[1]+m[2]+txt+'  '+b.txt.slice(m[0].length));
+    poseLigne(ta, b, m[1]+m[2]+txt+' : '+b.txt.slice(m[0].length));
   }
   function insereFin(ta, txt){
     var b = bornesLigne(ta);
@@ -228,25 +266,27 @@
   }
 
   /* ---------------- bandeau : comment l'outil comprend la ligne ---------------- */
-  function lecture(ta){
-    var host = $('f_read'); if(!host) return;
-    var b = bornesLigne(ta), txt = b.txt.trim(), m;
+  function lecture(ta, host){
+    host = host || $('f_read'); if(!host) return;
+    var b = bornesLigne(ta), brut = b.txt, txt = brut.trim();
     if(!txt){ host.innerHTML = '<span class="ss-rmuted">Ligne vide. Une action commence par le job : '
-      + '<code>PLD  tank sur place</code></span>'; return; }
-    if((m = txt.match(/^##\s+(\S+)\s*(.*)$/))){
-      host.innerHTML = '<b class="ss-rj">bloc '+(/^boss$/i.test(m[1])?'boss':'farm')+'</b> · « '
-        + esc(m[2].replace(/\[[^\]]*\]/g,'').trim()) + ' »'
-        + (/sans portrait/i.test(m[2])?' · sans portrait':''); return; }
-    if((m = txt.match(/^#\s+(.*)$/))){
-      var th = (m[1].match(/\[([^\]:]+)\]/)||[])[1];
-      host.innerHTML = '<b class="ss-rj">rubrique</b> · « '+esc(m[1].replace(/\[[^\]]*\]/g,'').trim())+' »'
-        + (th ? ' · thème <b>'+esc(th)+'</b>' : ' · <span class="ss-rwarn">sans thème (gris)</span>'); return; }
-    if(/^~/.test(txt)){ host.innerHTML = '<span class="ss-rmuted">Résumé du bloc — ou remarque de la rubrique s’il suit un titre.</span>'; return; }
-    if(/^-\s+/.test(txt)){ host.innerHTML = '<span class="ss-rmuted">Action ajoutée à la ligne du dessus (puce).</span>'; return; }
-    var l = SC.parseLines(txt)[0]; if(!l){ host.innerHTML=''; return; }
-    var sansRole = !/^[A-Z]{2,4}(\s*,\s*[A-Z]{2,4})*[!@\s]/.test(txt);
-    var bouts = [(l.r||['ALL']).map(function(r){ return '<b class="ss-rj">'+esc(r)+'</b>'; }).join(' + ')
-      + (sansRole ? ' <span class="ss-rwarn">(aucun job écrit → attribué à TOUS)</span>' : '')];
+      + '<code>PLD : tank sur place</code> — toute autre ligne devient un titre de rubrique.</span>'; return; }
+    if(/^\s/.test(brut)){
+      host.innerHTML = '<span class="ss-rmuted">Ligne indentée : action de plus pour le job du dessus (une puce).</span>'; return; }
+    var mp = txt.match(/^\((.*)\)$/);
+    if(mp){ host.innerHTML = '<span class="ss-rmuted">Remarque de la rubrique, affichée en italique.</span>'; return; }
+    var nat = SC.ligneNaturelle(txt);
+    if(!nat){                                   // pas de job en tête → c'est un titre
+      var th = (txt.match(/\[([^\]:]+)\]/)||[])[1];
+      var propre = txt.replace(/\[[^\]]*\]/g,'').trim();
+      var devine = SC.THEMES[SC.themeDevine(propre)] || 'neutre';
+      host.innerHTML = '<b class="ss-rj">rubrique</b> · « '+esc(propre)+' » · thème <b>'+esc(th||devine)+'</b>'
+        + (th ? ' (imposé)' : ' (deviné d’après le titre)');
+      return;
+    }
+    var l = SC.textToBloc('x\n'+txt, {}).groups[0].lines[0];
+    if(!l){ host.innerHTML=''; return; }
+    var bouts = [(l.r||['ALL']).map(function(r){ return '<b class="ss-rj">'+esc(r)+'</b>'; }).join(' + ')];
     bouts.push('« ' + esc(Array.isArray(l.t)? l.t.join(' · ') : l.t) + ' »');
     if(l.warn) bouts.push('<span class="ss-rw">avertissement</span>');
     if(l.comp) bouts.push('réservé à la comp <b>'+esc(l.comp)+'</b>');

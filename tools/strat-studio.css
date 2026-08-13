@@ -116,6 +116,25 @@ body{overflow:hidden;background:var(--bg)}
 .ss-tb button:hover{color:#fff;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .ss-tbsep{width:1px;height:16px;background:var(--line2);margin:0 4px}
 
+/* ─── un bloc = une carte de formulaire ─── */
+.ss-bloc{border:1px solid var(--line2);border-radius:var(--r-md);padding:12px 13px;margin:14px 0;
+  background:color-mix(in srgb,var(--panel2) 60%,transparent)}
+.ss-bhead{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.ss-kind{flex:none}
+.ss-kind button{font-family:var(--mono);font-size:10.5px;font-weight:800;text-transform:uppercase;padding:5px 10px}
+.ss-bname{flex:1;min-width:0;font-family:var(--display);font-size:14px;font-weight:700;color:#fff;
+  background:rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;outline:none}
+.ss-bdel{flex:none;width:26px;height:26px;border-radius:8px;border:1px solid var(--chipbd);background:var(--chip);
+  color:var(--dim);cursor:pointer;font-size:12px;line-height:1}
+.ss-bdel:hover{color:#ffd7da;border-color:color-mix(in srgb,var(--r-dd) 50%,transparent)}
+.ss-btag{width:100%;font-size:12.5px;color:var(--txt2);background:rgba(0,0,0,.25);border:1px solid var(--line);
+  border-radius:9px;padding:6px 10px;outline:none;margin-bottom:9px}
+.ss-btxt{width:100%;font-family:var(--mono);font-size:12.5px;line-height:1.75;color:#fff;background:rgba(0,0,0,.3);
+  border:1px solid var(--line2);border-radius:10px;padding:9px 11px;outline:none;resize:vertical;
+  min-height:230px;white-space:pre;overflow-wrap:normal;overflow-x:auto;tab-size:6}
+.ss-btxt:focus,.ss-bname:focus,.ss-btag:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.ss-addrow{display:flex;gap:9px;margin:6px 0 20px}
+
 /* ─── bandeau de lecture : comment l'outil comprend la ligne du curseur ─── */
 .ss-read{margin-top:7px;padding:8px 11px;border-radius:9px;font-size:11.5px;line-height:1.5;color:var(--txt2);
   background:color-mix(in srgb,var(--accent) 7%,transparent);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);min-height:34px}
