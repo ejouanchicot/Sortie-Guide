@@ -184,24 +184,42 @@
       navigator.serviceWorker.register('../sw.js', {scope:'../'}).catch(function(){});
     });
   }
-  // Déjà installé ? Alors le bouton n'a plus de sens : on est DANS l'app.
-  // Le navigateur n'émettra pas beforeinstallprompt, mais autant ne jamais
-  // afficher le bouton plutôt que de compter là-dessus.
-  function dansLApp(){
-    return window.matchMedia('(display-mode: standalone)').matches
-        || window.matchMedia('(display-mode: window-controls-overlay)').matches
-        || navigator.standalone === true;
+  /* Proposer d'installer n'a de sens que dans un ONGLET de navigateur.
+     On teste donc `display-mode: browser` plutôt que d'énumérer les modes
+     « app » : standalone, minimal-ui, fullscreen, barre intégrée… la liste
+     s'allonge avec les navigateurs, alors qu'« onglet » est un seul état.
+     Et une fois l'app installée, on s'en souvient : certains navigateurs
+     reproposent l'installation dans leur propre fenêtre d'app. */
+  var MEM_INSTALLE = 'studio_installe';
+  function dejaInstalle(){ try{ return localStorage.getItem(MEM_INSTALLE) === '1'; }catch(e){ return false; } }
+  function noteInstalle(){ try{ localStorage.setItem(MEM_INSTALLE, '1'); }catch(e){} }
+  function estOnglet(){
+    if(navigator.standalone === true) return false;              // iOS, écran d'accueil
+    var m = window.matchMedia('(display-mode: browser)');
+    return m.media !== 'not all' ? m.matches : true;             // navigateur trop vieux : on suppose l'onglet
   }
-  // Le navigateur ne propose l'installation que s'il juge le moment opportun :
-  // on garde son invitation de côté et on montre notre bouton à ce moment-là.
+  function peutProposer(){ return estOnglet() && !dejaInstalle(); }
+  function majBoutonInstall(){
+    var b = $('stInstall'); if(!b) return;
+    if(!peutProposer()) b.hidden = true;
+  }
+  if(!estOnglet()) noteInstalle();     // on tourne dans l'app : c'est qu'elle est installée
+  majBoutonInstall();
+
   var invite = null;
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault(); invite = e;
-    var b = $('stInstall'); if(b && !dansLApp()) b.hidden = false;
+    // Le navigateur ne propose PAS d'installer une app déjà installée : cet
+    // événement vaut donc preuve du contraire. S'il arrive dans un onglet,
+    // c'est qu'elle a été désinstallée — on oublie ce qu'on croyait savoir.
+    if(estOnglet()){ try{ localStorage.removeItem(MEM_INSTALLE); }catch(er){} }
+    var b = $('stInstall'); if(b && peutProposer()) b.hidden = false;
   });
-  // et si l'app est lancée puis installée ailleurs, le mode change en cours de route
-  window.matchMedia('(display-mode: standalone)').addEventListener('change', function(e){
-    var b = $('stInstall'); if(b && e.matches) b.hidden = true;
+  // le mode peut changer pendant que la page est ouverte
+  var mqApp = window.matchMedia('(display-mode: browser)');
+  if(mqApp.addEventListener) mqApp.addEventListener('change', function(){
+    if(!estOnglet()) noteInstalle();
+    majBoutonInstall();
   });
   var bi = $('stInstall');
   if(bi) bi.addEventListener('click', async function(){
@@ -209,9 +227,9 @@
     invite.prompt();
     var r = await invite.userChoice;
     invite = null; bi.hidden = true;
-    if(r && r.outcome === 'accepted') toast('Installé — tu peux l’ouvrir depuis ton bureau.','ok');
+    if(r && r.outcome === 'accepted'){ noteInstalle(); toast('Installé — tu peux l’ouvrir depuis ton bureau.','ok'); }
   });
-  window.addEventListener('appinstalled', function(){ var b = $('stInstall'); if(b) b.hidden = true; });
+  window.addEventListener('appinstalled', function(){ noteInstalle(); majBoutonInstall(); });
 
   window.__STUDIO = {ouvre:ouvre, chapitre:chapitre, enregistrer:enregistrer, actif:function(){ return actif; }};
 })();
