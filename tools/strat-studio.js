@@ -168,38 +168,52 @@
   function accueil(){
     var ps = phases(), prem = ps.length ? (ps[0].boss || 'la première étape') : null;
     var n = ps.length;
-    var combien = !n ? '<b>Ajoute une étape</b> en haut de la colonne de gauche pour commencer.'
-      : '<b>Choisis une étape</b> dans la colonne de gauche — cette strat en compte '
-        + (n === 1 ? 'une' : n) + '.';
 
     return '<div class="ss-hero">'
-      + '<h2>Ce que tes joueurs vont lire</h2>'
-      + '<p>Tu écris ce que fait chaque job, à quel moment du run. Le résultat est le guide que ton '
-      + 'groupe ouvre pendant le run : filtrable par job, et traduit en anglais si tu le veux.</p>'
+      + '<h2>Écris ta stratégie, ton groupe la lit pendant le run</h2>'
+      + '<p>Tu notes ce que fait chaque job et à quel moment. Ce que tu obtiens, c’est une page '
+      + 'que chacun ouvre sur son second écran : il y filtre <b>son</b> job, et la lit en anglais '
+      + 'si c’est sa langue.</p>'
 
-      // ---- la syntaxe, montrée plutôt qu'expliquée ----
+      // ---- le plan AVANT la grammaire : le vocabulaire de l'outil ----
+      + '<div class="ss-plan">'
+      +   '<div class="ss-plan-i"><b>Le run se découpe en étapes.</b> Un boss, un pack à farm, '
+      +     'un secteur… c’est la colonne de gauche' + (n ? ' — il y en a ' + (n === 1 ? 'une' : n) + ' ici' : '') + '.</div>'
+      +   '<div class="ss-plan-i"><b>Dans une étape, tu décris ce qu’on affronte.</b> '
+      +     'Un <i>farm</i>, un <i>boss</i>, autant que nécessaire.</div>'
+      +   '<div class="ss-plan-i"><b>Et pour chacun, des rubriques.</b> Les buffs, les règles, '
+      +     'ce que font les DD… Une rubrique contient des actions, une par ligne.</div>'
+      + '</div>'
+
+      // ---- la grammaire, montrée plutôt qu'expliquée ----
+      + '<h3 class="ss-hero-h3">Une action par ligne, en commençant par le job</h3>'
       + '<div class="ss-demo">'
-      +   '<div class="ss-demo-col"><span class="ss-demo-lab">Tu écris</span>'
+      +   '<div class="ss-demo-col"><span class="ss-demo-lab">Ce que tu tapes</span>'
       +     '<pre class="ss-demo-src">'+esc(DEMO)+'</pre></div>'
       +   '<div class="ss-demo-fleche" aria-hidden="true">→</div>'
-      +   '<div class="ss-demo-col"><span class="ss-demo-lab">Ils lisent</span>'
+      +   '<div class="ss-demo-col"><span class="ss-demo-lab">Ce qu’ils voient</span>'
       +     '<div class="ss-demo-out">'+demoHtml()+'</div></div>'
       + '</div>'
 
-      // ---- les quatre signes, et rien de plus ----
+      // ---- les cinq signes, et rien de plus ----
       + '<div class="ss-cles">'
-      +   '<div class="ss-cle"><code>JOB :</code><span>Le job en tête de ligne. Une ligne sans job devient un <b>titre de rubrique</b>.</span></div>'
-      +   '<div class="ss-cle r-warn"><code>!</code><span>Une <b>alerte</b> — ce qui fait wipe si on l’oublie.</span></div>'
-      +   '<div class="ss-cle r-cond"><code>?</code><span>Une <b>condition</b>, en fin de ligne.</span></div>'
-      +   '<div class="ss-cle r-comp"><code>@</code><span>Réservé à une <b>composition</b>.</span></div>'
-      +   '<div class="ss-cle r-sub"><code>··</code><span>Indenté : une <b>action de plus</b> pour le même job.</span></div>'
+      +   '<div class="ss-cle"><code>JOB :</code><span>Le job, en tête de ligne. Une ligne <b>sans</b> job devient un titre de rubrique.</span></div>'
+      +   '<div class="ss-cle r-sub"><code>··</code><span>Décalée vers la droite : une <b>action de plus</b> pour le même job.</span></div>'
+      +   '<div class="ss-cle r-warn"><code>!</code><span>Après le job : c’est une <b>alerte</b>, ce qui fait wipe si on l’oublie.</span></div>'
+      +   '<div class="ss-cle r-cond"><code>?</code><span>En fin de ligne : ça ne vaut que dans ce <b>cas précis</b>.</span></div>'
+      +   '<div class="ss-cle r-comp"><code>@</code><span>Après le job : réservé à une <b>composition</b> donnée.</span></div>'
       + '</div>'
+      + '<p class="ss-mini-note">Tu n’as pas à les retenir : des boutons les posent pour toi '
+      + 'au-dessus de chaque zone de saisie.</p>'
 
-      + '<p class="ss-hero-go">' + combien + ' Ce que tu tapes apparaît à droite pendant que tu écris — '
-      + 'rien n’est sauvegardé tant que tu ne cliques pas <b>Enregistrer</b>.</p>'
+      + '<p class="ss-hero-go">'
+      + (n ? 'Ouvre une étape à gauche pour commencer. '
+          : 'Ajoute une première étape en haut de la colonne de gauche. ')
+      + 'Ce que tu écris apparaît aussitôt à droite, tel que ton groupe le verra — et '
+      + 'rien n’est sauvegardé tant que tu ne cliques pas <b>Enregistrer</b>. '
+      + '<b>Ctrl+Z</b> annule, toujours.</p>'
       + (prem ? '<button class="ss-btn primary" id="ssGo">Commencer par '+esc(prem)+'</button>' : '')
-      + '<p class="ss-mini-note">Rien n’est définitif : <b>Ctrl+Z</b> annule. '
-      + 'Les boutons au-dessus de chaque zone de saisie posent ces signes pour toi.</p></div>';
+      + '</div>';
   }
   function editeur(){
     var body = $('ssEditBody'), ttl = $('ssEditTtl'), dot = $('ssEditDot');
