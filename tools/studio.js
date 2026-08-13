@@ -332,18 +332,44 @@
     var o = {variante: $('stTxtVarL').hidden ? null : $('stTxtVar').value,
              job: $('stTxtJob').value || null,
              compo: compo()};
+    var mise = {style: $('stTxtStyle').value};
     var jeux = jeuxBuffs(), por = $('stTxtPortee').value;
-    if(por === 'etape'){
-      var p = (FL[e.idx] || {}).phases[e.selP];
-      return TX.etape(p, o, jeux);
-    }
-    if(por === 'tout') return TX.strat(FL, o, jeux);
-    return TX.chapitre(FL[e.idx] || FL[0] || {}, o, jeux);
+    var sections;
+    if(por === 'etape') sections = TX.etape((FL[e.idx] || {}).phases[e.selP], o, jeux);
+    else if(por === 'tout') sections = TX.strat(FL, o, jeux);
+    else sections = TX.chapitre(FL[e.idx] || FL[0] || {}, o, jeux);
+    return TX.messages(sections, mise);
+  }
+
+  /* L'aperçu d'un bloc ANSI, avec ses couleurs.
+     Sans ça le panneau affiche « ESC[1;34mPLD ESC[0m » : c'est bien ce qui
+     part dans le presse-papier, mais on ne peut rien en juger. On applique
+     donc ici la palette de Discord — ce qui est montré est ce qui s'affichera
+     là-bas, et le texte copié, lui, ne bouge pas. */
+  var PALETTE = {30:'#4f545c', 31:'#dc322f', 32:'#859900', 33:'#b58900',
+                 34:'#268bd2', 35:'#d33682', 36:'#2aa198', 37:'#e6edf7'};
+  function ansiHtml(txt){
+    var out = '', ouvert = 0;
+    S.esc(txt).split(/\[([0-9;]*)m/).forEach(function(bout, i){
+      if(i % 2 === 0){ out += bout; return; }
+      var codes = bout.split(';').map(Number);
+      if(codes.indexOf(0) >= 0 || !bout){
+        while(ouvert > 0){ out += '</span>'; ouvert--; }
+        return;
+      }
+      var gras = codes.indexOf(1) >= 0;
+      var teinte = codes.filter(function(c){ return c >= 30 && c <= 37; })[0];
+      out += '<span style="' + (gras ? 'font-weight:700;' : '')
+           + (teinte ? 'color:' + PALETTE[teinte] : '') + '">';
+      ouvert++;
+    });
+    while(ouvert > 0){ out += '</span>'; ouvert--; }
+    return out;
   }
 
   function rendTexte(){
     var parts;
-    try{ parts = TX.messages(texteCourant()); }
+    try{ parts = texteCourant(); }
     catch(err){ parts = []; }
     var host = $('stTxtParts');
     if(!parts.length){
@@ -354,15 +380,16 @@
       return;
     }
     $('stTxtTout').disabled = false;
+    var couleurs = ($('stTxtStyle').value === 'couleurs');
     host.innerHTML = parts.map(function(t, i){
       return '<div class="st-part" data-i="' + i + '">'
         + '<div class="st-parthead"><b>' + (parts.length > 1 ? 'MESSAGE ' + (i + 1) : 'À COLLER')
-        + '</b><span>' + t.length + ' caractères</span>'
+        + '</b><span>' + TX.pese(t) + ' caractères</span>'
         + '<button type="button" class="st-btn" data-copie="' + i + '">Copier</button></div>'
-        + '<pre>' + S.esc(t) + '</pre></div>';
+        + '<pre>' + (couleurs ? ansiHtml(t) : S.esc(t)) + '</pre></div>';
     }).join('');
     host._parts = parts;
-    var plusLong = parts.reduce(function(n, t){ return Math.max(n, t.length); }, 0);
+    var plusLong = parts.reduce(function(n, t){ return Math.max(n, TX.pese(t)); }, 0);
     $('stTxtInfo').textContent = (parts.length > 1
       ? parts.length + ' messages · envoie-les dans l’ordre'
       : 'un seul message')
@@ -401,7 +428,7 @@
     w.addEventListener('click', function(e){ if(e.target === w) ferme(); });
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape' && !w.hidden) ferme(); });
-    ['stTxtPortee','stTxtVar','stTxtJob'].forEach(function(id){
+    ['stTxtPortee','stTxtVar','stTxtJob','stTxtStyle'].forEach(function(id){
       $(id).addEventListener('change', rendTexte); });
     $('stTxtParts').addEventListener('click', function(e){
       var b = e.target.closest('button[data-copie]'); if(!b) return;

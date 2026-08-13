@@ -18,7 +18,7 @@
    ⚠ Monter VERSION à chaque livraison : c'est ce qui purge
      l'ancien cache chez tout le monde.
    ============================================================ */
-const VERSION = 'strat-studio-v8';
+const VERSION = 'strat-studio-v9';
 const COQUILLE = [
   'tools/studio.html',
   'tools/studio.css',
@@ -35,6 +35,7 @@ const COQUILLE = [
   'js/sortie-map-core.js',
   'js/data-file.js',
   'js/biblio.js',
+  'js/minifie.js',
   'js/export-html.js',
   'js/export-texte.js',
   'js/strat-render.js',

@@ -49,6 +49,34 @@ dit('les polices aussi', (doc.match(/data:font\/woff2/g) || []).length >= 2,
     (doc.match(/data:[a-z\/+-]+/g) || []).slice(0,4).join(' '));
 dit('rien ne pointe vers le site', !doc.includes('ejouanchicot.github.io'));
 
+// Chaque image ne doit y etre qu'UNE fois. Le bloc de sauvegarde nomme les
+// memes fichiers : embarque avant le remplacement, il se voyait coller une
+// seconde copie de chacune — la moitie du poids du fichier.
+{
+  const vus = {};
+  (doc.match(/data:[a-z/+.-]+;base64,[A-Za-z0-9+/=]+/g) || []).forEach(u => {
+    const cle = u.slice(0, 64);
+    vus[cle] = (vus[cle] || 0) + 1;
+  });
+  const doubles = Object.values(vus).filter(n => n > 1).length;
+  dit('aucune image embarquee deux fois', doubles === 0, doubles + ' en double');
+  // le fichier de sauvegarde garde les CHEMINS : le Studio qui le relit a les
+  // vraies images, et une strat reimportee n'a que faire de data: URI
+  const sauv = (doc.match(/<script type="application\/json"[^>]*>([\s\S]*?)<\/script>/) || [])[1] || '';
+  dit('la sauvegarde garde les chemins, pas les images',
+      !/data:image/.test(sauv) && /img\//.test(sauv),
+      Math.round(sauv.length / 1024) + ' Ko');
+}
+
+// le code est compacte : ce fichier n'est pas relu, il est execute
+{
+  const scripts = doc.match(/<script>[\s\S]*?<\/script>/g) || [];
+  const gros = scripts.join('');
+  dit('le code est compacte', !/\n\s{2,}\S/.test(gros) && !/\/\*[\s\S]*?\*\//.test(gros),
+      (gros.match(/\/\*[\s\S]{0,40}/) || [''])[0]);
+  dit('les feuilles aussi', !/\/\*/.test((doc.match(/<style>[\s\S]*?<\/style>/g) || []).join('')));
+}
+
 const f = path.join(dossier, 'sortie.html');
 fs.writeFileSync(f, doc, 'utf8');
 

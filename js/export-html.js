@@ -24,6 +24,10 @@
   "use strict";
 
   var MARQUE = 'ffxi-strat-studio';   // l'id du bloc de sauvegarde
+  var M = global.MINIFIE || null;
+  // Le fichier partagé n'est pas relu, il est exécuté : commentaires et
+  // indentation n'y servent à personne. Le contenu, lui, ne bouge pas.
+  function compacte(t, quoi){ return M ? M[quoi](t) : t; }
 
   /* ---------------- lire les morceaux du site ----------------
      Le Studio est servi depuis /tools/, donc tout se demande en
@@ -158,22 +162,31 @@
       // les feuilles et le code deviennent le contenu de la page
       .replace(/<link rel="preload"[^>]*>\s*/g, '')
       .replace(/<link rel="stylesheet" href="css\/fonts\.css">/,
-               '<style>' + poli + '</style>')
+               '<style>' + compacte(poli, 'css') + '</style>')
       .replace(/<link rel="stylesheet" href="css\/style\.css">/,
-               '<style>' + css + '</style>')
+               '<style>' + compacte(css, 'css') + '</style>')
       .replace(/<link rel="icon"[^>]*>\s*/g, '')
       // l'aperçu social pointe vers le site : un fichier qu'on s'échange
       // n'a pas d'adresse, la balise ne veut plus rien dire
       .replace(/<meta property="og:[^>]*>\s*/g, '')
       .replace(/<meta name="twitter:[^>]*>\s*/g, '');
 
-    var scripts = '<script>\n' + sur(data) + '</script>\n'
-      + code.map(function(c){ return '<script>\n' + sur(c) + '</script>'; }).join('\n') + '\n';
+    var scripts = '<script>' + sur(data) + '</script>'
+      + code.map(function(c){ return '<script>' + sur(compacte(c, 'js')) + '</script>'; }).join('');
     doc = doc.replace(/<script src="js\/[^"]*"><\/script>\s*/g, '');
-    doc = doc.replace('</body>', scripts + sauvegarde(strat) + '</body>');
+    doc = doc.replace('</body>', scripts + '</body>');
     doc = remplaceTout(doc, images);
 
-    return doc;
+    // La sauvegarde vient APRÈS le remplacement des images, et c'est capital :
+    // elle nomme les mêmes fichiers, et se serait donc vu coller une seconde
+    // copie de chaque image — la moitié du poids du fichier. Elle doit garder
+    // les CHEMINS de toute façon : le Studio qui la relit a les vraies images,
+    // et une strat réimportée n'a rien à faire de 1,3 Mo d'images en doublon.
+    doc = doc.replace('</body>', sauvegarde(strat) + '</body>');
+
+    // Le HTML en dernier : les <script> déjà compactés sont mis de côté par
+    // le compacteur, qui ne touche jamais à leur contenu.
+    return compacte(doc, 'html');
   }
   var FICHIERS_JS = ['js/sortie-map-core.js', 'js/strat-render.js', 'js/app.js'];
 

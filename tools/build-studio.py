@@ -119,6 +119,10 @@ __STRAT__
       <label>Quoi<select id="stTxtPortee"></select></label>
       <label id="stTxtVarL" hidden>Fa\u00e7on de jouer<select id="stTxtVar"></select></label>
       <label>Pour qui<select id="stTxtJob"></select></label>
+      <label>Mise en forme<select id="stTxtStyle">
+        <option value="titres">Titres et listes</option>
+        <option value="couleurs">Couleurs des rôles</option>
+      </select></label>
     </div>
     <div class="st-txtparts" id="stTxtParts"></div>
     <footer class="st-sheetfoot">
@@ -133,6 +137,7 @@ __STRAT__
 <script src="../js/sortie-map-core.js"></script>
 <script src="../js/data-file.js"></script>
 <script src="../js/biblio.js"></script>
+<script src="../js/minifie.js"></script>
 <script src="../js/export-html.js"></script>
 <script src="../js/export-texte.js"></script>
 <script src="../js/strat-render.js"></script>
