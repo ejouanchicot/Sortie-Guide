@@ -350,10 +350,6 @@ const CARTES={
    {name:'Umbril', el:'blue', x:79.8,y:29.8, q:'X12', ph:3, label:'<c><u><span style="color:#009dff">Umbril</span></u>\n<c>X12'},
   ],
   mids:[
-   {name:'Obdella', el:'red', x:42.2,y:26.2, label:'<span style="color:#ff8f6a">Obdella</span>'},
-   {name:'Porxie', el:'blue', x:69.1,y:27.9, label:'<span style="color:#5bd6ef">Porxie</span>'},
-   {name:'Bhoot', el:'green', x:67.3,y:53.5, label:'<span style="color:#8affc0">Bhoot</span>'},
-   {name:'Deleterious', el:'gray', x:40.6,y:51.6, label:'Deleterious'},
   ],
   routes:[
    {n:1, el:'red', c1:'#949494', a:1, fs:0.5, points:'17.3,42.3 23.7,42.3 23.7,46.5 23.7,51.5 26.7,51.6 26.7,60.9 23.6,60.8 23.6,76.6 20.5,76.6'},

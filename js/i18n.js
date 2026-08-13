@@ -9,6 +9,19 @@
    Charge AVANT app.js.
    ============================================================ */
 const TR={
+ "Vue d'ensemble du run":"Run overview",
+ "cliquer sur la carte pour agrandir":"click the map to zoom",
+ "Trajet":"Route",
+ "Pack de mobs":"Mob pack",
+ "Déplacement :":"Route:",
+ "Tous":"All",
+ "N'afficher que mon rôle":"Show only my role",
+ "Carte à venir":"Map coming soon",
+ "on la placera avec l'éditeur":"we'll place it with the editor",
+ "SECTEUR":"SECTOR",
+ "à venir":"coming soon",
+ "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
+ "Étage":"Floor",
  "Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre":"At Start: wait for Mazurka (BRD) and/or Bolter's (COR) · do NOT go through the door until you have one or the other",
  "Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed":"At Start: wait for Mazurka (BRD), Bolter's (COR) and/or Chocobo Jig (DNC) · do NOT go through the door until you have move speed",
  "Bolter's (Tactician's déjà posé)":"Bolter's (Tactician's already up)",
@@ -82,18 +95,5 @@ const TR={
  "Chakra retire le Taint (poison AoE)":"Chakra removes the Taint (AoE poison)",
  "Taint stack → augmente Clobbering Wave · Ra'Kaznar Metal A = Poison retirable":"Taint stacks → boosts Clobbering Wave · Ra'Kaznar Metal A = removable Poison",
  "kill avant que ça monte":"kill before it stacks up",
- "Vue d'ensemble du run":"Run overview",
- "cliquer sur la carte pour agrandir":"click the map to zoom",
- "Trajet":"Route",
- "Pack de mobs":"Mob pack",
- "Déplacement :":"Route:",
- "Tous":"All",
- "N'afficher que mon rôle":"Show only my role",
- "Carte à venir":"Map coming soon",
- "on la placera avec l'éditeur":"we'll place it with the editor",
- "SECTEUR":"SECTOR",
- "à venir":"coming soon",
- "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
- "Étage":"Floor",
  "À compléter en run":"To fill in during runs"
 };
