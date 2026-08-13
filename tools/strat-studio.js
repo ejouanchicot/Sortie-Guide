@@ -187,6 +187,7 @@
       +     (cur?'':' disabled')+'>renommer</button></div></div></div>'
       + '<div class="ss-f"><label for="f_route">Comment on y va</label>'
       +   '<input type="text" id="f_route" value="'+esc(ph.route||'')+'" placeholder="Mur de droite, plein SUD → coin bas-gauche."></div>'
+      + '<div id="ssBuffs"></div>'
       + '<div id="ssBlocs"></div>'
       + '<div class="ss-addrow">'
       +   '<button type="button" class="ss-btn" id="ssAddFarm">＋ ajouter un farm</button>'
@@ -203,6 +204,7 @@
     $('f_buffsRen').addEventListener('click', function(){ renommeBuff(ph.buffs); });
     $('ssAddFarm').addEventListener('click', function(){ ajouteBloc(ph,'pack'); });
     $('ssAddBoss').addEventListener('click', function(){ ajouteBloc(ph,'boss'); });
+    dessineBuffs(ph);
     dessineBlocs(ph);
   }
   function ajouteBloc(ph, nature){
@@ -210,6 +212,84 @@
     ph.cards.push({kind:nature, name:(nature==='boss'?'Boss · ':'Pack · '), tag:'', groups:[]});
     touche(); dessineBlocs(ph); rendre(); buildTree();
   }
+  // La même barre pour tout ce qui se saisit en lignes : les blocs de la strat
+  // ET le bloc de préparation. Une seule barre à apprendre.
+  function barreOutils(){
+    return '<div class="ss-tb">'
+      + '<span class="ss-tbl">job</span>'
+      + barreJobs().map(function(j){
+          var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
+          return '<button type="button" class="ss-job r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
+            + (dansCompo ? '' : ' hors')+'" data-job="'+esc(j)+'"'
+            + (dansCompo ? '' : ' title="Hors composition — cité ailleurs dans la strat"')+'>'+esc(j)+'</button>'; }).join('')
+      + '<button type="button" class="ss-job ss-jplus" data-plus="1" title="Insérer un job hors composition">＋ job</button>'
+      + '<span class="ss-tbsep"></span>'
+      + '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
+      + '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'
+      + '<button type="button" data-mk="comp" title="Réserver la ligne à une composition">@ comp</button>'
+      + '<button type="button" data-mk="sub" title="Action de plus pour le même job">＋ action</button>'
+      + '</div>';
+  }
+  // Branche une zone de saisie sur la même barre d'outils que les blocs.
+  function branche(el, ta, lu, applique){
+    var t = null;
+    function relit(){
+      clearTimeout(t);
+      t = setTimeout(applique, 240);
+      lecture(ta, lu);
+    }
+    ta.addEventListener('input', relit);
+    ['click','keyup','focus'].forEach(function(ev){ ta.addEventListener(ev, function(){ lecture(ta, lu); }); });
+    lecture(ta, lu);
+    el.querySelector('.ss-tb').addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      if(b.dataset.plus){ choisirAutreJob(b, ta); return; }
+      if(b.dataset.job) insereDebut(ta, b.dataset.job+' : ');
+      else if(b.dataset.mk==='warn') marqueWarn(ta);
+      else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
+      else if(b.dataset.mk==='comp') insereApresRoles(ta, '@DNC');
+      else if(b.dataset.mk==='sub') insereFin(ta, '\n      ');
+      ta.dispatchEvent(new Event('input', {bubbles:true}));
+    });
+  }
+
+  // Le contenu du bloc de préparation, éditable ici même. Il est PARTAGÉ :
+  // le bandeau dit combien d'étapes s'en servent, pour qu'on ne corrige pas
+  // les six sans le savoir.
+  function dessineBuffs(ph){
+    var host = $('ssBuffs'); if(!host) return;
+    var nom = ph.buffs;
+    if(!nom || JEUX[nom] === undefined){ host.innerHTML = ''; return; }
+    var n = compteEtapesAvec(nom);
+    host.innerHTML = '<div class="ss-bloc ss-buffbloc">'
+      + '<div class="ss-bhead">'
+      +   '<span class="ss-bkind">préparation</span>'
+      +   '<b class="ss-bnom">'+esc(nom)+'</b>'
+      +   (n > 1 ? '<span class="ss-bpart" title="Ce contenu est partagé">partagé par '+n+' étapes</span>' : '')
+      +   '<button type="button" class="ss-bdel" id="ssBuffDel" title="Supprimer ce bloc de préparation">✕</button>'
+      + '</div>'
+      + barreOutils()
+      + '<textarea class="ss-btxt" spellcheck="false" placeholder="COR : Bolter\'s + Tactician\'s&#10;BRD : Mazurka"></textarea>'
+      + '<div class="ss-read"></div></div>';
+    var el = host.querySelector('.ss-bloc'),
+        ta = el.querySelector('.ss-btxt'), lu = el.querySelector('.ss-read');
+    ta.value = SC.linesToText(JEUX[nom]);
+    branche(el, ta, lu, function(){
+      // on remplace le CONTENU du tableau, pas le tableau : d'autres étapes
+      // pointent sur le même nom, elles doivent voir la correction
+      var neuf = SC.parseLines(ta.value);
+      JEUX[nom].length = 0;
+      neuf.forEach(function(l){ JEUX[nom].push(l); });
+      touche(); rendre();
+    });
+    $('ssBuffDel').addEventListener('click', function(){ supprimeBuff(nom); });
+  }
+  function compteEtapesAvec(nom){
+    var n = 0;
+    FL.forEach(function(f){ (f.phases||[]).forEach(function(p){ if(p.buffs === nom) n++; }); });
+    return n;
+  }
+
   // Un bloc = une carte de formulaire. Sa nature, son nom et son résumé sont des CHAMPS ;
   // seul son contenu est du texte, et ce texte n'a plus aucun signe de structure.
   function dessineBlocs(ph){
@@ -224,20 +304,7 @@
         +   '<button type="button" class="ss-bdel" title="Supprimer ce bloc">✕</button>'
         + '</div>'
         + '<input type="text" class="ss-btag" value="'+esc(c.tag||'')+'" placeholder="Résumé en une ligne (facultatif)">'
-        + '<div class="ss-tb">'
-        +   '<span class="ss-tbl">job</span>'
-        +   barreJobs().map(function(j){
-              var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
-              return '<button type="button" class="ss-job r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
-                + (dansCompo ? '' : ' hors')+'" data-job="'+esc(j)+'"'
-                + (dansCompo ? '' : ' title="Hors composition — cité ailleurs dans la strat"')+'>'+esc(j)+'</button>'; }).join('')
-        +   '<button type="button" class="ss-job ss-jplus" data-plus="1" title="Insérer un job hors composition">＋ job</button>'
-        +   '<span class="ss-tbsep"></span>'
-        +   '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
-        +   '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'
-        +   '<button type="button" data-mk="comp" title="Réserver la ligne à une composition">@ comp</button>'
-        +   '<button type="button" data-mk="sub" title="Action de plus pour le même job">＋ action</button>'
-        + '</div>'
+        + barreOutils()
         + '<textarea class="ss-btxt" spellcheck="false" placeholder="Règle&#10;ALL : ne jamais fermer de SC Light"></textarea>'
         + '<div class="ss-read"></div></div>';
     }).join('');
@@ -257,26 +324,9 @@
         demande('Supprimer le bloc <b>'+esc(c.name||'sans nom')+'</b> et tout son contenu ?', {titre:'Supprimer le bloc'})
           .then(function(v){ if(!v) return; ph.cards.splice(ci,1); touche(); dessineBlocs(ph); rendre(); buildTree(); }); });
 
-      var ta = el.querySelector('.ss-btxt'), lu = el.querySelector('.ss-read'), t = null;
+      var ta = el.querySelector('.ss-btxt'), lu = el.querySelector('.ss-read');
       ta.value = SC.blocToText(c);
-      function relit(){
-        clearTimeout(t);
-        t = setTimeout(function(){ SC.textToBloc(ta.value, c); touche(); rendre(); buildTree(); }, 240);
-        lecture(ta, lu);
-      }
-      ta.addEventListener('input', relit);
-      ['click','keyup','focus'].forEach(function(ev){ ta.addEventListener(ev, function(){ lecture(ta, lu); }); });
-      lecture(ta, lu);
-      el.querySelector('.ss-tb').addEventListener('click', function(e){
-        var b = e.target.closest('button'); if(!b) return;
-        if(b.dataset.plus){ choisirAutreJob(b, ta); return; }
-        if(b.dataset.job) insereDebut(ta, b.dataset.job+' : ');
-        else if(b.dataset.mk==='warn') marqueWarn(ta);
-        else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
-        else if(b.dataset.mk==='comp') insereApresRoles(ta, '@DNC');
-        else if(b.dataset.mk==='sub') insereFin(ta, '\n      ');
-        ta.dispatchEvent(new Event('input', {bubbles:true}));
-      });
+      branche(el, ta, lu, function(){ SC.textToBloc(ta.value, c); touche(); rendre(); buildTree(); });
     });
   }
   function lie(id, fn){ var e=$(id); if(!e)return;
@@ -450,9 +500,25 @@
     toast('Renommé — ' + nomsEtapesAvec(nom) + '.','ok');
   }
   function nomsEtapesAvec(nom){
-    var n = 0;
-    FL.forEach(function(f){ (f.phases||[]).forEach(function(p){ if(p.buffs === nom) n++; }); });
+    var n = compteEtapesAvec(nom);
     return n + ' étape' + (n>1?'s':'') + ' concernée' + (n>1?'s':'');
+  }
+  // Supprimer un jeu détache les étapes qui l'utilisaient : elles n'auraient
+  // plus rien à afficher, autant le dire avant plutôt que les laisser pointer
+  // dans le vide.
+  async function supprimeBuff(nom){
+    if(!nom || JEUX[nom] === undefined) return;
+    var n = compteEtapesAvec(nom), lignes = (JEUX[nom]||[]).length;
+    var ok = await demande('Supprimer le bloc <b>'+esc(nom)+'</b> et ses '
+      + lignes + ' ligne' + (lignes>1?'s':'') + ' ?'
+      + (n ? '<br><br>' + n + ' étape' + (n>1?'s':'') + ' s\'en ser' + (n>1?'vent':'t')
+           + ' — elle' + (n>1?'s':'') + ' n\'aura' + (n>1?'ont':'') + ' plus de bloc de préparation.' : ''),
+      {titre:'Supprimer le bloc de préparation'});
+    if(!ok) return;
+    delete JEUX[nom];
+    FL.forEach(function(f){ (f.phases||[]).forEach(function(p){ if(p.buffs === nom) delete p.buffs; }); });
+    touche(); editeur(); rendre();
+    toast('Bloc supprimé' + (n ? ' — ' + n + ' étape' + (n>1?'s':'') + ' détachée' + (n>1?'s':'') : '') + '.','ok');
   }
 
   /* ---------------- « ＋ job » : un job hors composition ---------------- */
