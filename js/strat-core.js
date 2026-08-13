@@ -24,9 +24,13 @@
 (function(global){
   "use strict";
   var S = global.SORTIE;
-  var escJs = function(v){ return String(v==null?'':v)
-    .replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n'); };
-  var q = function(v){ return "'"+escJs(v)+"'"; };
+  // Guillemets doubles, comme data.js et i18n.js les écrivent déjà à la main.
+  // Les apostrophes sont partout dans le contenu (« Bolter's », « qu'on ») : en
+  // guillemets simples il fallait toutes les échapper, et chaque enregistrement
+  // réécrivait des lignes identiques au contenu près — un git diff illisible.
+  // JSON.stringify échappe " \ et les sauts de ligne, et laisse les accents et
+  // le « · » tels quels : exactement la forme déjà en place dans les fichiers.
+  var q = function(v){ return JSON.stringify(String(v==null?'':v).replace(/\r/g,'')); };
 
   /* ---------------- TEXTE -> LIGNES ---------------- */
   // Un code de rôle : 2 à 4 majuscules (MNK, BRD, PLD, ALL…). La liste s'arrête
@@ -212,6 +216,12 @@
   }
 
   /* ---------------- SÉRIALISATION data.js ---------------- */
+  // Un tableau vide s'écrit `[]`, pas `[` + ligne blanche + `]` : sinon chaque
+  // enregistrement gonflait de deux lignes les cartes encore vides du sous-sol.
+  function liste(items, ind, rendu){
+    if(!items || !items.length) return '[]';
+    return '[\n' + items.map(function(x){ return rendu(x, ind+'  '); }).join(',\n') + '\n' + ind + ']';
+  }
   function lnConst(l, ind){
     var r = '['+(l.r||['ALL']).map(q).join(',')+']';
     var t = Array.isArray(l.t) ? '['+l.t.map(q).join(',')+']' : q(l.t);
@@ -226,20 +236,14 @@
     if(g.cls!=null) s += ',cls:'+q(g.cls);   // même vide : on ne modifie pas le fichier d'Eric sans raison
     if(g.img) s += ',img:'+q(g.img);
     if(g.note) s += ',note:'+q(g.note);
-    s += ',lines:[\n';
-    s += (g.lines||[]).map(function(l){ return lnConst(l, ind+'  '); }).join(',\n');
-    s += '\n'+ind+']}';
-    return s;
+    return s + ',lines:' + liste(g.lines, ind, lnConst) + '}';
   }
   function cardConst(c, ind){
     var s = ind+'{kind:'+q(c.kind);
     if(c.klabel) s += ',klabel:'+q(c.klabel);
     s += ',name:'+q(c.name)+',tag:'+q(c.tag||'');
     if(c.noHeadImg) s += ',noHeadImg:true';
-    s += ',groups:[\n';
-    s += (c.groups||[]).map(function(g){ return grpConst(g, ind+'  '); }).join(',\n');
-    s += '\n'+ind+']}';
-    return s;
+    return s + ',groups:' + liste(c.groups, ind, grpConst) + '}';
   }
   // registre = {NOM: tableau} des constantes de buffs, pour réécrire « buffs:BUFFS_P1 »
   // comme une RÉFÉRENCE et non comme une copie aplatie.
@@ -258,22 +262,22 @@
     if(p.route!=null) s += ',route:'+q(p.route);
     var nb = nomDuBuff(p.buffs, registre);
     if(nb) s += ',buffs:'+nb;
-    else if(p.buffs && p.buffs.length) s += ',buffs:[\n'+p.buffs.map(function(l){return lnConst(l, ind+'  ');}).join(',\n')+'\n'+ind+']';
+    else if(p.buffs && p.buffs.length) s += ',buffs:'+liste(p.buffs, ind, lnConst);
     if(p.soon && !(p.cards||[]).length) return s+'}';
-    s += ',cards:[\n';
-    s += (p.cards||[]).map(function(c){ return cardConst(c, ind+'  '); }).join(',\n');
-    s += '\n'+ind+']}';
-    return s;
+    return s + ',cards:' + liste(p.cards, ind, cardConst) + '}';
   }
+  // Indentation ZÉRO au premier niveau : c'est celle que PHASES a déjà dans
+  // data.js. Avec un espace, chaque enregistrement redécalait les 170 lignes
+  // de l'étage du haut pour rien.
   function phasesConst(nom, arr, registre){
     return 'const '+nom+'=[\n'
-      + (arr||[]).map(function(p){ return phaseConst(p, ' ', registre); }).join(',\n')
-      + '\n];';
+      + (arr||[]).map(function(p){ return phaseConst(p, '', registre); }).join(',\n')
+      + (arr && arr.length ? '\n' : '') + '];';
   }
   function buffsConst(nom, arr){
     return 'const '+nom+'=[\n'
       + (arr||[]).map(function(l){ return lnConst(l, '  '); }).join(',\n')
-      + '\n];';
+      + (arr && arr.length ? '\n' : '') + '];';
   }
   // TR : une entrée par ligne, ordre d'insertion conservé (les ajouts vont à la fin)
   function trConst(nom, dico){

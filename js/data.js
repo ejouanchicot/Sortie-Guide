@@ -239,29 +239,29 @@ const PHASES=[
    Aminon (E) = boss final, pas encore fait.
    ============================================================ */
 const PHASES_B=[
- {n:1,sector:'E',boss:'Dhartok',title:'Secteur E · Dhartok',route:'',buffs:BUFFS_B,cards:[
-   {kind:'pack',klabel:'MIDBOSS',name:'Sur le trajet',tag:'comp DNC',noHeadImg:true,groups:[
-     {label:'Botulus',cls:'',lines:[
-       ln(['DNC'],'On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade',{comp:'DNC'})
-     ]}
-   ]},
-   {kind:'boss',name:'Boss · Dhartok',tag:'à définir',groups:[]}
- ]},
- {n:2,sector:'G',boss:'Triboulex',title:'Secteur G · Triboulex',route:'',buffs:BUFFS_B,cards:[
-   {kind:'pack',klabel:'MIDBOSS',name:'Sur le trajet',tag:'comp DNC',noHeadImg:true,groups:[
-     {label:'Naraka',cls:'',lines:[
-       ln(['DNC'],'On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade',{comp:'DNC'})
-     ]}
-   ]},
-   {kind:'boss',name:'Boss · Triboulex',tag:'à définir',groups:[]}
- ]},
- {n:3,sector:'H',boss:'Aita',title:'Secteur H · Aïta',route:'On file directement au boss.',buffs:BUFFS_B,cards:[
-   {kind:'boss',name:'Boss · Aïta',tag:'à définir',groups:[]}
- ]},
- {n:4,sector:'F',boss:'Gartell',title:'Secteur F · Gartell',route:'On file directement au boss.',buffs:BUFFS_B,cards:[
-   {kind:'boss',name:'Boss · Gartell',tag:'à définir',groups:[]}
- ]},
- {n:5,sector:'E',boss:'Aminon',soon:true,title:'Aminon · boss final (E)'}
+{n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:BUFFS_B,cards:[
+  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
+    {label:"Botulus",cls:"",lines:[
+      ln(["DNC"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade",{comp:"DNC"})
+    ]}
+  ]},
+  {kind:"boss",name:"Boss · Dhartok",tag:"à définir",groups:[]}
+]},
+{n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:BUFFS_B,cards:[
+  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
+    {label:"Naraka",cls:"",lines:[
+      ln(["DNC"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade",{comp:"DNC"})
+    ]}
+  ]},
+  {kind:"boss",name:"Boss · Triboulex",tag:"à définir",groups:[]}
+]},
+{n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:BUFFS_B,cards:[
+  {kind:"boss",name:"Boss · Aïta",tag:"à définir",groups:[]}
+]},
+{n:4,sector:"F",boss:"Gartell",title:"Secteur F · Gartell",route:"On file directement au boss.",buffs:BUFFS_B,cards:[
+  {kind:"boss",name:"Boss · Gartell",tag:"à définir",groups:[]}
+]},
+{n:5,sector:"E",boss:"Aminon",soon:true,title:"Aminon · boss final (E)"}
 ];
 const BOSSES_B=[
  {name:'Dhartok',n:1,el:'red', x:27.6,y:22, nx:28,ny:27.9, lp:'top'},
