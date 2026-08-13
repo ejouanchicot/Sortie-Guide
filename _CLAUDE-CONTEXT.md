@@ -24,6 +24,12 @@ Structure (à jour au 12/08/2026) :
   `esc`/`escAttr`, `pqHtml`, texte enrichi (`parseInline`/`parseRich`/`runsToHtml`), sérialisation
   `data.js` (`bossesConst`…`textsConst`). Expose `window.SORTIE`. **Source unique de vérité**,
   chargé AVANT tout le reste.
+- `js/data-file.js` — **écriture de `data.js` / `i18n.js`**, partagé par les DEUX outils : poignée de
+  fichier mémorisée en IndexedDB (base `sortie-outils`, clés `data` et `i18n` — donc on choisit
+  `data.js` une seule fois pour les deux), permission readwrite, et surtout `remplace(texte, blocs)`
+  qui substitue **bloc par bloc** (`const NOM=[…\n];`) sans toucher au reste du fichier. Un bloc
+  introuvable est signalé et **jamais ajouté** : c'est le signe qu'on écrit dans le mauvais fichier.
+  Expose `window.DATAFILE`. **Ne jamais réimplémenter ça dans un outil.**
 - `js/rich-editor.js` — **éditeur de texte enrichi** (contenteditable, barre d'outils, listes par ligne,
   casse). DOM pur, aucune dépendance à Konva. Expose `window.RICH`. Utilisé par Map Studio.
 - `js/app.js` — **moteur de rendu du guide** (chargé APRÈS data.js, i18n.js et sortie-map-core.js)
