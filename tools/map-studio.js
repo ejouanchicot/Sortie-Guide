@@ -1039,33 +1039,30 @@
      à ce qu'attend le reste du projet : on remplace bloc par bloc via
      regex dans data.js, sans toucher au reste du fichier.
      ============================================================ */
-  let dataHandle=null;
-  function idbReq(fn){return new Promise((res,rej)=>{const r=indexedDB.open('mapstudio',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onerror=()=>rej(r.error);r.onsuccess=()=>{try{fn(r.result,res,rej);}catch(e){rej(e);}};});}
-  function idbGet(k){return idbReq((db,res,rej)=>{const t=db.transaction('kv','readonly').objectStore('kv').get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error);});}
-  function idbSet(k,v){return idbReq((db,res,rej)=>{const t=db.transaction('kv','readwrite').objectStore('kv').put(v,k);t.onsuccess=()=>res();t.onerror=()=>rej(t.error);});}
-  async function getHandle(){if(dataHandle)return dataHandle;try{const h=await idbGet('h');if(h){dataHandle=h;return h;}}catch(e){}return null;}
-  async function pickFile(){const[h]=await window.showOpenFilePicker({types:[{description:'data.js',accept:{'text/javascript':['.js']}}]});dataHandle=h;try{await idbSet('h',h);}catch(e){}setFname(h.name);return h;}
-  async function verifyPerm(h){const o={mode:'readwrite'};if((await h.queryPermission(o))==='granted')return true;if((await h.requestPermission(o))==='granted')return true;return false;}
+  // Poignées, permissions et remplacement bloc par bloc : js/data-file.js,
+  // partagé avec Strat Studio pour que les deux outils écrivent à l'identique.
+  const DF=window.DATAFILE;
   function setFname(n){document.getElementById('fname').textContent=n?'📄 '+n:'';}
   // témoin « non enregistré » : le seul rappel visuel que le travail n'est encore qu'en mémoire
   function setDirty(v){dirty=!!v;const el=document.getElementById('unsaved');if(el)el.classList.toggle('on',dirty);}
   // blocs data.js d'UN étage — les noms et le format doivent rester STRICTEMENT stables
   function floorBlocks(f){const top=f.id==='top';const out=[];
     (f.routes||[]).forEach(rt=>{if(rt._pts)rt.points=S.ptsStr(rt._pts);}); // fige les points édités avant sérialisation
-    out.push({name:top?'BOSSES':'BOSSES_B',text:S.bossesConst(top?'BOSSES':'BOSSES_B',f.bosses||[])});
-    out.push({name:top?'PACKS':'PACKS_B',text:S.packsConst(top?'PACKS':'PACKS_B',f.packs||[])});
-    out.push({name:top?'MIDS_TOP':'MIDS_B',text:S.midsConst(top?'MIDS_TOP':'MIDS_B',f.mids||[])});
+    const bloc=(nom,txt)=>out.push({nom,txt});
+    bloc(top?'BOSSES':'BOSSES_B',S.bossesConst(top?'BOSSES':'BOSSES_B',f.bosses||[]));
+    bloc(top?'PACKS':'PACKS_B',S.packsConst(top?'PACKS':'PACKS_B',f.packs||[]));
+    bloc(top?'MIDS_TOP':'MIDS_B',S.midsConst(top?'MIDS_TOP':'MIDS_B',f.mids||[]));
     // toujours émis (même vide) → supprimer le dernier tracé est bien persisté dans data.js
-    out.push({name:top?'ROUTES_TOP':'ROUTES_B',text:S.routesConst(top?'ROUTES_TOP':'ROUTES_B',f.routes||[])});
-    out.push({name:top?'TEXTS':'TEXTS_B',text:S.textsConst(top?'TEXTS':'TEXTS_B',f.texts||[])});
-    out.push({name:top?'SHAPES':'SHAPES_B',text:S.shapesConst(top?'SHAPES':'SHAPES_B',f.shapes||[])});
+    bloc(top?'ROUTES_TOP':'ROUTES_B',S.routesConst(top?'ROUTES_TOP':'ROUTES_B',f.routes||[]));
+    bloc(top?'TEXTS':'TEXTS_B',S.textsConst(top?'TEXTS':'TEXTS_B',f.texts||[]));
+    bloc(top?'SHAPES':'SHAPES_B',S.shapesConst(top?'SHAPES':'SHAPES_B',f.shapes||[]));
     return out;}
   // ⚠ on sérialise TOUS les étages, pas seulement celui affiché : sinon les modifications
   // faites sur l'autre étage avant de changer d'onglet étaient perdues sans le moindre avertissement.
   function blocksToSave(){const out=[];
     FL.forEach(f=>{floorBlocks(f).forEach(b=>out.push(b));});
-    out.push({name:'MOBSCALE',scalar:true,text:'const MOBSCALE='+r1(mobScale)+';'});
-    out.push({name:'LBLMARGIN',scalar:true,text:'const LBLMARGIN='+r1(labelMargin)+';'});
+    out.push({nom:'MOBSCALE',scalaire:true,txt:'const MOBSCALE='+r1(mobScale)+';'});
+    out.push({nom:'LBLMARGIN',scalaire:true,txt:'const LBLMARGIN='+r1(labelMargin)+';'});
     return out;}
   /* ============================================================
      10b · EXPORT — image de la carte, ou blocs data.js
@@ -1148,24 +1145,29 @@
       majQ();},true);}
 
   async function save(){
-    if(!window.showOpenFilePicker){toast('Utilise Chrome ou Edge pour l’enregistrement direct.','err');return;}
+    if(!DF.dispo()){toast('Utilise Chrome ou Edge pour l’enregistrement direct.','err');return;}
     // un commitSoon() en vol relèverait le témoin JUSTE APRÈS l'enregistrement (il appelle commit,
     // qui marque modifié) : on le vide d'abord, sinon on se retrouve « modifié » à peine sauvegardé.
     clearTimeout(histTimer);commit();
-    try{const h=(await getHandle())||await pickFile();if(!(await verifyPerm(h))){toast('Permission refusée.','err');return;}
-      let text=await(await h.getFile()).text();
-      for(const blk of blocksToSave()){const re=blk.scalar?new RegExp('const '+blk.name+'\\s*=\\s*[^;]*;'):new RegExp('const '+blk.name+'\\s*=\\s*\\[[\\s\\S]*?\\];');
-        if(!re.test(text)){if(await askConfirm('Bloc <b>'+esc(blk.name)+'</b> introuvable dans « '+esc(h.name)+' ». Est-ce le bon data.js ?',{title:'Fichier inattendu',ok:'Re-sélectionner',danger:false})){dataHandle=null;try{await idbSet('h',null);}catch(e){}return save();}return;}
-        text=text.replace(re,()=>blk.text);}
-      const w=await h.createWritable();await w.write(text);await w.close();
+    try{const h=await DF.poignee('data','js/data.js');setFname(h.name);
+      if(!(await DF.permission(h))){toast('Permission refusée.','err');return;}
+      const r=DF.remplace(await DF.lis(h),blocksToSave());
+      if(r.absents.length){
+        // aucun bloc n'est ajouté d'office : un bloc manquant veut dire mauvais fichier
+        if(!await askConfirm('Bloc <b>'+esc(r.absents[0])+'</b> introuvable dans « '+esc(h.name)+' ». Est-ce le bon data.js ?',{title:'Fichier inattendu',ok:'Re-sélectionner',danger:false}))return;
+        await DF.oublie('data');
+        return save();}
+      await DF.ecris(h,r.texte);
       setDirty(false);
       toast('Enregistré dans data.js (les deux étages) — le guide se met à jour.','ok');
     }catch(e){if(e.name!=='AbortError')toast('Erreur : '+e.message,'err');}
   }
-  async function syncFromFile(silent){const h=await getHandle();if(!h){if(!silent)toast('Choisis d’abord ton data.js (Enregistrer une fois).','err');return;}
+  // relecture : DF.connue et pas DF.poignee — faire surgir un sélecteur de
+  // fichier sur un simple « recharger » serait incompréhensible.
+  async function syncFromFile(silent){const h=await DF.connue('data');if(!h){if(!silent)toast('Choisis d’abord ton data.js (Enregistrer une fois).','err');return;}
     // relire le disque écrase tout ce qui n'a pas été enregistré → on demande avant
     if(dirty&&!silent&&!(await askConfirm('Tu as des modifications <b>non enregistrées</b>. Recharger depuis le disque va les <b>perdre définitivement</b>.',{title:'Recharger data.js',ok:'Recharger quand même'})))return;
-    try{if(!(await verifyPerm(h)))return;const text=await(await h.getFile()).text();
+    try{if(!(await DF.permission(h)))return;const text=await DF.lis(h);
       const fresh=new Function(text+'\n; return {F:(typeof FLOORS!=="undefined")?FLOORS:null,M:(typeof MOBSCALE!=="undefined")?MOBSCALE:1};')();
       if(fresh&&fresh.F&&fresh.F.length){FL=fresh.F;mobScale=fresh.M||1;paintGlobals();renderFloor(curIdx);resetHistory();setDirty(false);if(!silent)toast('Rechargé depuis le disque.','ok');}
     }catch(e){if(!silent)toast('Lecture échouée : '+e.message,'err');}}
@@ -1305,7 +1307,7 @@
   function boot(){if(typeof Konva==='undefined'){loadmsg.textContent='Konva n’a pas pu se charger.';return;}
     if(typeof S==='undefined'||!S){loadmsg.textContent='sortie-map-core.js introuvable.';return;}
     if(!FL.length){loadmsg.textContent='data.js introuvable ou vide.';return;}
-    initStage();getHandle().then(h=>{if(h)setFname(h.name);});renderFloor(0);resetHistory();setDirty(false);}
+    initStage();DF.connue('data').then(h=>{if(h)setFname(h.name);});renderFloor(0);resetHistory();setDirty(false);}
   // dernier filet : fermer l'onglet avec du travail en mémoire
   // Pas de garde beforeunload : le dialogue de fermeture est IMPOSÉ par le navigateur, aucune page
   // ne peut le remplacer par sa propre modale. Et en Live Server, enregistrer fait recharger la page,

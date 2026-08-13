@@ -347,35 +347,9 @@
     if(hidx < hist.length-1){ hidx++; restaure(hist[hidx]); touche(); toast('Rétabli.'); } else toast('Rien à rétablir.'); }
 
   /* ---------------- écriture des fichiers ---------------- */
-  function idbReq(fn){ return new Promise(function(res,rej){ var r=indexedDB.open('stratstudio',1);
-    r.onupgradeneeded=function(){ r.result.createObjectStore('kv'); };
-    r.onerror=function(){ rej(r.error); };
-    r.onsuccess=function(){ try{ fn(r.result,res,rej); }catch(e){ rej(e); } }; }); }
-  function idbGet(k){ return idbReq(function(db,res,rej){ var t=db.transaction('kv','readonly').objectStore('kv').get(k);
-    t.onsuccess=function(){res(t.result);}; t.onerror=function(){rej(t.error);}; }); }
-  function idbSet(k,v){ return idbReq(function(db,res,rej){ var t=db.transaction('kv','readwrite').objectStore('kv').put(v,k);
-    t.onsuccess=function(){res();}; t.onerror=function(){rej(t.error);}; }); }
-  var handles = {};
-  async function fichier(cle, nom){
-    if(handles[cle]) return handles[cle];
-    try{ var h = await idbGet(cle); if(h){ handles[cle]=h; return h; } }catch(e){}
-    var res = await window.showOpenFilePicker({types:[{description:nom, accept:{'text/javascript':['.js']}}]});
-    handles[cle] = res[0]; try{ await idbSet(cle, res[0]); }catch(e){}
-    return handles[cle];
-  }
-  async function permission(h){ var o={mode:'readwrite'};
-    if((await h.queryPermission(o))==='granted') return true;
-    return (await h.requestPermission(o))==='granted'; }
-  // remplacement bloc par bloc, comme Map Studio : le reste des fichiers n'est pas touché
-  function applique(txt, blocs){
-    var absents = [];
-    blocs.forEach(function(b){
-      var re = new RegExp('const '+b.nom+'\\s*=\\s*[\\[{][\\s\\S]*?\\n[\\]}];');
-      if(!re.test(txt)){ absents.push(b.nom); return; }
-      txt = txt.replace(re, function(){ return b.txt; });
-    });
-    return {texte:txt, absents:absents};
-  }
+  // Poignées, permissions et remplacement bloc par bloc : js/data-file.js,
+  // partagé avec Map Studio pour que les deux outils écrivent à l'identique.
+  var DF = window.DATAFILE;
   function blocsData(){
     var reg = {}; Object.keys(BUFFS).forEach(function(k){ if(BUFFS[k]) reg[k]=BUFFS[k]; });
     var out = [];
@@ -388,8 +362,8 @@
   }
   var explique = false;
   async function enregistrer(){
-    if(!window.showOpenFilePicker){ toast('Utilise Chrome ou Edge pour l’écriture directe.','err'); return; }
-    if(!explique && !handles.data){
+    if(!DF.dispo()){ toast('Utilise Chrome ou Edge pour l’écriture directe.','err'); return; }
+    if(!explique){
       var ok = await demande('L’outil va écrire dans <b>js/data.js</b> puis <b>js/i18n.js</b>.<br><br>'
         + 'Le navigateur va te demander de choisir ces deux fichiers — c’est sa façon d’autoriser l’écriture. '
         + 'Seuls les blocs de stratégie sont remplacés, le reste des fichiers n’est pas touché.',
@@ -398,19 +372,21 @@
       explique = true;
     }
     try{
-      var h = await fichier('data', 'js/data.js');
-      if(!(await permission(h))){ toast('Permission refusée sur data.js.','err'); return; }
-      var txt = await (await h.getFile()).text();
-      var r = applique(txt, blocsData());
-      if(r.absents.length){ toast('Blocs introuvables : '+r.absents.join(', ')+'. Est-ce le bon data.js ?','err'); return; }
-      var w = await h.createWritable(); await w.write(r.texte); await w.close();
+      var h = await DF.poignee('data', 'js/data.js');
+      if(!(await DF.permission(h))){ toast('Permission refusée sur data.js.','err'); return; }
+      var r = DF.remplace(await DF.lis(h), blocsData());
+      if(r.absents.length){
+        await DF.oublie('data');   // sinon on rejouerait indéfiniment sur le mauvais fichier
+        toast('Blocs introuvables : '+r.absents.join(', ')+'. Ce n’est pas le bon data.js — on le redemandera.','err');
+        return; }
+      await DF.ecris(h, r.texte);
 
-      var h2 = await fichier('i18n', 'js/i18n.js');
-      if(await permission(h2)){
-        var t2 = await (await h2.getFile()).text();
-        var r2 = applique(t2, [{nom:'TR', txt:SC.trConst('TR', TRAD)}]);
-        if(r2.absents.length) toast('data.js écrit, mais le bloc TR est introuvable dans ce fichier.','err');
-        else { var w2 = await h2.createWritable(); await w2.write(r2.texte); await w2.close();
+      var h2 = await DF.poignee('i18n', 'js/i18n.js');
+      if(await DF.permission(h2)){
+        var r2 = DF.remplace(await DF.lis(h2), [{nom:'TR', txt:SC.trConst('TR', TRAD)}]);
+        if(r2.absents.length){ await DF.oublie('i18n');
+          toast('data.js écrit, mais le bloc TR est introuvable dans ce fichier.','err'); }
+        else { await DF.ecris(h2, r2.texte);
                propre(); toast('data.js et i18n.js écrits — le guide se met à jour.','ok'); return; }
       }
       propre(); toast('data.js écrit (i18n.js non enregistré).','ok');
@@ -437,6 +413,7 @@
     if(mod && (k==='y' || (k==='z' && e.shiftKey))){ e.preventDefault(); retablir(); }
   });
   buildTree(); editeur(); rendre(); memorise();
+  // crochet de test : le remplacement lui-même se teste sur window.DATAFILE
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
-                 blocsData:blocsData, applique:applique};
+                 blocsData:blocsData};
 })();
