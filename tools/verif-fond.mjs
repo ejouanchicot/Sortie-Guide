@@ -39,21 +39,26 @@ const b0 = await p.evaluate(() => {
 dit('elle est dans le selecteur de carte', b0.existe && b0.visible, JSON.stringify(b0));
 dit('elle annonce un remplacement quand un fond existe deja',
     /Changer/.test(b0.texte), b0.texte);
-dit('le menu porte aussi nouvelle carte et renommer',
-    b0.entrees.join(',') === '__neuve__,__fond__,__renom__', JSON.stringify(b0.entrees));
+dit('le menu porte aussi creer, renommer et supprimer',
+    b0.entrees.join(',') === '__neuve__,__fond__,__renom__,__suppr__', JSON.stringify(b0.entrees));
 // L'en-tete doit tenir sur UNE ligne aux largeurs d'ecran courantes. Sur deux,
 // il mange la hauteur de la carte — et c'est ce qui arrivait des 1700 px.
 console.log('\n— la place dans l\'en-tete —');
+// On RECHARGE a chaque largeur au lieu de redimensionner : mesurer juste apres
+// un redimensionnement rend une hauteur d'avant la reprise de mise en page une
+// fois sur trois, et le test accusait le produit a tort. Recharger, c'est
+// aussi ce que fait quelqu'un qui ouvre l'outil sur son ecran.
 for(const W of [1920, 1600, 1440, 1366]){
   await p.setViewport({width:W, height:950});
-  // Deux images, pas un delai : un delai fixe mesurait parfois la mise en page
-  // d'AVANT le redimensionnement, et le test accusait le produit a tort.
-  const h = await p.evaluate(() => new Promise(res =>
-    requestAnimationFrame(() => requestAnimationFrame(() =>
-      res(Math.round(document.querySelector('.st-top').getBoundingClientRect().height))))));
+  await p.goto('http://localhost:8137/tools/studio.html', {waitUntil:'networkidle0'});
+  await p.waitForFunction(() => document.getElementById('carteSel'), {timeout:8000});
+  const h = await p.evaluate(() =>
+    Math.round(document.querySelector('.st-top').getBoundingClientRect().height));
   dit(`une seule ligne a ${W} px`, h <= 100, h + ' px');
 }
 await p.setViewport({width:1600, height:950});
+await p.goto('http://localhost:8137/tools/studio.html', {waitUntil:'networkidle0'});
+await p.waitForFunction(() => document.getElementById('carteSel'), {timeout:8000});
 
 console.log('\n— la conversion —');
 // une capture d'ecran plausible : grande, en PNG, pas carree
@@ -113,6 +118,56 @@ const ecrit = await p.evaluate(() => {
 });
 dit('le bloc des cartes porte le chemin', ecrit.a && /img\//.test(ecrit.fond || ''), ecrit.fond);
 dit('et jamais l\'image elle-meme', !ecrit.images);
+
+/* Supprimer une carte : le geste le plus risque du lot. Un chapitre la DESIGNE
+   par son nom — le laisser pointer vers rien donnerait un chapitre sans carte
+   et sans message. */
+console.log('\n— supprimer une carte —');
+const supp = await p.evaluate(async () => {
+  // on repond « oui » a la confirmation sans ouvrir de boite
+  const vraiDemande = window.__MS.demande;
+  const noms0 = Object.keys(CARTES);
+  const chap0 = FLOORS.map(f => f.carte);
+
+  // une carte en trop, que personne n'utilise
+  CARTES['Carte jetable'] = {fond:'', trace:'', depart:null, departNom:'',
+    bosses:[{name:'X', n:1, el:'fire', x:1, y:1, nx:0, ny:0}],
+    packs:[], mids:[], routes:[], texts:[], shapes:[], zones:[]};
+  return {noms0, chap0, apres:Object.keys(CARTES).length};
+});
+dit('on peut ajouter une carte pour l\'essai', supp.apres === supp.noms0.length + 1);
+
+// la vraie suppression passe par une boite de dialogue : on la court-circuite
+const fin = await p.evaluate(async () => {
+  const S = window.SORTIE, REG = CARTES, FL = FLOORS;
+  const nom = FL[0].carte;                       // celle du premier chapitre
+  const noms = Object.keys(REG);
+  const suite = noms.filter(k => k !== nom)[0];
+  const utilisent = FL.filter(f => f.carte === nom).length;
+
+  // exactement ce que fait supprimeCarte apres la confirmation
+  S.deposeCartes(FL, REG);
+  delete REG[nom];
+  FL.forEach(x => { if(x.carte === nom) x.carte = suite; });
+  S.resoudreCartes(FL, REG);
+
+  return {partie:!(nom in REG), utilisent, suite,
+          orphelins:FL.filter(f => !REG[f.carte]).length,
+          chapitresOntUneCarte:FL.every(f => Array.isArray(f.bosses)),
+          restantes:Object.keys(REG).length};
+});
+dit('la carte disparait du registre', fin.partie);
+dit('aucun chapitre ne pointe dans le vide', fin.orphelins === 0, fin.orphelins + ' orphelin(s)');
+dit('les chapitres concernes basculent sur une autre', fin.chapitresOntUneCarte);
+console.log('       ' + fin.utilisent + ' chapitre(s) bascule(s) sur « ' + fin.suite + ' » · '
+  + fin.restantes + ' carte(s) restantes');
+
+// et on ne doit jamais pouvoir supprimer la derniere
+const derniere = await p.evaluate(() => {
+  const s = document.getElementById('carteSel');
+  return [...s.options].some(o => o.value === '__suppr__');
+});
+dit('l\'entree existe tant qu\'il reste plusieurs cartes', derniere);
 
 dit('rien ne casse', bruit.length === 0, bruit.slice(0,3).join('\n       '));
 

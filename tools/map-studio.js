@@ -1097,6 +1097,7 @@
       +'<option value="__neuve__">＋ Nouvelle carte…</option>'
       +'<option value="__fond__">▣ '+(aFond?'Changer l’image de fond…':'Poser une image de fond…')+'</option>'
       +'<option value="__renom__">✎ Renommer cette carte</option>'
+      +(noms.length>1?'<option value="__suppr__">✕ Supprimer cette carte</option>':'')
       +'</select>'
       +(n>1?'<span class="cartepart" title="Cette carte sert a plusieurs chapitres">partagee par '+n+' chapitres</span>':'');
     document.getElementById('carteSel').addEventListener('change',e=>{
@@ -1104,7 +1105,41 @@
       if(v==='__neuve__'){nouvelleCarte();return;}
       if(v==='__fond__'){majSelCarte();choisirFond();return;}
       if(v==='__renom__'){majSelCarte();renommeCarte();return;}
+      if(v==='__suppr__'){majSelCarte();supprimeCarte();return;}
       choisirCarte(v);});
+  }
+
+  /* ---- supprimer une carte ----
+     Delicat : un chapitre la DESIGNE par son nom. Le laisser pointer vers rien
+     donnerait un chapitre sans carte, sans que rien ne le dise. Les chapitres
+     concernes basculent donc sur une autre carte, et on l'annonce AVANT. */
+  async function supprimeCarte(){
+    const noms=Object.keys(REG);
+    if(noms.length<2){toast('Il faut garder au moins une carte.','err');return;}
+    const f=FL[curIdx];if(!f||!REG[f.carte])return;
+    const nom=f.carte,c=REG[nom],n=chapitresAvec(nom);
+    const suite=noms.filter(k=>k!==nom)[0];
+
+    // ce qu'on perd vraiment : le contenu pose sur la carte
+    const quoi=[['marqueur',(c.bosses||[]).length+(c.packs||[]).length+(c.mids||[]).length],
+                ['trace',(c.routes||[]).length],['texte',(c.texts||[]).length],
+                ['forme',(c.shapes||[]).length]]
+      .filter(x=>x[1]).map(x=>x[1]+' '+x[0]+(x[1]>1?'s':'')).join(', ');
+
+    const ok=await askConfirm('Supprimer <b>'+esc(nom)+'</b> ?'
+      +(quoi?'<br><br>Elle porte '+quoi+' — tout part avec elle.':'')
+      +(n?'<br><br><b>'+n+' chapitre'+(n>1?'s l’utilisent':' l’utilise')+'</b> : '
+         +(n>1?'ils passeront':'il passera')+' sur « '+esc(suite)+' ».':'')
+      +'<br><br><small>L’image de fond, elle, reste dans le dossier img.</small>',
+      {title:'Supprimer la carte',ok:'Supprimer'});
+    if(!ok){majSelCarte();return;}
+
+    S.deposeCartes(FL,REG);                 // on n'abandonne pas le travail en cours
+    delete REG[nom];
+    FL.forEach(x=>{if(x.carte===nom)x.carte=suite;});
+    S.resoudreCartes(FL,REG);
+    setDirty(true);await renderFloor(curIdx);resetHistory();majSelCarte();
+    toast('« '+nom+' » supprimee'+(n?' — '+n+' chapitre(s) sur « '+suite+' »':'')+'.','ok');
   }
 
   /* ---- poser une image de fond ----
