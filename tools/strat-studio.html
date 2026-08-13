@@ -19,10 +19,22 @@
     <div class="ss-brand"><img class="ss-logo" src="../img/map-studio-logo.webp" alt="" width="44" height="44"><span class="ss-wm">STRAT<b>STUDIO</b></span></div>
     <span class="ss-div"></span>
     <div class="ss-seg" id="ssFloor"><button type="button" data-i="0" class="on">Rez-de-chaussée</button><button type="button" data-i="1">Sous-sol</button></div>
+
+    <!-- Réglages de la strat, à GAUCHE avec l'étage : ce qu'on édite. Les
+         actions sur le FICHIER restent à droite. Mélangés, « Compo » passait
+         inaperçu au milieu de Recharger et Enregistrer. -->
+    <span class="ss-div"></span>
+    <div class="ss-tools">
+      <button class="ss-tool" id="ssCompo" title="Combien on est, et avec quels jobs">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5" r="2.4"/><circle cx="11.5" cy="6" r="1.9"/><path d="M1.4 13.2c0-2.4 1.9-3.9 4.1-3.9s4.1 1.5 4.1 3.9"/><path d="M10.6 9.6c2 .1 3.9 1.1 3.9 3.6"/></svg>
+        <span>Compo</span><b id="ssCompoBadge">6</b></button>
+      <button class="ss-tool" id="ssRoles" title="Quel job tient quel rôle dans CETTE strat">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6 14.4 8 8 14.4 1.6 8z"/><circle cx="8" cy="8" r="2.2"/></svg>
+        <span>Rôles</span></button>
+    </div>
+
     <div class="ss-spacer"></div>
     <span id="ssUnsaved" title="Des modifications ne sont pas encore écrites dans les fichiers">non enregistré</span>
-    <button class="ss-btn" id="ssCompo" title="Combien on est, et avec quels jobs">Compo</button>
-    <button class="ss-btn" id="ssRoles" title="Quel job tient quel rôle dans CETTE strat">Rôles</button>
     <button class="ss-btn" id="ssReload" title="Relire data.js et i18n.js depuis le disque">Recharger</button>
     <button class="ss-btn primary" id="ssSave" title="Écrire dans data.js et i18n.js (Ctrl+S)">Enregistrer</button>
   </div>

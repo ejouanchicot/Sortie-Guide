@@ -38,6 +38,24 @@ body{overflow:hidden;background:var(--bg)}
 @media (max-width:430px){ .ss-wm{display:none} }
 .ss-div{width:1px;height:22px;background:var(--line)}
 .ss-spacer{flex:1}
+
+/* ─── réglages de la strat ───
+   Ils vivent à gauche, avec le sélecteur d'étage : c'est ce qu'on ÉDITE.
+   À droite on ne garde que ce qui touche au fichier. Une icône et un
+   contour tramé les distinguent des boutons d'action pleins. */
+.ss-tools{display:flex;gap:5px}
+.ss-tool{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12.5px;font-weight:600;
+  color:var(--txt2);background:transparent;border:1px dashed var(--line2);border-radius:10px;
+  padding:7px 11px;cursor:pointer;white-space:nowrap;transition:.15s var(--ease)}
+.ss-tool svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.35;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.ss-tool:hover{color:#fff;border-style:solid;border-color:var(--accent2);
+  background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.ss-tool:hover svg{opacity:1}
+.ss-tool:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+/* la taille du groupe, lisible sans ouvrir le panneau */
+.ss-tool b{font-family:var(--mono);font-size:10px;font-weight:800;line-height:1;padding:3px 6px;border-radius:6px;
+  color:var(--accent2);background:color-mix(in srgb,var(--accent) 16%,transparent)}
 .ss-seg{display:flex;gap:3px;padding:3px;background:rgba(0,0,0,.24);border:1px solid var(--hair);border-radius:12px}
 .ss-seg button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--dim);background:transparent;border:none;border-radius:9px;padding:6px 13px;cursor:pointer;white-space:nowrap}
 .ss-seg button.on{color:#fff;background:linear-gradient(135deg,var(--accent),var(--violet))}
@@ -236,10 +254,25 @@ button.ss-job.hors:hover{opacity:1}
   background:rgba(4,7,12,.6);backdrop-filter:blur(6px)}
 #ssCompoPan[hidden]{display:none}
 .ss-cseg{display:inline-flex;margin:0 0 10px}
-.ss-cinfo{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 0 14px}
+.ss-cinfo{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 0 16px;line-height:1.6}
 .ss-cinfo b{color:var(--r-buff)}
-.ss-cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
-.ss-cj{font-family:var(--mono);font-size:11.5px;font-weight:800;letter-spacing:.05em;padding:9px 4px;
+.ss-cinfo b.n{color:var(--txt);font-size:13px}
+
+/* une catégorie par bande : on compose en pensant « il me faut un tank et
+   deux soins », pas en cherchant un job dans un alphabet de vingt-deux */
+.ss-cgrid{display:flex;flex-direction:column;gap:3px}
+.ss-ccat{--jc:var(--r-all);display:grid;grid-template-columns:96px 1fr;align-items:start;gap:10px;
+  padding:9px 0;border-top:1px solid var(--hair)}
+.ss-ccat:first-child{border-top:none;padding-top:2px}
+.ss-ccat.r-tank{--jc:var(--r-tank)} .ss-ccat.r-heal{--jc:var(--r-heal)}
+.ss-ccat.r-buff{--jc:var(--r-buff)} .ss-ccat.r-dd{--jc:var(--r-dd)}
+.ss-ccat h4{display:flex;align-items:center;gap:7px;margin:6px 0 0;
+  font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--jc)}
+/* le compte de la catégorie : c'est lui qu'on vérifie en composant */
+.ss-ccat h4 span{font-size:10px;line-height:1;padding:3px 6px;border-radius:99px;color:var(--jc);
+  background:color-mix(in srgb,var(--jc) 15%,transparent);border:1px solid color-mix(in srgb,var(--jc) 34%,transparent)}
+.ss-crow{display:flex;flex-wrap:wrap;gap:5px}
+.ss-cj{font-family:var(--mono);font-size:11.5px;font-weight:800;letter-spacing:.05em;padding:8px 12px;
   border-radius:9px;cursor:pointer;color:var(--dim);background:transparent;
   border:1px solid var(--hair);transition:.13s var(--ease)}
 .ss-cj.r-tank{--jc:var(--r-tank)} .ss-cj.r-heal{--jc:var(--r-heal)}

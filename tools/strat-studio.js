@@ -427,19 +427,34 @@
   });
 
   /* ---------------- composition du groupe ---------------- */
+  // La grille suit les quatre catégories plutôt qu'un alphabet : on compose un
+  // groupe en pensant « il me faut un tank, deux soins », pas « il me faut un
+  // job dont le nom commence par B ». Le compte par catégorie se lit à côté du
+  // titre, c'est ce qu'on vérifie vraiment.
   function panneauCompo(){
     var g = $('ssCompoGrid'); if(!g) return;
-    var jobs = S.compoJobs(CP);
+    var jobs = S.compoJobs(CP), RT = (typeof ROLE!=='undefined') ? ROLE : {};
     $('ssCompoTailles').innerHTML = S.TAILLES.map(function(t){
       return '<button type="button" data-t="'+t+'"'+(CP.taille===t?' class="on"':'')+'>'+t+' joueurs</button>'; }).join('');
     var sup = jobs.length - CP.taille;
-    $('ssCompoInfo').innerHTML = jobs.length + ' job' + (jobs.length>1?'s':'') + ' pour ' + CP.taille + ' place'
-      + (CP.taille>1?'s':'')
-      + (sup > 0 ? ' — <b>'+sup+' remplaçant'+(sup>1?'s':'')+'</b> (un même créneau tenu par deux jobs, comme PLD ou DNC)'
-        : sup < 0 ? ' — <b>'+(-sup)+' place'+(sup<-1?'s':'')+' encore vide'+(sup<-1?'s':'')+'</b>' : ' — au complet');
-    g.innerHTML = tousLesJobs().map(function(j){
-      return '<button type="button" class="ss-cj r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
-        + (jobs.indexOf(j)>=0?' on':'')+'" data-job="'+esc(j)+'">'+esc(j)+'</button>'; }).join('');
+    $('ssCompoInfo').innerHTML = '<b class="n">'+jobs.length+'</b> job' + (jobs.length>1?'s':'')
+      + ' pour <b class="n">'+CP.taille+'</b> place' + (CP.taille>1?'s':'')
+      + (sup > 0 ? ' · <b>'+sup+' remplaçant'+(sup>1?'s':'')+'</b> — un même créneau tenu par deux jobs, comme PLD ou DNC'
+        : sup < 0 ? ' · <b>'+(-sup)+' place'+(sup<-1?'s':'')+' encore vide'+(sup<-1?'s':'')+'</b>'
+        : ' · <b>au complet</b>');
+    g.innerHTML = Object.keys(ROLE_NOMS).map(function(r){
+      var dedans = tousLesJobs().filter(function(j){ return S.roleDuJob(RT,j)===r && jobs.indexOf(j)>=0; });
+      var liste  = tousLesJobs().filter(function(j){ return S.roleDuJob(RT,j)===r; });
+      if(!liste.length) return '';
+      return '<section class="ss-ccat r-'+r+'">'
+        + '<h4>'+ROLE_NOMS[r]+'<span>'+dedans.length+'</span></h4>'
+        + '<div class="ss-crow">'
+        + liste.map(function(j){
+            return '<button type="button" class="ss-cj r-'+r+(jobs.indexOf(j)>=0?' on':'')
+              + '" data-job="'+esc(j)+'" aria-pressed="'+(jobs.indexOf(j)>=0)+'">'+esc(j)+'</button>'; }).join('')
+        + '</div></section>';
+    }).join('');
+    var t = $('ssCompoBadge'); if(t) t.textContent = CP.taille;
   }
   function basculeCompo(job){
     var jobs = S.compoJobs(CP), i = jobs.indexOf(job);
@@ -575,6 +590,7 @@
     if(mod && (k==='y' || (k==='z' && e.shiftKey))){ e.preventDefault(); retablir(); }
   });
   buildTree(); editeur(); rendre(); memorise();
+  $('ssCompoBadge').textContent = CP.taille;   // lisible sans ouvrir le panneau
   // crochet de test : le remplacement lui-même se teste sur window.DATAFILE
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
                  blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,
