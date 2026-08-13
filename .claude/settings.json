@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(node tests/lancer.mjs:*)",
+      "Bash(python tools/build/build-studio.py)",
+      "Bash(python tools/build/scope-mapcss.py)",
+      "Bash(python -m http.server 8137)"
+    ],
+    "deny": [
+      "Bash(git push:*)"
+    ]
+  }
+}

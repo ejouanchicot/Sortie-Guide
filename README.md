@@ -1,66 +1,81 @@
-# SORTIE · Guide de run
+# FFXI Strat Studio
 
-> 🚧 **Work in progress** — le guide est en cours d'écriture et évolue au fil des runs.
-> Certaines phases, chiffres ou rôles peuvent encore changer. Remontez-moi toute erreur !
+> 🚧 **En cours d'écriture** — l'outil et les strats évoluent au fil des runs.
+> Remontez-moi toute erreur.
 
-Guide de stratégie **Sortie** pour **FINAL FANTASY XI**, en 4 phases linéaires
-(Degei → Skomora → Leshonn → Ghatjot), pensé pour le linkshell **Nightfallens**.
+Un atelier pour **écrire, publier et partager une stratégie FFXI cartographiée**.
+Odyssey, Sortie, n'importe quel event : on place les mobs sur la carte, on trace
+le trajet, on écrit ce que chaque job fait — et ça sort en guide interactif, en
+fichier unique, ou collé dans un salon Discord.
 
-🔗 **En ligne :** https://ejouanchicot.github.io/Sortie-Guide/
+🔗 **Le guide :** https://ejouanchicot.github.io/Sortie-Guide/
+🔗 **L'atelier :** https://ejouanchicot.github.io/Sortie-Guide/tools/studio.html
 
-Site **statique** (HTML / CSS / JS séparés) : aucune installation, aucun compte, aucun
-serveur — tout tourne dans le navigateur.
+Site **statique** : aucune installation, aucun compte, aucun serveur. Tout tourne
+dans le navigateur, et il marche hors ligne une fois installé.
 
-## Structure du projet
+## Les deux faces
+
+**L'atelier** (`tools/studio.html`) — deux panneaux dans une même fenêtre :
+
+- **Carte** — poser les marqueurs (boss, mid-boss, packs), tracer les trajets
+  animés, écrire des annotations en texte enrichi, poser un fond depuis son disque.
+  Un calque par type de marqueur, pour n'en regarder qu'un pendant qu'on travaille.
+- **Stratégie** — écrire, étape par étape, ce que chaque job fait. La composition
+  se décrit en *places*, ce qui dit qui remplace qui.
+
+Il s'**installe** (bouton *Installer*), garde plusieurs strats en bibliothèque, et
+sait *Partager* : un fichier `.html` unique qui est à la fois le guide lisible d'un
+double-clic **et** sa propre sauvegarde — l'atelier sait le rouvrir.
+
+**Le guide** (`index.html`) — le rendu d'une strat : carte d'ensemble avec le
+trajet animé, timeline par phase, **filtre « Mon rôle »** et mode **Solo**,
+bascule **FR/EN**, thème **clair/sombre**, sélecteur de **comp**, cartes zoomables.
+Mobile-first, du téléphone à l'ultra-wide.
+
+## Arborescence
 
 ```
-index.html        page principale (structure)
-css/style.css     tout le style
-js/data.js        CONTENU de la strat (phases, boss, packs, buffs) — c'est ici qu'on édite
-js/app.js         MOTEUR : rendu + interactions (rarement touché)
-img/              carte + portraits des mobs et boss
-og.png            aperçu Discord / réseaux sociaux
+index.html                le guide
+tools/studio.html         l'atelier
+css/  fonts/  img/        style, polices auto-hébergées, images
+js/                       le socle, le moteur du guide, les modules partagés
+tools/                    les deux ateliers + tools/build/ (générateurs)
+tests/                    11 tests de rendu · node tests/lancer.mjs
+docs/                     architecture, backlog, marque
 ```
 
-Les chemins sont **relatifs** : tant que tu gardes cette arborescence, ça marche à la
-racine du dépôt comme en local.
+Les chemins sont **relatifs** : l'arborescence conservée, ça marche à la racine
+d'un dépôt comme en local.
 
-## Ce que contient le guide
+## Développer
 
-- **Vue d'ensemble** — la carte du run avec le trajet animé et chaque point d'arrêt
-  (packs et boss) placé au bon endroit, coloré par zone.
-- **Timeline par phase** — chaque phase sous forme de carte, du farm au boss, dans l'ordre.
-- **Filtre « Mon rôle »** — clique ton job pour faire ressortir tes actions ; le mode
-  **Solo** masque tout le reste pour ne garder que ta ligne.
-- **Bascule FR / EN** — bouton de langue en haut à droite ; le choix est mémorisé.
-- **Thème clair / sombre** — bouton ☀/☾ en haut à droite ; le choix est mémorisé.
-- **Responsive** — mobile-first, du téléphone à l'écran ultra-wide.
-- **Sélecteur de comp** — bascule entre le flex **PLD** et **DNC**, la strat s'adapte.
-- **Cartes zoomables** — clic sur une carte pour l'agrandir.
-- **Couleurs FFXI** — rôles et éléments codés par couleur, cartes Boss et Farm bien distinctes.
+Aucune dépendance à installer, aucun build. Un serveur local suffit :
 
-## Publier / mettre à jour
+```bash
+python -m http.server 8137     # puis http://localhost:8137/
+node tests/lancer.mjs          # les 11 tests de rendu (Puppeteer)
+```
 
-C'est un site **statique** : un simple dépôt GitHub avec **GitHub Pages** activé suffit.
+Deux fichiers sont **générés** — les modifier à la main ne sert à rien :
 
-1. Copie **tout le contenu** (`index.html`, `og.png`, `css/`, `js/`, `img/`) à la racine du dépôt.
-2. **Settings → Pages** → Source : branche `main`, dossier `/(root)` → *Save*.
-3. Pour une nouvelle version, remplace le(s) fichier(s) concerné(s) — l'URL ne change pas.
-   (contenu de la strat = `js/data.js`, moteur = `js/app.js`, style = `css/style.css`.)
+```bash
+python tools/build/build-studio.py    # → tools/studio.html
+python tools/build/scope-mapcss.py    # → tools/map-studio.confine.css
+```
 
-> Si tu utilises un autre nom de dépôt que `Sortie-Guide`, pense à mettre à jour les URLs
-> `og:image` et `og:url` dans le `<head>` de `index.html` (sinon l'aperçu Discord pointe au mauvais endroit).
+Voir `CLAUDE.md` pour les règles de travail et `docs/architecture.md` pour le détail.
 
-## Utiliser hors-ligne
+## Publier
 
-Télécharge le dossier complet et ouvre `index.html` dans n'importe quel navigateur : tout
-fonctionne en local (seul l'aperçu Discord `og.png` a besoin de l'URL hébergée).
+GitHub Pages, branche `main`, dossier `/(root)`. Remplacer un fichier suffit ;
+l'URL ne change pas. Après une modification de `sw.js`, **monter `VERSION`** —
+c'est ce qui purge l'ancien cache chez tout le monde.
 
-## À faire (roadmap)
+## Hors ligne
 
-- [ ] Valider tous les chiffres / rôles en conditions réelles
-- [ ] Détailler la variante en comp **DNC**
-- [ ] Compléter les actions **WHM / GEO** manquantes sur certains boss
+Installer l'atelier depuis le bouton *Installer*, ou télécharger le dossier et
+ouvrir `index.html` dans n'importe quel navigateur.
 
 ---
 
