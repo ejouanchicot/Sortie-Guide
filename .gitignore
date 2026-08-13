@@ -21,3 +21,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# visuels de marque bruts (ChatGPT/Midjourney) : on ne versionne que les
+# exports finaux dans img/ (logo.webp, icon.webp, og-studio.webp)
+/ChatGPT Image*.png

@@ -19,17 +19,28 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
   border-bottom:1px solid transparent;
   box-shadow:0 1px 0 color-mix(in srgb,#5bd6ef 24%,transparent),0 12px 34px -20px #000}
 
-/* wordmark : mêmes mesures que les deux ateliers avaient chacun de leur côté */
+/* ─── marque : FFXI STRAT STUDIO ───
+   Le lockup est refait en texte plutôt que posé en image : net à toute
+   taille, il suit le thème, et le « FFXI » reste lisible à 11 px là où
+   un raster bavait. Le symbole, lui, reste une image — il est dessiné.
+   Mesures et dégradés repris du lockup de référence. */
 .st-brand{display:flex;align-items:center;gap:11px;flex:none}
-.st-logo{width:44px;height:44px;flex:none;object-fit:cover;border-radius:12px;
+.st-logo{width:44px;height:44px;flex:none;object-fit:contain;
   transition:transform .3s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:0 0 0 1px var(--line2),0 6px 20px -6px #000,0 0 30px -8px color-mix(in srgb,#5bd6ef 72%,transparent)}
-.st-brand:hover .st-logo{transform:translateY(-1px) scale(1.03)}
-.st-wm{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:2px;line-height:1;
-  display:inline-flex;gap:7px;white-space:nowrap;
+  filter:drop-shadow(0 0 16px color-mix(in srgb,#5bd6ef 40%,transparent))}
+.st-brand:hover .st-logo{transform:translateY(-1px) scale(1.04)}
+.st-wm{display:flex;flex-direction:column;gap:2px;line-height:1;white-space:nowrap}
+/* le tag du jeu, prolongé d'un filet jusqu'au bout du mot — comme le lockup */
+.st-wm .tag{display:flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.34em;color:#5bd6ef}
+.st-wm .tag::after{content:"";flex:1;height:1px;min-width:22px;
+  background:linear-gradient(90deg,color-mix(in srgb,#5bd6ef 55%,transparent),transparent)}
+.st-wm .nom{font-family:var(--display);font-size:20px;letter-spacing:1.6px;
+  display:inline-flex;gap:7px}
+.st-wm .nom i{font-style:normal;font-weight:300;
   background:linear-gradient(180deg,#ffffff,#c2d6f2);-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent}
-.st-wm b{font-weight:700;background:linear-gradient(180deg,#5bd6ef,#54d1c4);
+.st-wm .nom b{font-weight:800;background:linear-gradient(180deg,#ffffff,#5bd6ef 70%,#54d1c4);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 0 10px color-mix(in srgb,#5bd6ef 45%,transparent))}
 
