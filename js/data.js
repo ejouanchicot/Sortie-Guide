@@ -289,17 +289,17 @@ const PHASES=[
    ============================================================ */
 const PHASES_B=[
 {n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
+  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"",noHeadImg:true,groups:[
     {label:"Botulus",cls:"",lines:[
-      ln(["DNC"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
+      ln(["ALL"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
   ]},
   {kind:"boss",name:"Boss · Dhartok",tag:"à définir",groups:[]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
+  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"",noHeadImg:true,groups:[
     {label:"Naraka",cls:"",lines:[
-      ln(["DNC"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
+      ln(["ALL"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
   ]},
   {kind:"boss",name:"Boss · Triboulex",tag:"à définir",groups:[]}
