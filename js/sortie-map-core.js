@@ -353,8 +353,72 @@
     return floors;
   }
 
+  // L'inverse : ce que l'atelier a pu REMPLACER sur le chapitre redescend dans
+  // la carte. « Annuler » réaffecte f.bosses avec un tableau neuf, et le
+  // premier marqueur d'une carte vide en crée un : dans les deux cas la
+  // référence se détache, et sans ce retour la carte garderait l'ancienne.
+  function deposeCartes(floors, cartes){
+    (floors || []).forEach(function(f){
+      var c = (cartes || {})[f.carte];
+      if(!c) return;
+      CHAMPS_CARTE.forEach(function(p){ if(f[p[0]] !== undefined) c[p[1]] = f[p[0]]; });
+    });
+    return cartes;
+  }
+
+  /* ---- écrire le registre des cartes ----
+     Chaque carte porte SES tableaux, au lieu de pointer douze constantes
+     nommées par étage. C'est ce qui permet d'en ajouter une sans inventer
+     BOSSES_C, PACKS_C, ROUTES_C…
+
+     On ne réécrit pas les sérialiseurs pour autant : on leur demande leur
+     « const X=[…]; » habituel et on n'en garde que le tableau, ré-indenté.
+     Ils restent la seule source de vérité du format, et testés comme tels. */
+  function corpsTableau(txt, ind){
+    var c = txt.slice(txt.indexOf('=') + 1, -1);          // « [ … ] »
+    return c.split('\n').map(function(l, i){ return i ? ind + l : l; }).join('\n');
+  }
+  var TABLEAUX_CARTE = [['bosses', bossesConst], ['packs', packsConst], ['mids', midsConst],
+                        ['routes', routesConst], ['texts', textsConst], ['shapes', shapesConst]];
+  function carteConst(nom, c, ind){
+    var s = ind + JSON.stringify(nom) + ':{\n';
+    var d = ind + ' ';
+    s += d + 'fond:' + JSON.stringify(c.fond || '') + ',\n';
+    s += d + 'trace:' + JSON.stringify(c.trace || '') + ',\n';
+    s += d + 'depart:' + (c.depart ? JSON.stringify(c.depart) : 'null')
+       + ', departNom:' + JSON.stringify(c.departNom || '') + ',\n';
+    s += TABLEAUX_CARTE.map(function(p){
+      return d + p[0] + ':' + corpsTableau(p[1]('X', c[p[0]] || []), d);
+    }).join(',\n');
+    if(c.zones) s += ',\n' + d + 'zones:' + JSON.stringify(c.zones);
+    return s + '\n' + ind + '}';
+  }
+  function cartesConst(nm, registre){
+    var cles = Object.keys(registre || {});
+    if(!cles.length) return 'const ' + nm + '={\n};';
+    return 'const ' + nm + '={\n'
+      + cles.map(function(k){ return carteConst(k, registre[k], ' '); }).join(',\n')
+      + '\n};';
+  }
+  // Un chapitre : ce qui lui appartient, plus le NOM de sa carte.
+  function chapitresConst(nm, floors){
+    return 'const ' + nm + '=[\n'
+      + (floors || []).map(function(f){
+          var s = ' {id:' + JSON.stringify(f.id) + ', fr:' + JSON.stringify(f.fr || '')
+            + ', en:' + JSON.stringify(f.en || '');
+          if(f.sub) s += ', sub:' + JSON.stringify(f.sub);
+          s += ',\n  carte:' + JSON.stringify(f.carte || '');
+          if(f.introFr != null) s += ',\n  introFr:' + JSON.stringify(f.introFr);
+          if(f.introEn != null) s += ', introEn:' + JSON.stringify(f.introEn);
+          return s + ',\n  phases:' + (f.__phases || 'PHASES') + '}';
+        }).join(',\n')
+      + '\n];';
+  }
+
   global.SORTIE = {
-    resoudreCartes:resoudreCartes,
+    resoudreCartes:resoudreCartes, deposeCartes:deposeCartes,
+    carteConst:carteConst, cartesConst:cartesConst,
+    chapitresConst:chapitresConst, corpsTableau:corpsTableau,
     ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
     TAILLES:TAILLES, compoCreneaux:compoCreneaux, compoJobs:compoJobs, compoConst:compoConst,
     compoVariantes:compoVariantes, variante:variante,

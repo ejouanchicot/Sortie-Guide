@@ -1046,24 +1046,19 @@
   // témoin « non enregistré » : le seul rappel visuel que le travail n'est encore qu'en mémoire
   function setDirty(v){dirty=!!v;const el=document.getElementById('unsaved');if(el)el.classList.toggle('on',dirty);}
   // blocs data.js d'UN étage — les noms et le format doivent rester STRICTEMENT stables
-  function floorBlocks(f){const top=f.id==='top';const out=[];
-    (f.routes||[]).forEach(rt=>{if(rt._pts)rt.points=S.ptsStr(rt._pts);}); // fige les points édités avant sérialisation
-    const bloc=(nom,txt)=>out.push({nom,txt});
-    bloc(top?'BOSSES':'BOSSES_B',S.bossesConst(top?'BOSSES':'BOSSES_B',f.bosses||[]));
-    bloc(top?'PACKS':'PACKS_B',S.packsConst(top?'PACKS':'PACKS_B',f.packs||[]));
-    bloc(top?'MIDS_TOP':'MIDS_B',S.midsConst(top?'MIDS_TOP':'MIDS_B',f.mids||[]));
-    // toujours émis (même vide) → supprimer le dernier tracé est bien persisté dans data.js
-    bloc(top?'ROUTES_TOP':'ROUTES_B',S.routesConst(top?'ROUTES_TOP':'ROUTES_B',f.routes||[]));
-    bloc(top?'TEXTS':'TEXTS_B',S.textsConst(top?'TEXTS':'TEXTS_B',f.texts||[]));
-    bloc(top?'SHAPES':'SHAPES_B',S.shapesConst(top?'SHAPES':'SHAPES_B',f.shapes||[]));
-    return out;}
+  // Le registre des cartes : un chapitre pointe une carte, et l'atelier edite
+  // les tableaux de la carte a travers lui. On les REDESCEND dans le registre
+  // avant d'ecrire, parce que « annuler » et le premier marqueur d'une carte
+  // vide reaffectent f.bosses avec un tableau neuf.
+  const REG=(typeof CARTES!=='undefined')?CARTES:{};
   // ⚠ on sérialise TOUS les étages, pas seulement celui affiché : sinon les modifications
   // faites sur l'autre étage avant de changer d'onglet étaient perdues sans le moindre avertissement.
-  function blocksToSave(){const out=[];
-    FL.forEach(f=>{floorBlocks(f).forEach(b=>out.push(b));});
-    out.push({nom:'MOBSCALE',scalaire:true,txt:'const MOBSCALE='+r1(mobScale)+';'});
-    out.push({nom:'LBLMARGIN',scalaire:true,txt:'const LBLMARGIN='+r1(labelMargin)+';'});
-    return out;}
+  function blocksToSave(){
+    FL.forEach(f=>{(f.routes||[]).forEach(rt=>{if(rt._pts)rt.points=S.ptsStr(rt._pts);});}); // fige les points edites
+    S.deposeCartes(FL,REG);
+    return [{nom:'CARTES',txt:S.cartesConst('CARTES',REG)},
+            {nom:'MOBSCALE',scalaire:true,txt:'const MOBSCALE='+r1(mobScale)+';'},
+            {nom:'LBLMARGIN',scalaire:true,txt:'const LBLMARGIN='+r1(labelMargin)+';'}];}
   /* ============================================================
      10b · EXPORT — image de la carte, ou blocs data.js
      ------------------------------------------------------------
