@@ -71,7 +71,14 @@ console.log('\n— nouvelle strat —');
   await p.type('#ssModal input', 'Odyssey Sheol C');
   await p.evaluate(() => [...document.querySelectorAll('#ssModal button')]
     .find(x=>/cr[ée]er/i.test(x.textContent))?.click());
-  await p.waitForFunction(() => FLOORS.length === 1, {timeout:5000}).catch(()=>{});
+  // On attend ce qu'on va VERIFIER — le nom dans le menu — et pas un signal
+  // voisin. FLOORS est remplace tout de suite ; le menu, lui, est repeuple par
+  // une lecture IndexedDB qui vient apres. Attendre FLOORS laissait donc passer
+  // le test trop tot : seul, la lecture avait le temps de finir, mais dans la
+  // suite complete — une dizaine de navigateurs en meme temps — elle arrivait
+  // en retard et le test tombait sans que rien ne soit casse.
+  await p.waitForFunction(() => [...document.getElementById('stStratSel').options]
+    .some(o => o.textContent === 'Odyssey Sheol C'), {timeout:8000}).catch(()=>{});
   const e = await p.evaluate(() => ({
     noms:[...document.getElementById('stStratSel').options]
       .filter(o=>!o.value.startsWith('__')&&!o.disabled).map(o=>o.textContent),
