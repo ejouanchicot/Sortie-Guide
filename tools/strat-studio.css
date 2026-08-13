@@ -227,6 +227,41 @@ body{overflow:hidden;background:var(--bg)}
 .ss-mmsg{font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:16px}
 .ss-mact{display:flex;gap:9px;justify-content:flex-end}
 
+/* ─── panneau « Rôles des jobs » ───
+   Le rôle appartient à la strat, pas au moteur : NIN tanke ici et DPS
+   ailleurs. Un job peut en tenir plusieurs, le premier coché est le principal.
+   Même garde que #ssModal : sans [hidden]{display:none}, le display:flex
+   annulerait l'attribut et le panneau invisible avalerait tous les clics. */
+#ssRolesPan{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:22px;
+  background:rgba(4,7,12,.6);backdrop-filter:blur(6px)}
+#ssRolesPan[hidden]{display:none}
+.ss-rcard{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r-lg);
+  padding:18px 20px;width:min(760px,100%);max-height:min(86vh,760px);overflow:auto;box-shadow:var(--shadow-lg)}
+.ss-rhead{display:flex;align-items:flex-start;gap:18px;margin-bottom:14px}
+.ss-rhead>div{flex:1;min-width:0}
+.ss-rsub{font-size:12.5px;color:var(--txt2);line-height:1.55;margin:0;max-width:62ch}
+.ss-rsub b{color:var(--txt)}
+.ss-rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:7px}
+.ss-rrow{display:flex;align-items:center;gap:5px;padding:5px 7px;border-radius:10px;
+  border:1px solid transparent;background:color-mix(in srgb,var(--panel2) 60%,transparent)}
+/* la comp de la LS ressort : ce sont les sept lignes qu'on relit vraiment */
+.ss-rrow.comp{border-color:var(--line2);background:var(--panel2)}
+.ss-rjob{flex:none;width:42px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--jc)}
+.ss-rjob.r-tank{--jc:var(--r-tank)} .ss-rjob.r-heal{--jc:var(--r-heal)}
+.ss-rjob.r-buff{--jc:var(--r-buff)} .ss-rjob.r-dd{--jc:var(--r-dd)} .ss-rjob.r-all{--jc:var(--r-all)}
+.ss-rb{flex:1;min-width:0;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.03em;
+  padding:4px 2px;border-radius:7px;cursor:pointer;white-space:nowrap;
+  color:var(--dim);background:transparent;border:1px solid var(--hair);transition:.13s var(--ease)}
+.ss-rb.r-tank{--jc:var(--r-tank)} .ss-rb.r-heal{--jc:var(--r-heal)}
+.ss-rb.r-buff{--jc:var(--r-buff)} .ss-rb.r-dd{--jc:var(--r-dd)}
+.ss-rb:hover{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 45%,transparent)}
+.ss-rb.on{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 50%,transparent);
+  background:color-mix(in srgb,var(--jc) 14%,transparent)}
+/* le principal est plein, les secondaires restent en contour : on voit d'un
+   coup d'œil lequel colore le badge par défaut */
+.ss-rb.on.first{color:#0d1218;background:var(--jc);border-color:var(--jc)}
+.ss-rb b{font-weight:900}
+
 @media (max-width:1180px){
   .ss-body{grid-template-columns:230px minmax(0,1fr)}
   .ss-side{grid-column:1/-1;border-left:none;border-top:1px solid var(--line)}

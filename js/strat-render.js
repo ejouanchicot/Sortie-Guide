@@ -26,7 +26,18 @@
   function img(nom){ return esc(H.base + H.MOB[nom]); }
 
   var RCOL = {dd:"var(--r-dd)", buff:"var(--r-buff)", heal:"var(--r-heal)", tank:"var(--r-tank)", all:"var(--r-all)"};
-  function jcol(j){ return RCOL[H.ROLE[j] || "all"]; }
+  // Couleur du badge d'un job. Quand le job tient PLUSIEURS rôles (COR buffe
+  // et DPS), c'est la rubrique qui tranche : le même COR est jaune sous
+  // « Buff · farm » et rouge sous « DD · on spam ». Hors rubrique typée, on
+  // retombe sur son rôle principal.
+  function jcol(j, cls){
+    var rs = global.SORTIE.rolesDuJob(H.ROLE, j);
+    if(cls && rs.length > 1){
+      var t = String(cls).split(/\s+/);
+      for(var i=0; i<t.length; i++) if(rs.indexOf(t[i]) >= 0) return RCOL[t[i]];
+    }
+    return RCOL[rs[0]] || RCOL.all;
+  }
 
   // ---- colorisation des noms d'élément dans le texte ----
   var ELS = [["WATER|Water|Eau","water"],["THUNDER|Thunder|Foudre","thunder"],["FIRE|Fire|Feu","fire"],
@@ -37,12 +48,13 @@
     ELS.forEach(function(e){ s = s.replace(new RegExp("\\b("+e[0]+")\\b","g"), '<span class="el '+e[1]+'">$1</span>'); });
     return s.replace(/→/g, '<span style="color:var(--dim)">→</span>');
   }
-  function roleChip(r){ return '<span class="role" style="--jc:'+jcol(r)+'">'+r+'</span>'; }
+  function roleChip(r, cls){ return '<span class="role" style="--jc:'+jcol(r, cls)+'">'+esc(r)+'</span>'; }
 
   // ---- une ligne d'action ----
   function lineHtml(l, g){
     var roles = (l.r || ["ALL"]);
-    var chips = roles.map(roleChip).join("");
+    var cls = g && g.cls;
+    var chips = roles.map(function(r){ return roleChip(r, cls); }).join("");
     var isProc = g && /\bproc\b/.test(g.cls||"") && typeof l.t === "string" && /→/.test(l.t);
     var body;
     if(isProc){
@@ -56,9 +68,10 @@
       +'<span class="txt">'+body+(l.cond?' <span class="cond">'+esc(H.tr(l.cond))+'</span>':'')+'</span></div>';
   }
   // plusieurs lignes du même job à la suite → un seul badge + liste à puces
-  function runHtml(run){
+  function runHtml(run, g){
     var roles = (run[0].r || ["ALL"]);
-    var chips = roles.map(roleChip).join("");
+    var cls = g && g.cls;
+    var chips = roles.map(function(r){ return roleChip(r, cls); }).join("");
     var comp = run[0].comp, lis = "";
     run.forEach(function(l){
       if(Array.isArray(l.t)){ l.t.forEach(function(it){ lis += '<li>'+colorize(H.tr(it))+'</li>'; }); }
@@ -75,7 +88,7 @@
       var key = (L[i].r||["ALL"]).join(" ")+"|"+(L[i].comp||"");
       var j = i+1;
       while(j < L.length && ((L[j].r||["ALL"]).join(" ")+"|"+(L[j].comp||"")) === key) j++;
-      if(j-i > 1) out += runHtml(L.slice(i,j)); else out += lineHtml(L[i], g);
+      if(j-i > 1) out += runHtml(L.slice(i,j), g); else out += lineHtml(L[i], g);
       i = j;
     }
     return out;
@@ -127,7 +140,7 @@
       + buffs.map(function(b){
           var roles = b.r || ['ALL'];
           return '<span class="bl'+(b.warn?' warn':'')+'" data-r="'+roles.join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'
-            + roleChip(roles[0]) + '<span>'
+            + roleChip(roles[0], 'buff') + '<span>'
             + (Array.isArray(b.t) ? '<ul class="acts">'+b.t.map(function(it){ return '<li>'+colorize(H.tr(it))+'</li>'; }).join('')+'</ul>'
                                   : colorize(H.tr(b.t)))
             + '</span></span>';

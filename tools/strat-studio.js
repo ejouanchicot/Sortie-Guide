@@ -360,6 +360,40 @@
   function retablir(){ clearTimeout(hTimer);
     if(hidx < hist.length-1){ hidx++; restaure(hist[hidx]); touche(); toast('Rétabli.'); } else toast('Rien à rétablir.'); }
 
+  /* ---------------- rôles des jobs (par strat) ---------------- */
+  // On coche les rôles d'un job ; l'ORDRE des clics compte, le premier coché
+  // est le rôle principal. Décocher le dernier rôle est refusé : un job sans
+  // rôle n'aurait plus de couleur du tout.
+  var ROLE_NOMS = {tank:'Tank', heal:'Soin', buff:'Buff', dd:'DD'};
+  function grilleRoles(){
+    var g = $('ssRolesGrid'); if(!g || typeof ROLE === 'undefined') return;
+    g.innerHTML = JOBSL.filter(function(j){ return j !== 'ALL'; }).map(function(j){
+      var rs = S.rolesDuJob(ROLE, j);
+      return '<div class="ss-rrow' + (JOBSL.indexOf(j) < JOBS_COMP ? ' comp' : '') + '">'
+        + '<span class="ss-rjob r-'+rs[0]+'">'+esc(j)+'</span>'
+        + Object.keys(ROLE_NOMS).map(function(r){
+            var i = rs.indexOf(r);
+            return '<button type="button" class="ss-rb r-'+r+(i>=0?' on':'')+(i===0?' first':'')
+              + '" data-job="'+esc(j)+'" data-role="'+r+'"'
+              + (i===0?' title="Rôle principal — colore le badge par défaut"':'')+'>'
+              + ROLE_NOMS[r] + (i===0 ? ' <b>·</b>' : '') + '</button>';
+          }).join('')
+        + '</div>';
+    }).join('');
+  }
+  function basculeRole(job, role){
+    var rs = S.rolesDuJob(ROLE, job).slice();
+    var i = rs.indexOf(role);
+    if(i >= 0){
+      if(rs.length === 1){ toast('Un job garde au moins un rôle.','err'); return; }
+      rs.splice(i, 1);
+    } else rs.push(role);
+    ROLE[job] = rs.length > 1 ? rs : rs[0];
+    grilleRoles(); rendre(); touche();
+  }
+  function ouvrirRoles(){ grilleRoles(); $('ssRolesPan').hidden = false; }
+  function fermerRoles(){ $('ssRolesPan').hidden = true; }
+
   /* ---------------- écriture des fichiers ---------------- */
   // Poignées, permissions et remplacement bloc par bloc : js/data-file.js,
   // partagé avec Map Studio pour que les deux outils écrivent à l'identique.
@@ -367,6 +401,7 @@
   function blocsData(){
     var reg = {}; Object.keys(BUFFS).forEach(function(k){ if(BUFFS[k]) reg[k]=BUFFS[k]; });
     var out = [];
+    if(typeof ROLE !== 'undefined') out.push({nom:'ROLE', txt:S.roleConst('ROLE', ROLE)});
     Object.keys(reg).forEach(function(k){ out.push({nom:k, txt:SC.buffsConst(k, reg[k])}); });
     FL.forEach(function(f){
       var nom = (f.id==='top') ? 'PHASES' : 'PHASES_B';
@@ -420,8 +455,17 @@
   });
   $('ssSave').addEventListener('click', enregistrer);
   $('ssReload').addEventListener('click', recharger);
+  $('ssRoles').addEventListener('click', ouvrirRoles);
+  $('ssRolesClose').addEventListener('click', fermerRoles);
+  $('ssRolesGrid').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-role]'); if(!b) return;
+    basculeRole(b.dataset.job, b.dataset.role);
+  });
+  // clic sur le fond = fermer, comme toute fenêtre modale
+  $('ssRolesPan').addEventListener('mousedown', function(e){ if(e.target === this) fermerRoles(); });
   window.addEventListener('keydown', function(e){
     var mod = e.ctrlKey||e.metaKey, k = e.key.toLowerCase();
+    if(e.key === 'Escape' && !$('ssRolesPan').hidden){ fermerRoles(); return; }
     if(mod && k==='s'){ e.preventDefault(); enregistrer(); return; }
     if(mod && k==='z' && !e.shiftKey){ e.preventDefault(); annuler(); return; }
     if(mod && (k==='y' || (k==='z' && e.shiftKey))){ e.preventDefault(); retablir(); }
@@ -429,5 +473,5 @@
   buildTree(); editeur(); rendre(); memorise();
   // crochet de test : le remplacement lui-même se teste sur window.DATAFILE
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
-                 blocsData:blocsData};
+                 blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole};
 })();

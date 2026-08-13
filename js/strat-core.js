@@ -144,7 +144,7 @@
   function roleDuJobEnTete(t){
     var m = String(t||'').match(/^\s*([A-Z]{2,3})\b/);
     var R = (typeof ROLE !== 'undefined') ? ROLE : {};
-    return (m && R[m[1]]) || '';
+    return (m && R[m[1]]) ? S.roleDuJob(R, m[1]) : '';   // le rôle principal
   }
   // devine le thème d'une rubrique d'après son titre — l'ordre compte
   function themeDevine(titre){

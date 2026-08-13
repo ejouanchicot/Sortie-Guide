@@ -10,23 +10,26 @@
 // ---- jobs & rôles ----
 // JOBS = la comp de la LS : ce sont les boutons du filtre « Mon rôle » du guide.
 const JOBS=["MNK","BRD","COR","GEO","RDM","PLD","DNC"];
-// ROLE = les 22 jobs de FFXI, pas seulement la comp : le rôle donne la COULEUR
-// du badge. Écrire « SAM : Tachi Fudo » dans une strat d'un autre contenu doit
-// colorer juste, sans avoir à toucher au moteur.
-// NIN, BLU, PUP et SMN se jouent des deux côtés selon le contenu — ici on a
-// tranché pour le rôle le plus courant. Changer le mot suffit.
+// ROLE = les 22 jobs de FFXI, pas seulement la comp. Le rôle donne la COULEUR
+// du badge, et il appartient à CETTE strat : NIN peut tanker ici et DPS dans
+// une autre. Réglable dans Strat Studio (bouton « Rôles »), ne pas éditer les
+// lignes ci-dessous à la main — l'outil les réécrit.
+//
+// Un job peut tenir PLUSIEURS rôles : COR buffe et DPS systématiquement. Le
+// premier de la liste est le rôle principal (celui qui colore par défaut) ;
+// dans une rubrique typée, c'est la rubrique qui l'emporte quand le job y a
+// bien ce rôle-là. Un COR est donc jaune sous « Buff · farm » et rouge sous
+// « DD · on spam », sans qu'on ait rien à écrire.
+//
+// Répartition décidée par Eric : tank = PLD RUN · heal = WHM RDM SCH SMN ·
+// buff = BRD COR GEO · DD = tout le reste.
 const ROLE={
-  // tanks
-  PLD:"tank", RUN:"tank", NIN:"tank",
-  // soins / enfeeble
-  WHM:"heal", RDM:"heal", SCH:"heal",
-  // soutien
-  BRD:"buff", COR:"buff", GEO:"buff",
-  // dégâts
-  WAR:"dd", MNK:"dd", THF:"dd", BLM:"dd", DRK:"dd", BST:"dd", RNG:"dd",
-  SAM:"dd", DRG:"dd", SMN:"dd", BLU:"dd", PUP:"dd", DNC:"dd",
-  // pour tout le monde
-  ALL:"all"};
+ "PLD":"tank","RUN":"tank",
+ "WHM":"heal","RDM":"heal","SCH":"heal","SMN":"heal",
+ "BRD":"buff","COR":["buff","dd"],"GEO":"buff",
+ "WAR":"dd","MNK":"dd","THF":"dd","BLM":"dd","DRK":"dd","BST":"dd","RNG":"dd","SAM":"dd","NIN":"dd","DRG":"dd","BLU":"dd","PUP":"dd","DNC":"dd",
+ "ALL":"all"
+};
 
 // ---- fabrique de ligne (r = rôles, t = texte ou liste, opt = {cond,warn,comp}) ----
 // helper lignes
