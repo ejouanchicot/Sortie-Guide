@@ -184,6 +184,11 @@ input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px}
 .empty{color:var(--dim);font-size:12.5px;font-style:italic;line-height:1.55}
 .lay{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--tx2);padding:8px 9px;border-radius:9px;cursor:pointer;transition:background .14s}
 .lay:hover{background:rgba(150,180,225,.07)}.lay.off{opacity:.4}
+/* les types d'un groupe : en retrait, un peu plus discrets — on lit d'abord
+   le groupe, on descend seulement si on veut trier */
+.lay.sub{margin-left:14px;padding-left:12px;font-size:12px;
+  border-left:1px solid var(--line)}
+.lay.sub .eye svg{width:14px;height:14px}
 .lay .eye svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7}
 .lay .cnt{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
 .hintbox{font-size:11.5px;color:var(--tx2);line-height:1.6;background:linear-gradient(180deg,rgba(91,214,239,.06),rgba(150,180,225,.03));border:1px solid var(--hair);border-left:2px solid color-mix(in srgb,var(--cyan) 55%,transparent);border-radius:10px;padding:11px 13px}
@@ -233,6 +238,12 @@ input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px}
    que le navigateur associe a [hidden] est une regle par defaut, et le
    display:inline-flex de .tbtn la bat. Le bouton « Copier le message »
    restait donc affiche sur toutes les boites. */
+/* une case a cocher dans la boite : pour ce qu'on ne peut pas deviner a la
+   place de l'utilisateur, et qui merite un choix explicite */
+#modal .mcase{display:flex;align-items:flex-start;gap:9px;margin:-8px 0 16px;cursor:pointer;
+  font-family:var(--sans);font-size:12.5px;line-height:1.5;color:var(--tx2)}
+#modal .mcase input{margin:2px 0 0;accent-color:var(--cyan);cursor:pointer;flex:none}
+#modal .mcase code{font-family:var(--mono);font-size:11.5px;color:var(--tx)}
 #modal [hidden]{display:none!important}
 #modal .mact{display:flex;gap:10px;justify-content:flex-end}
 #modal .mact #modalCopy{margin-right:auto}

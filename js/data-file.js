@@ -105,6 +105,9 @@
   async function existe(dir, nom){
     try{ await dir.getFileHandle(nom); return true; }catch(e){ return false; }
   }
+  // Effacer pour de bon : aucune corbeille, le fichier part du disque.
+  // L'appelant doit avoir demande, et compris ce qu'il demande.
+  async function supprimeFichier(dir, nom){ await dir.removeEntry(nom); }
 
   function lisTexte(h){ return h.getFile().then(function(f){ return f.text(); }); }
   async function ecrisTexte(h, texte){
@@ -153,6 +156,7 @@
     dispoDossier: dispoDossier,
     dossier: dossier,
     deposeFichier: deposeFichier,
+    supprimeFichier: supprimeFichier,
     existe: existe
   };
 })();

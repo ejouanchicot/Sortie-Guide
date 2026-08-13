@@ -33,7 +33,23 @@
   let labelMargin=(typeof LBLMARGIN!=='undefined'&&LBLMARGIN!=null)?LBLMARGIN:6;
   let curRoute=0,selHandleIdx=-1;
   let dirty=false;   // des modifications ne sont pas encore écrites dans data.js
-  const layerVis={map:true,shapes:true,routes:true,texts:true,pins:true};
+  // « Marqueurs » regroupait boss, mid-boss, packs et depart sous un seul
+  // interrupteur : impossible de ne regarder que les boss. Chaque type a
+  // desormais le sien, et le groupe reste la pour tout eteindre d'un coup.
+  const layerVis={map:true,shapes:true,routes:true,texts:true,pins:true,
+                  boss:true,mid:true,pack:true,num:true,start:true};
+  const TYPES_PIN=[['boss','Boss'],['mid','Mid-boss'],['pack','Packs'],
+                   ['num','Numéros d’ordre'],['start','Départ']];
+  /* Le type d'un marqueur. Attention : les pastilles numerotees des boss
+     portent kind:'marker' — ce sont les ronds 1..4, deplacables a part, pas
+     le depart. Les confondre affichait « Depart 4 » sur une carte qui n'a
+     qu'un seul S. */
+  function typePin(n){
+    if(n.name()==='start')return 'start';
+    const k=n._meta&&n._meta.kind;
+    if(k==='marker')return 'num';
+    return (k==='boss'||k==='mid'||k==='pack')?k:null;   // null : l'anneau de selection
+  }
   // Phase 3 : création de marqueurs depuis une palette d'images
   let armedPin=null,palCat='boss';
   let armedShape=null;   // 'rect' | 'ell' | {src} : ce que les outils Formes / Image vont poser
@@ -163,7 +179,7 @@
     anim=new Konva.Animation(fr=>{const d=fr.time/1000*20;gRoutes.find('.flow').forEach(l=>{const dd=l.dash(),per=(dd[0]+dd[1])||24.5;l.dashOffset(-(d%per));});},layer);updateAnim();
     setToolMode();fit();buildLayers();loadingEl.style.display='none';
   }
-  function startMarker(s){const g=new Konva.Group({x:C(s.x),y:C(s.y),listening:false});
+  function startMarker(s){const g=new Konva.Group({x:C(s.x),y:C(s.y),listening:false,name:'start'});
     g.add(new Konva.Circle({radius:20,fill:BK.INK}),new Konva.Circle({radius:18.5,fill:BK.CREAM}),new Konva.Circle({radius:15,fill:'#3f86d6'}));
     g.add(new Konva.Text({text:s.l||'S',fontFamily:'JetBrains Mono',fontStyle:'bold',fontSize:18,fill:'#fff',width:40,height:40,align:'center',verticalAlign:'middle',offsetX:20,offsetY:20}));return g;}
 
@@ -1018,11 +1034,42 @@
      8 · CALQUES
      ============================================================ */
   function eye(on){return on?'<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.2 4.2M9.9 5.2A10.9 10.9 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 3.9M6.1 6.1A17 17 0 002 12s3.5 7 10 7a10.6 10.6 0 003.4-.6"/></svg>';}
-  function buildLayers(){const L=[['pins','Marqueurs',gPins],['texts','Textes & notes',gTexts],['routes','Tracés',gRoutes],['shapes','Formes & images',gShapes],['map','Carte (fond)',gMap]],host=document.getElementById('layers');host.innerHTML='';
-    L.forEach(([k,name,grp])=>{const el=document.createElement('div');el.className='lay'+(layerVis[k]?'':' off');
-      el.innerHTML='<span class="eye">'+eye(layerVis[k])+'</span><span>'+name+'</span><span class="cnt">'+(grp?grp.getChildren().length:0)+'</span>';
-      el.addEventListener('click',()=>{layerVis[k]=!layerVis[k];applyVis();buildLayers();});host.appendChild(el);});}
-  function applyVis(){if(gMap)gMap.visible(layerVis.map);if(gShapes)gShapes.visible(layerVis.shapes);if(gRoutes)gRoutes.visible(layerVis.routes);if(gTexts)gTexts.visible(layerVis.texts);if(gPins)gPins.visible(layerVis.pins);updateAnim();draw();}
+  function comptePins(){const c={boss:0,mid:0,pack:0,num:0,start:0};
+    if(gPins)gPins.getChildren().forEach(n=>{const t=typePin(n);if(t&&t in c)c[t]++;});return c;}
+  function ligneCalque(k,nom,n,sous){
+    const el=document.createElement('div');
+    el.className='lay'+(layerVis[k]?'':' off')+(sous?' sub':'');
+    el.innerHTML='<span class="eye">'+eye(layerVis[k])+'</span><span>'+nom+'</span>'
+      +'<span class="cnt">'+n+'</span>';
+    el.addEventListener('click',()=>{
+      if(k==='pins'){
+        // le groupe : tout eteindre si quelque chose est allume, tout rallumer sinon
+        const allume=layerVis.pins&&TYPES_PIN.some(t=>layerVis[t[0]]);
+        layerVis.pins=!allume;TYPES_PIN.forEach(t=>{layerVis[t[0]]=!allume;});
+      } else {
+        layerVis[k]=!layerVis[k];
+        if(TYPES_PIN.some(t=>t[0]===k)&&layerVis[k])layerVis.pins=true;   // rallumer un type rallume le groupe
+      }
+      buildLayers();});
+    return el;
+  }
+  function buildLayers(){
+    applyVis();   // un marqueur pose pendant que son type est eteint reste cache
+    const host=document.getElementById('layers');if(!host)return;host.innerHTML='';
+    const c=comptePins();
+    const total=TYPES_PIN.reduce((n,t)=>n+c[t[0]],0);   // pas une somme ecrite a la main : un type de plus l'aurait oubliee
+    host.appendChild(ligneCalque('pins','Marqueurs',total,false));
+    TYPES_PIN.forEach(([k,nom])=>{ if(c[k])host.appendChild(ligneCalque(k,nom,c[k],true)); });
+    [['texts','Textes & notes',gTexts],['routes','Tracés',gRoutes],
+     ['shapes','Formes & images',gShapes],['map','Carte (fond)',gMap]]
+      .forEach(([k,nom,grp])=>host.appendChild(
+        ligneCalque(k,nom,grp?grp.getChildren().length:0,false)));
+  }
+  function applyVis(){if(gMap)gMap.visible(layerVis.map);if(gShapes)gShapes.visible(layerVis.shapes);if(gRoutes)gRoutes.visible(layerVis.routes);if(gTexts)gTexts.visible(layerVis.texts);
+    if(gPins){gPins.visible(layerVis.pins);
+      // et dans le groupe, chaque type suit le sien
+      gPins.getChildren().forEach(n=>{const t=typePin(n);if(t&&t in layerVis)n.visible(!!layerVis[t]);});}
+    updateAnim();draw();}
 
   /* ============================================================
      9 · OUTILS (rail latéral) + raccourcis
@@ -1109,6 +1156,27 @@
       choisirCarte(v);});
   }
 
+  /* Effacer le fichier de fond. Sans corbeille : il part du disque.
+     On ne le fait donc QUE si l'utilisateur l'a coche, et jamais quand une
+     autre carte s'en sert — verifie par l'appelant. */
+  async function supprimeImage(chemin){
+    const nomF=String(chemin||'').replace(/^img\//,'');
+    if(!nomF||!II)return;
+    let dir=await II.dossierPret();
+    if(!dir){
+      const a=await II.acces();                 // le clic sur « Supprimer » est le geste
+      if(a.ou!=='ok'){
+        toast('L\u2019image '+nomF+' n\u2019a pas pu etre effacee : dossier img inaccessible.','err');
+        return;}
+      dir=a.dossier;
+    }
+    try{ await window.DATAFILE.supprimeFichier(dir,nomF);
+         toast('Image '+nomF+' effacee du dossier img.','ok'); }
+    catch(e){ await erreur('L\u2019image n\u2019a pas pu etre effacee',
+      'La carte, elle, est bien supprimee. Le fichier <b>'+esc(nomF)+'</b> est reste dans img.',
+      e&&(e.name+' \u2014 '+e.message)); }
+  }
+
   /* ---- supprimer une carte ----
      Delicat : un chapitre la DESIGNE par son nom. Le laisser pointer vers rien
      donnerait un chapitre sans carte, sans que rien ne le dise. Les chapitres
@@ -1126,20 +1194,33 @@
                 ['forme',(c.shapes||[]).length]]
       .filter(x=>x[1]).map(x=>x[1]+' '+x[0]+(x[1]>1?'s':'')).join(', ');
 
-    const ok=await askConfirm('Supprimer <b>'+esc(nom)+'</b> ?'
-      +(quoi?'<br><br>Elle porte '+quoi+' — tout part avec elle.':'')
-      +(n?'<br><br><b>'+n+' chapitre'+(n>1?'s l’utilisent':' l’utilise')+'</b> : '
-         +(n>1?'ils passeront':'il passera')+' sur « '+esc(suite)+' ».':'')
-      +'<br><br><small>L’image de fond, elle, reste dans le dossier img.</small>',
-      {title:'Supprimer la carte',ok:'Supprimer'});
-    if(!ok){majSelCarte();return;}
+    // L'image de fond : on ne l'efface que si elle ne sert qu'ici. Deux cartes
+    // peuvent partager un fond, et l'effacer casserait l'autre sans prevenir.
+    const fond=c.fond||'';
+    const partagee=fond?Object.keys(REG).filter(k=>k!==nom&&(REG[k].fond||'')===fond):[];
+    const effacable=!!fond&&!partagee.length&&!!II&&window.DATAFILE.dispoDossier();
+    // cochee d'avance seulement si c'est l'outil qui a cree ce fichier : son nom
+    // se deduit alors de celui de la carte. Une image posee a la main, non.
+    const nommeeParLOutil=effacable&&fond===('img/'+II.nomDeFichier(nom));
+
+    const r=await askConfirm('Supprimer <b>'+esc(nom)+'</b> ?'
+      +(quoi?'<br><br>Elle porte '+quoi+' \u2014 tout part avec elle.':'')
+      +(n?'<br><br><b>'+n+' chapitre'+(n>1?'s l\u2019utilisent':' l\u2019utilise')+'</b> : '
+         +(n>1?'ils passeront':'il passera')+' sur \u00ab '+esc(suite)+' \u00bb.':'')
+      +(fond&&partagee.length?'<br><br><small>Son image de fond sert aussi a \u00ab '
+         +esc(partagee[0])+' \u00bb : elle reste dans le dossier img.</small>':''),
+      {title:'Supprimer la carte',ok:'Supprimer',
+       case: effacable?{texte:'Effacer aussi <code>'+esc(fond)+'</code> du dossier '
+              +'<b>img</b> \u2014 definitif, sans corbeille',coche:nommeeParLOutil}:null});
+    if(!r){majSelCarte();return;}
 
     S.deposeCartes(FL,REG);                 // on n'abandonne pas le travail en cours
     delete REG[nom];
     FL.forEach(x=>{if(x.carte===nom)x.carte=suite;});
     S.resoudreCartes(FL,REG);
     setDirty(true);await renderFloor(curIdx);resetHistory();majSelCarte();
-    toast('« '+nom+' » supprimee'+(n?' — '+n+' chapitre(s) sur « '+suite+' »':'')+'.','ok');
+    toast('\u00ab '+nom+' \u00bb supprimee'+(n?' \u2014 '+n+' chapitre(s) sur \u00ab '+suite+' \u00bb':'')+'.','ok');
+    if(effacable&&r&&r.coche)await supprimeImage(fond);
   }
 
   /* ---- poser une image de fond ----
@@ -1558,17 +1639,25 @@
     clearTimeout(back._cache);
     cancel.hidden=!!opts.seul;
     if(cop){cop.hidden=!opts.copie;cop.textContent='Copier le message';}
+    // Une case a cocher pour ce qu'on ne peut pas deviner a la place de
+    // l'utilisateur. La reponse devient un objet — toujours vrai — donc les
+    // appels qui ne testent que « annule ou pas » n'ont rien a changer.
+    const caseL=document.getElementById('modalCaseL'),caseI=document.getElementById('modalCase');
+    if(caseL){caseL.hidden=!opts.case;
+      if(opts.case){document.getElementById('modalCaseT').innerHTML=opts.case.texte;
+                    caseI.checked=!!opts.case.coche;}}
     back.hidden=false;modalOpen=true;requestAnimationFrame(()=>back.classList.add('show'));
     function done(v){back.classList.remove('show');modalOpen=false;back._cache=setTimeout(()=>{back.hidden=true;cancel.hidden=false;if(cop)cop.hidden=true;},180);
       ok.removeEventListener('click',onOk);cancel.removeEventListener('click',onCancel);back.removeEventListener('mousedown',onBack);document.removeEventListener('keydown',onKey,true);
       if(cop)cop.removeEventListener('click',onCopy);res(v);}
     // copier ne ferme PAS : on peut vouloir relire, ou recopier
-    function onOk(){done(true);}function onCancel(){done(false);}
+    function onOk(){done(opts.case?{coche:!!caseI.checked}:true);}
+    function onCancel(){done(false);}
     function onCopy(){copieTexte(opts.copie).then(()=>{cop.textContent='Copie';
       setTimeout(()=>{if(cop)cop.textContent='Copier le message';},1800);})
       .catch(()=>{cop.textContent='Selectionne le texte a la main';});}
     function onBack(e){if(e.target===back)done(false);}
-    function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();done(true);}}
+    function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();done(opts.case?{coche:!!caseI.checked}:true);}}
     ok.addEventListener('click',onOk);cancel.addEventListener('click',onCancel);back.addEventListener('mousedown',onBack);document.addEventListener('keydown',onKey,true);
     if(cop&&opts.copie)cop.addEventListener('click',onCopy);
     setTimeout(()=>{try{ok.focus();}catch(e){}},30);});}

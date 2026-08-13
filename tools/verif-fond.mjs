@@ -162,6 +162,44 @@ dit('les chapitres concernes basculent sur une autre', fin.chapitresOntUneCarte)
 console.log('       ' + fin.utilisent + ' chapitre(s) bascule(s) sur « ' + fin.suite + ' » · '
   + fin.restantes + ' carte(s) restantes');
 
+/* La case « effacer aussi l'image ». Deux regles qu'on ne peut pas deviner a
+   la place de l'utilisateur, et qui ne se rattrapent pas : un fichier efface
+   ne va pas dans une corbeille. */
+console.log('\n— effacer aussi l\'image de fond —');
+const cases = await p.evaluate(() => {
+  const II = window.IMPORTIMAGE;
+  const R = CARTES;
+  const nom = Object.keys(R)[0];
+  const auto = 'img/' + II.nomDeFichier(nom);
+
+  // 1. une image que l'outil a nommee : proposee, cochee d'avance
+  const gardeFond = R[nom].fond;
+  R[nom].fond = auto;
+  const seule = {partagee:Object.keys(R).filter(k => k !== nom && R[k].fond === auto).length,
+                 auto:R[nom].fond === auto};
+
+  // 2. la meme image sur deux cartes : on ne doit pas la proposer du tout
+  const autre = Object.keys(R)[1];
+  const gardeAutre = autre ? R[autre].fond : null;
+  if(autre) R[autre].fond = auto;
+  const partage = Object.keys(R).filter(k => k !== nom && R[k].fond === auto).length;
+
+  // 3. une image posee a la main : proposee, mais PAS cochee
+  if(autre) R[autre].fond = gardeAutre;
+  R[nom].fond = 'img/une-carte-a-moi.webp';
+  const main = R[nom].fond === ('img/' + II.nomDeFichier(nom));
+
+  R[nom].fond = gardeFond;
+  return {nomAuto:auto, seule, partage, mainEstAuto:main};
+});
+dit('une image nommee par l\'outil se reconnait a son nom',
+    /^img\/map-/.test(cases.nomAuto), cases.nomAuto);
+dit('elle n\'est pas partagee quand elle ne sert qu\'a une carte', cases.seule.partagee === 0);
+dit('partagee par deux cartes, elle est detectee comme telle', cases.partage === 1,
+    cases.partage + ' autre(s) carte(s)');
+dit('une image posee a la main ne passe pas pour une image de l\'outil',
+    cases.mainEstAuto === false);
+
 // et on ne doit jamais pouvoir supprimer la derniere
 const derniere = await p.evaluate(() => {
   const s = document.getElementById('carteSel');
