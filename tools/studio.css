@@ -136,6 +136,12 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 /* Un bouton qui ne bouge pas au clic laisse croire qu'on l'a raté. Enregistrer
    prend un aller-retour disque : sans ces trois états, on reclique. */
 .st-btn:active{transform:translateY(1px) scale(.985)}
+/* Mais son libellé change, et un bouton qui change de largeur pousse toute la
+   barre du haut — 39 px d'écart, tout ce qui est à gauche sautait. On lui fige
+   la largeur qu'il a au repos, et les deux autres libellés sont choisis pour
+   tenir dedans. Le contenu reste centré : rien ne bouge, ni le bouton ni ses
+   voisins. Un test compare les trois états au dixième de pixel. */
+#stSave{min-width:120px;justify-content:center}
 .st-btn:disabled{cursor:default}
 /* pendant l'écriture : l'icône tourne, le libellé le dit */
 .st-btn.encours{opacity:.9}

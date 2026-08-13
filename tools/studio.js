@@ -467,7 +467,9 @@
     b.classList.toggle('encours', etat === 'cours');
     b.classList.toggle('fait',    etat === 'fait');
     b.disabled = (etat === 'cours');
-    if(l) l.textContent = etat === 'cours' ? 'Enregistrement…'
+    // « Enregistrement… » debordait de la largeur figee du bouton et poussait
+    // la barre : les deux libelles d'etat tiennent dans celle d'« Enregistrer ».
+    if(l) l.textContent = etat === 'cours' ? 'En cours…'
                         : etat === 'fait'  ? 'Enregistré'
                         : 'Enregistrer';
     if(etat === 'fait'){ clearTimeout(etatSave._t);

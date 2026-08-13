@@ -80,9 +80,13 @@ async function page(opts) {
 
 const etat = p => p.evaluate(() => {
   const el = document.getElementById('stSave');
+  const r = el.getBoundingClientRect();
+  const voisin = document.getElementById('stReload').getBoundingClientRect();
   return {mot: el.querySelector('.st-lbl')?.textContent,
           cours: el.classList.contains('encours'), fait: el.classList.contains('fait'),
-          inactif: el.disabled};
+          inactif: el.disabled,
+          // la geometrie, pour verifier que changer de libelle ne pousse rien
+          boite: [r.width, r.height, r.left, voisin.left].map(v => Math.round(v * 10) / 10)};
 });
 // ce qui se VOIT : la modale reste dans le DOM une fois fermee
 const modaleVisible = p => p.evaluate(() =>
@@ -97,7 +101,8 @@ const repondreModale = p => p.evaluate(() =>
 /* ---------------- 1. la premiere fois ---------------- */
 console.log('\n— la premiere sauvegarde —');
 let p = await page({lenteur:500});
-dit('au repos, le bouton dit « Enregistrer »', (await etat(p)).mot === 'Enregistrer');
+const auRepos = await etat(p);
+dit('au repos, le bouton dit « Enregistrer »', auRepos.mot === 'Enregistrer');
 
 p.evaluate(() => document.getElementById('stSave').click());
 await new Promise(r => setTimeout(r, 350));
@@ -106,9 +111,14 @@ await repondreModale(p);
 
 await new Promise(r => setTimeout(r, 250));
 const pendant = await etat(p);
-dit('pendant l\'ecriture, le bouton le dit', pendant.mot === 'Enregistrement…', pendant.mot);
+dit('pendant l\'ecriture, le bouton le dit', pendant.mot === 'En cours…', pendant.mot);
 dit('et devient inactif, pour ne pas partir deux fois', pendant.inactif === true);
 dit('son icone tourne', pendant.cours === true);
+// Un bouton qui s'elargit pousse toute la barre du haut : c'etait 39 px, et
+// tout ce qui se trouve a sa gauche sautait a chaque enregistrement.
+dit('il n\'a pas change de taille ni bouge ses voisins',
+    JSON.stringify(pendant.boite) === JSON.stringify(auRepos.boite),
+    'repos ' + JSON.stringify(auRepos.boite) + ' · pendant ' + JSON.stringify(pendant.boite));
 
 // un second clic pendant l'ecriture ne doit rien relancer
 await p.evaluate(() => document.getElementById('stSave').click());
@@ -117,6 +127,9 @@ await new Promise(r => setTimeout(r, 1400));
 const apres = await etat(p);
 dit('une fois fini, il annonce que c\'est fait', apres.mot === 'Enregistré', apres.mot);
 dit('et le montre', apres.fait === true);
+dit('sans avoir bouge non plus',
+    JSON.stringify(apres.boite) === JSON.stringify(auRepos.boite),
+    'repos ' + JSON.stringify(auRepos.boite) + ' · apres ' + JSON.stringify(apres.boite));
 
 const vus = await p.evaluate(() => window.__vus);
 dit('une seule question posee, et c\'est un DOSSIER',
