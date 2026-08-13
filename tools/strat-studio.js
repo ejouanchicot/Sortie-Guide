@@ -30,18 +30,32 @@
                BUFFS_STD:(typeof BUFFS_STD!=='undefined'?BUFFS_STD:null),
                BUFFS_B:(typeof BUFFS_B!=='undefined'?BUFFS_B:null)};
   var TRAD = (typeof TR!=='undefined') ? TR : {};
-  // Boutons de job : la comp de la LS d'abord (celle qu'on tape 90 % du temps),
-  // puis les 22 jobs de FFXI. Un outil de strat ne doit pas obliger à taper
-  // « SAM » à la main sous prétexte qu'il n'est pas dans la comp Sortie.
-  var JOBSL = (function(){
-    var comp = (typeof JOBS!=='undefined') ? JOBS.slice() : [];
-    var tous = (typeof ROLE!=='undefined') ? Object.keys(ROLE) : [];
+  var CP = (typeof COMPO!=='undefined') ? COMPO : {taille:6, jobs:[]};
+  // Les 22 jobs de FFXI, dans un ordre stable — la référence pour les panneaux
+  // Compo et Rôles, et pour le sélecteur « autre job ».
+  function tousLesJobs(){
+    var r = (typeof ROLE!=='undefined') ? Object.keys(ROLE) : [];
+    return r.filter(function(j){ return j !== 'ALL'; });
+  }
+  // Barre de saisie : la compo, plus les jobs DÉJÀ cités dans la strat (un WAR
+  // mentionné en alternative doit rester à portée), plus ALL. Le reste passe
+  // par le bouton « autre » : on écrit avec six jobs, pas avec vingt-deux.
+  function jobsCites(){
+    var vus = {};
+    (FL||[]).forEach(function(f){ (f.phases||[]).forEach(function(p){
+      (p.buffs||[]).forEach(function(l){ (l.r||[]).forEach(function(j){ vus[j]=1; }); });
+      (p.cards||[]).forEach(function(c){ (c.groups||[]).forEach(function(g){
+        (g.lines||[]).forEach(function(l){ (l.r||[]).forEach(function(j){ vus[j]=1; }); }); }); });
+    }); });
+    return Object.keys(vus);
+  }
+  function barreJobs(){
     var vus = {}, out = [];
-    comp.concat(tous).forEach(function(j){ if(j!=='ALL' && !vus[j]){ vus[j]=1; out.push(j); } });
+    S.compoJobs(CP).concat(jobsCites()).forEach(function(j){
+      if(j !== 'ALL' && !vus[j]){ vus[j]=1; out.push(j); } });
     out.push('ALL');
     return out;
-  })();
-  var JOBS_COMP = (typeof JOBS!=='undefined') ? JOBS.length : 0;   // séparateur après la comp
+  }
 
   var idx = 0;        // étage
   var selP = null;    // index de l'étape ouverte
@@ -182,9 +196,12 @@
         + '<input type="text" class="ss-btag" value="'+esc(c.tag||'')+'" placeholder="Résumé en une ligne (facultatif)">'
         + '<div class="ss-tb">'
         +   '<span class="ss-tbl">job</span>'
-        +   JOBSL.map(function(j, i){ return (i===JOBS_COMP ? '<span class="ss-tbsep"></span>' : '')
-              + '<button type="button" class="ss-job r-'+((typeof ROLE!=='undefined'&&ROLE[j])||'all')
-              + (i>=JOBS_COMP && j!=='ALL' ? ' hors' : '')+'" data-job="'+j+'">'+j+'</button>'; }).join('')
+        +   barreJobs().map(function(j){
+              var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
+              return '<button type="button" class="ss-job r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
+                + (dansCompo ? '' : ' hors')+'" data-job="'+esc(j)+'"'
+                + (dansCompo ? '' : ' title="Hors composition — cité ailleurs dans la strat"')+'>'+esc(j)+'</button>'; }).join('')
+        +   '<button type="button" class="ss-job ss-jplus" data-plus="1" title="Insérer un job hors composition">＋ job</button>'
         +   '<span class="ss-tbsep"></span>'
         +   '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
         +   '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'
@@ -222,6 +239,7 @@
       lecture(ta, lu);
       el.querySelector('.ss-tb').addEventListener('click', function(e){
         var b = e.target.closest('button'); if(!b) return;
+        if(b.dataset.plus){ choisirAutreJob(b, ta); return; }
         if(b.dataset.job) insereDebut(ta, b.dataset.job+' : ');
         else if(b.dataset.mk==='warn') marqueWarn(ta);
         else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
@@ -251,7 +269,10 @@
   function insereDebut(ta, txt){
     var b = bornesLigne(ta), m = b.txt.match(RE_TETE);
     if(m){
-      var jobs = m[1].split(',').map(function(x){return x.trim();}), nouveau = txt.trim();
+      // le séparateur est déjà là : on n'ajoute QUE le code du job, sinon un
+      // second clic écrivait « PLD,COR :@PLD : … »
+      var jobs = m[1].split(',').map(function(x){return x.trim();}),
+          nouveau = txt.replace(/\s*:\s*$/, '').trim();
       if(jobs.indexOf(nouveau) < 0) jobs.push(nouveau);
       poseLigne(ta, b, jobs.join(',')+m[2]+(m[3]||'')+' : '+b.txt.slice(m[0].length));
     } else poseLigne(ta, b, txt + b.txt, txt.length);
@@ -360,6 +381,76 @@
   function retablir(){ clearTimeout(hTimer);
     if(hidx < hist.length-1){ hidx++; restaure(hist[hidx]); touche(); toast('Rétabli.'); } else toast('Rien à rétablir.'); }
 
+  /* ---------------- « ＋ job » : un job hors composition ---------------- */
+  // On écrit une strat avec six jobs, pas avec vingt-deux. Mais il faut pouvoir
+  // noter « avec un WAR à la place du MNK, on fait ça » sans changer la compo :
+  // le job choisi s'insère, et comme il est alors cité dans la strat il reste
+  // dans la barre au prochain rendu.
+  var popJob = null;
+  function fermePopJob(){ if(popJob){ popJob.remove(); popJob = null; } }
+  function choisirAutreJob(bouton, ta){
+    if(popJob){ fermePopJob(); return; }
+    var deja = barreJobs();
+    var reste = tousLesJobs().filter(function(j){ return deja.indexOf(j) < 0; });
+    popJob = document.createElement('div');
+    popJob.className = 'ss-jpop';
+    popJob.innerHTML = reste.length
+      ? reste.map(function(j){ return '<button type="button" class="ss-job r-'
+          + S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j) + '" data-job="'+esc(j)+'">'+esc(j)+'</button>'; }).join('')
+      : '<span class="ss-jpop-vide">Les 22 jobs sont déjà dans la barre.</span>';
+    var r = bouton.getBoundingClientRect();
+    popJob.style.left = Math.round(Math.min(r.left, innerWidth - 250)) + 'px';
+    popJob.style.top  = Math.round(r.bottom + 5) + 'px';
+    document.body.appendChild(popJob);
+    popJob.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-job]'); if(!b) return;
+      var job = b.dataset.job;
+      insereDebut(ta, job + ' : ');
+      ta.dispatchEvent(new Event('input', {bubbles:true}));
+      // Le job rejoint la barre tout de suite : re-dessiner tout le bloc
+      // ferait perdre le curseur en pleine saisie, on greffe donc le bouton.
+      var barre = bouton.parentNode;
+      if(!barre.querySelector('button[data-job="'+job+'"]')){
+        var n = document.createElement('button');
+        n.type = 'button';
+        n.className = 'ss-job hors r-' + S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, job);
+        n.dataset.job = job;
+        n.title = 'Hors composition — cité ailleurs dans la strat';
+        n.textContent = job;
+        barre.insertBefore(n, bouton);
+      }
+      fermePopJob();
+    });
+  }
+  document.addEventListener('mousedown', function(e){
+    if(popJob && !popJob.contains(e.target) && !e.target.closest('[data-plus]')) fermePopJob();
+  });
+
+  /* ---------------- composition du groupe ---------------- */
+  function panneauCompo(){
+    var g = $('ssCompoGrid'); if(!g) return;
+    var jobs = S.compoJobs(CP);
+    $('ssCompoTailles').innerHTML = S.TAILLES.map(function(t){
+      return '<button type="button" data-t="'+t+'"'+(CP.taille===t?' class="on"':'')+'>'+t+' joueurs</button>'; }).join('');
+    var sup = jobs.length - CP.taille;
+    $('ssCompoInfo').innerHTML = jobs.length + ' job' + (jobs.length>1?'s':'') + ' pour ' + CP.taille + ' place'
+      + (CP.taille>1?'s':'')
+      + (sup > 0 ? ' — <b>'+sup+' remplaçant'+(sup>1?'s':'')+'</b> (un même créneau tenu par deux jobs, comme PLD ou DNC)'
+        : sup < 0 ? ' — <b>'+(-sup)+' place'+(sup<-1?'s':'')+' encore vide'+(sup<-1?'s':'')+'</b>' : ' — au complet');
+    g.innerHTML = tousLesJobs().map(function(j){
+      return '<button type="button" class="ss-cj r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
+        + (jobs.indexOf(j)>=0?' on':'')+'" data-job="'+esc(j)+'">'+esc(j)+'</button>'; }).join('');
+  }
+  function basculeCompo(job){
+    var jobs = S.compoJobs(CP), i = jobs.indexOf(job);
+    if(i >= 0) jobs.splice(i, 1); else jobs.push(job);
+    CP.jobs = jobs;
+    panneauCompo(); editeur(); rendre(); touche();
+  }
+  function tailleCompo(t){ CP.taille = t; panneauCompo(); touche(); }
+  function ouvrirCompo(){ panneauCompo(); $('ssCompoPan').hidden = false; }
+  function fermerCompo(){ $('ssCompoPan').hidden = true; }
+
   /* ---------------- rôles des jobs (par strat) ---------------- */
   // On coche les rôles d'un job ; l'ORDRE des clics compte, le premier coché
   // est le rôle principal. Décocher le dernier rôle est refusé : un job sans
@@ -367,9 +458,10 @@
   var ROLE_NOMS = {tank:'Tank', heal:'Soin', buff:'Buff', dd:'DD'};
   function grilleRoles(){
     var g = $('ssRolesGrid'); if(!g || typeof ROLE === 'undefined') return;
-    g.innerHTML = JOBSL.filter(function(j){ return j !== 'ALL'; }).map(function(j){
+    var dansCompo = S.compoJobs(CP);
+    g.innerHTML = tousLesJobs().map(function(j){
       var rs = S.rolesDuJob(ROLE, j);
-      return '<div class="ss-rrow' + (JOBSL.indexOf(j) < JOBS_COMP ? ' comp' : '') + '">'
+      return '<div class="ss-rrow' + (dansCompo.indexOf(j) >= 0 ? ' comp' : '') + '">'
         + '<span class="ss-rjob r-'+rs[0]+'">'+esc(j)+'</span>'
         + Object.keys(ROLE_NOMS).map(function(r){
             var i = rs.indexOf(r);
@@ -401,6 +493,7 @@
   function blocsData(){
     var reg = {}; Object.keys(BUFFS).forEach(function(k){ if(BUFFS[k]) reg[k]=BUFFS[k]; });
     var out = [];
+    if(typeof COMPO !== 'undefined') out.push({nom:'COMPO', scalaire:true, txt:S.compoConst('COMPO', CP)});
     if(typeof ROLE !== 'undefined') out.push({nom:'ROLE', txt:S.roleConst('ROLE', ROLE)});
     Object.keys(reg).forEach(function(k){ out.push({nom:k, txt:SC.buffsConst(k, reg[k])}); });
     FL.forEach(function(f){
@@ -455,6 +548,13 @@
   });
   $('ssSave').addEventListener('click', enregistrer);
   $('ssReload').addEventListener('click', recharger);
+  $('ssCompo').addEventListener('click', ouvrirCompo);
+  $('ssCompoClose').addEventListener('click', fermerCompo);
+  $('ssCompoTailles').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-t]'); if(b) tailleCompo(+b.dataset.t); });
+  $('ssCompoGrid').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-job]'); if(b) basculeCompo(b.dataset.job); });
+  $('ssCompoPan').addEventListener('mousedown', function(e){ if(e.target === this) fermerCompo(); });
   $('ssRoles').addEventListener('click', ouvrirRoles);
   $('ssRolesClose').addEventListener('click', fermerRoles);
   $('ssRolesGrid').addEventListener('click', function(e){
@@ -465,7 +565,11 @@
   $('ssRolesPan').addEventListener('mousedown', function(e){ if(e.target === this) fermerRoles(); });
   window.addEventListener('keydown', function(e){
     var mod = e.ctrlKey||e.metaKey, k = e.key.toLowerCase();
-    if(e.key === 'Escape' && !$('ssRolesPan').hidden){ fermerRoles(); return; }
+    if(e.key === 'Escape'){
+      if(popJob){ fermePopJob(); return; }
+      if(!$('ssRolesPan').hidden){ fermerRoles(); return; }
+      if(!$('ssCompoPan').hidden){ fermerCompo(); return; }
+    }
     if(mod && k==='s'){ e.preventDefault(); enregistrer(); return; }
     if(mod && k==='z' && !e.shiftKey){ e.preventDefault(); annuler(); return; }
     if(mod && (k==='y' || (k==='z' && e.shiftKey))){ e.preventDefault(); retablir(); }
@@ -473,5 +577,6 @@
   buildTree(); editeur(); rendre(); memorise();
   // crochet de test : le remplacement lui-même se teste sur window.DATAFILE
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
-                 blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole};
+                 blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,
+                 compo:ouvrirCompo, basculeCompo:basculeCompo, taille:tailleCompo, barreJobs:barreJobs};
 })();

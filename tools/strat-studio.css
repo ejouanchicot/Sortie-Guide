@@ -136,17 +136,21 @@ body{overflow:hidden;background:var(--bg)}
 .ss-tbsep{width:1px;height:16px;background:var(--line2);margin:0 4px}
 
 /* Un bouton de job porte la couleur de son rôle, la MÊME que le badge dans le
-   guide : on reconnaît un tank ou un soigneur avant de lire les trois lettres. */
-.ss-tb button.ss-job.r-tank{--jc:var(--r-tank)} .ss-tb button.ss-job.r-buff{--jc:var(--r-buff)}
-.ss-tb button.ss-job.r-heal{--jc:var(--r-heal)} .ss-tb button.ss-job.r-dd{--jc:var(--r-dd)}
-.ss-tb button.ss-job.r-all{--jc:var(--r-all)}
-.ss-tb button.ss-job{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 34%,transparent);
+   guide : on reconnaît un tank ou un soigneur avant de lire les trois lettres.
+   Sélecteur `button.ss-job` et pas `.ss-job` : il faut égaler `.ss-tb button`
+   en spécificité pour gagner à l'ordre — et rester valable hors de la barre,
+   dans le sélecteur « ＋ job ». D'où aussi les métriques répétées ici. */
+button.ss-job.r-tank{--jc:var(--r-tank)} button.ss-job.r-buff{--jc:var(--r-buff)}
+button.ss-job.r-heal{--jc:var(--r-heal)} button.ss-job.r-dd{--jc:var(--r-dd)}
+button.ss-job.r-all{--jc:var(--r-all)}
+button.ss-job{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:7px;
+  cursor:pointer;transition:.13s var(--ease);
+  color:var(--jc);border:1px solid color-mix(in srgb,var(--jc) 34%,transparent);
   background:color-mix(in srgb,var(--jc) 10%,transparent)}
-.ss-tb button.ss-job:hover{color:#fff;border-color:var(--jc);background:color-mix(in srgb,var(--jc) 28%,transparent)}
-/* Hors de la comp de la LS : présents, mais en retrait — on tape PLD cent fois
-   plus souvent que PUP, et 22 boutons de même poids noieraient les sept utiles. */
-.ss-tb button.ss-job.hors{opacity:.42;font-weight:600}
-.ss-tb button.ss-job.hors:hover{opacity:1}
+button.ss-job:hover{color:#fff;border-color:var(--jc);background:color-mix(in srgb,var(--jc) 28%,transparent)}
+/* Cité dans la strat mais hors composition : présent, mais en retrait. */
+button.ss-job.hors{opacity:.5;font-weight:600}
+button.ss-job.hors:hover{opacity:1}
 
 /* ─── un bloc = une carte de formulaire ─── */
 .ss-bloc{border:1px solid var(--line2);border-radius:var(--r-md);padding:12px 13px;margin:14px 0;
@@ -226,6 +230,31 @@ body{overflow:hidden;background:var(--bg)}
 .ss-mttl{font-family:var(--display);font-weight:700;font-size:15px;margin-bottom:9px}
 .ss-mmsg{font-size:13px;color:var(--txt2);line-height:1.55;margin-bottom:16px}
 .ss-mact{display:flex;gap:9px;justify-content:flex-end}
+
+/* ─── panneau « Composition du groupe » ─── */
+#ssCompoPan{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:22px;
+  background:rgba(4,7,12,.6);backdrop-filter:blur(6px)}
+#ssCompoPan[hidden]{display:none}
+.ss-cseg{display:inline-flex;margin:0 0 10px}
+.ss-cinfo{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 0 14px}
+.ss-cinfo b{color:var(--r-buff)}
+.ss-cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
+.ss-cj{font-family:var(--mono);font-size:11.5px;font-weight:800;letter-spacing:.05em;padding:9px 4px;
+  border-radius:9px;cursor:pointer;color:var(--dim);background:transparent;
+  border:1px solid var(--hair);transition:.13s var(--ease)}
+.ss-cj.r-tank{--jc:var(--r-tank)} .ss-cj.r-heal{--jc:var(--r-heal)}
+.ss-cj.r-buff{--jc:var(--r-buff)} .ss-cj.r-dd{--jc:var(--r-dd)} .ss-cj.r-all{--jc:var(--r-all)}
+.ss-cj:hover{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 45%,transparent)}
+/* dans la compo = plein, hors compo = simple contour : la compo se lit d'un bloc */
+.ss-cj.on{color:#0d1218;background:var(--jc);border-color:var(--jc)}
+
+/* ─── sélecteur « ＋ job » (hors composition) ─── */
+.ss-jpop{position:fixed;z-index:220;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+  padding:7px;max-width:240px;border-radius:11px;
+  background:var(--panel);border:1px solid var(--line2);box-shadow:var(--shadow-lg)}
+.ss-jpop-vide{grid-column:1/-1;font-size:11.5px;color:var(--dim);padding:3px 4px}
+.ss-tb button.ss-jplus{color:var(--dim);border-style:dashed}
+.ss-tb button.ss-jplus:hover{color:#fff;border-style:solid;border-color:var(--accent)}
 
 /* ─── panneau « Rôles des jobs » ───
    Le rôle appartient à la strat, pas au moteur : NIN tanke ici et DPS

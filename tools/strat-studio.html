@@ -21,6 +21,7 @@
     <div class="ss-seg" id="ssFloor"><button type="button" data-i="0" class="on">Rez-de-chaussée</button><button type="button" data-i="1">Sous-sol</button></div>
     <div class="ss-spacer"></div>
     <span id="ssUnsaved" title="Des modifications ne sont pas encore écrites dans les fichiers">non enregistré</span>
+    <button class="ss-btn" id="ssCompo" title="Combien on est, et avec quels jobs">Compo</button>
     <button class="ss-btn" id="ssRoles" title="Quel job tient quel rôle dans CETTE strat">Rôles</button>
     <button class="ss-btn" id="ssReload" title="Relire data.js et i18n.js depuis le disque">Recharger</button>
     <button class="ss-btn primary" id="ssSave" title="Écrire dans data.js et i18n.js (Ctrl+S)">Enregistrer</button>
@@ -63,6 +64,24 @@
     <div class="ss-mttl" id="ssModalTtl">Confirmer</div>
     <div class="ss-mmsg" id="ssModalMsg"></div>
     <div class="ss-mact"><button class="ss-btn" id="ssModalNo" type="button">Annuler</button><button class="ss-btn danger" id="ssModalYes" type="button">Supprimer</button></div>
+  </div>
+</div>
+
+<div id="ssCompoPan" hidden>
+  <div class="ss-rcard" role="dialog" aria-modal="true" aria-labelledby="ssCompoTtl">
+    <div class="ss-rhead">
+      <div>
+        <div class="ss-mttl" id="ssCompoTtl">Composition du groupe</div>
+        <p class="ss-rsub">On décide ça <b>avant d'écrire</b> : combien on est, et avec quels jobs.
+          Ce sont eux que la barre de saisie propose, et eux qui font le filtre « Mon rôle » du guide.
+          On peut mettre <b>plus de jobs que de places</b> — le surplus, ce sont les remplaçants d'un
+          même créneau, comme PLD ou DNC.</p>
+      </div>
+      <button class="ss-btn" id="ssCompoClose" type="button">Fermer</button>
+    </div>
+    <div class="ss-seg ss-cseg" id="ssCompoTailles"></div>
+    <p class="ss-cinfo" id="ssCompoInfo"></p>
+    <div class="ss-cgrid" id="ssCompoGrid"></div>
   </div>
 </div>
 

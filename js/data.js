@@ -7,9 +7,15 @@
    ⚠ Ce fichier est chargé AVANT app.js.
    ============================================================ */
 
-// ---- jobs & rôles ----
-// JOBS = la comp de la LS : ce sont les boutons du filtre « Mon rôle » du guide.
-const JOBS=["MNK","BRD","COR","GEO","RDM","PLD","DNC"];
+// ---- composition du groupe ----
+// La strat se conçoit AVANT d'être écrite : combien on est, et avec quels jobs.
+// `taille` = 6 (party), 12 ou 18 (alliance). `jobs` peut en compter plus que
+// `taille` : le surplus, ce sont les remplaçants d'un même créneau — ici PLD
+// ou DNC, d'où la bascule de comp en haut du guide.
+// Ces jobs font les boutons du filtre « Mon rôle », et ce sont eux que
+// Strat Studio propose en premier. Réglable dans Strat Studio (bouton
+// « Compo »), ne pas éditer à la main — l'outil réécrit la ligne.
+const COMPO={taille:6,jobs:["MNK","BRD","COR","GEO","RDM","PLD","DNC"]};
 // ROLE = les 22 jobs de FFXI, pas seulement la comp. Le rôle donne la COULEUR
 // du badge, et il appartient à CETTE strat : NIN peut tanker ici et DPS dans
 // une autre. Réglable dans Strat Studio (bouton « Rôles »), ne pas éditer les

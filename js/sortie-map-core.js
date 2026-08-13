@@ -265,8 +265,16 @@
     return s.replace(/,\n$/, '\n') + '};';
   }
 
+  /* ---- composition du groupe ---- */
+  var TAILLES = [6, 12, 18];
+  function compoJobs(c){ return (c && c.jobs) ? c.jobs.slice() : []; }
+  function compoConst(nm, c){
+    return 'const '+nm+'={taille:'+((c&&c.taille)||6)+',jobs:'+JSON.stringify(compoJobs(c))+'};';
+  }
+
   global.SORTIE = {
     ROLES_OK:ROLES_OK, rolesDuJob:rolesDuJob, roleDuJob:roleDuJob, roleConst:roleConst,
+    TAILLES:TAILLES, compoJobs:compoJobs, compoConst:compoConst,
     EL_KEYS:EL_KEYS, EL_HEX:EL_HEX, EL_VAR:EL_VAR, EL_ZC2:EL_ZC2,
     elHex:elHex,
     POI_SIZE:POI_SIZE, poiSize:poiSize, labelGap:labelGap,
