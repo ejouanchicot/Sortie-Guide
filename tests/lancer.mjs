@@ -1,7 +1,7 @@
 /* ============================================================
    lancer.mjs — passer tous les tests d'un coup
    ------------------------------------------------------------
-   Les onze tests ouvrent un vrai navigateur sur un vrai serveur :
+   Chaque test ouvre un vrai navigateur sur un vrai serveur :
    ils vérifient ce qui arrive à l'écran, pas ce que le code avait
    l'intention de faire. Trois pannes ont déjà survécu à un test
    qui passait au vert sans regarder la page.

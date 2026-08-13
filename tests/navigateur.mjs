@@ -5,8 +5,8 @@
    statique, il ne s'installe pas. Puppeteer vient donc d'ailleurs —
    d'une installation globale déjà présente sur la machine.
 
-   Ce chemin vivait recopié dans les onze tests. Une machine qui
-   l'installe ailleurs les cassait tous les onze, et chaque nouveau
+   Ce chemin vivait recopié dans chaque test. Une machine qui
+   l'installe ailleurs les cassait tous d'un coup, et chaque nouveau
    test le recopiait une fois de plus. Il vit ici, et nulle part
    ailleurs.
 

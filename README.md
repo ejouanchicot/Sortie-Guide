@@ -41,7 +41,7 @@ tools/studio.html         l'atelier
 css/  fonts/  img/        style, polices auto-hébergées, images
 js/                       le socle, le moteur du guide, les modules partagés
 tools/                    les deux ateliers + tools/build/ (générateurs)
-tests/                    11 tests de rendu · node tests/lancer.mjs
+tests/                    les tests de rendu · node tests/lancer.mjs
 docs/                     architecture, backlog, marque
 ```
 
@@ -54,7 +54,7 @@ Aucune dépendance à installer, aucun build. Un serveur local suffit :
 
 ```bash
 python -m http.server 8137     # puis http://localhost:8137/
-node tests/lancer.mjs          # les 11 tests de rendu (Puppeteer)
+node tests/lancer.mjs          # les tests de rendu (Puppeteer)
 ```
 
 Deux fichiers sont **générés** — les modifier à la main ne sert à rien :

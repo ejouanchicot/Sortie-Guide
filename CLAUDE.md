@@ -43,7 +43,7 @@ pour que ses jetons de couleur n'écrasent pas ceux du guide dans la même page.
 ## Tests
 
 ```bash
-node tests/lancer.mjs            # les 11, serveur monté tout seul
+node tests/lancer.mjs            # tous, serveur monté tout seul
 node tests/lancer.mjs fond css   # ceux dont le nom contient
 ```
 

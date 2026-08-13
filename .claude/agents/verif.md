@@ -10,7 +10,7 @@ de faire. Trois pannes de ce projet ont survécu à un test vert.
 ## Lancer
 
 ```bash
-node tests/lancer.mjs              # les 11, serveur monté tout seul
+node tests/lancer.mjs              # tous, serveur monté tout seul
 node tests/lancer.mjs fond css     # ceux dont le nom contient
 ```
 
