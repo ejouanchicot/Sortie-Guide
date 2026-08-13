@@ -1147,49 +1147,83 @@
      n'en retient que le CHEMIN. Une image glissee dans les donnees les ferait
      grossir de plusieurs centaines de kilo-octets par carte, dans un fichier
      qu'on lit et qu'on versionne a la main. */
+  /* ⚠ IL FAUT DEUX GESTES, la premiere fois seulement.
+
+     Un navigateur n'ouvre un selecteur — de fichier comme de dossier — que sur
+     un vrai geste de l'utilisateur, et chaque selecteur CONSOMME ce geste. Or
+     l'evenement « change » d'un champ de fichier n'en produit pas un nouveau :
+     apres le choix de l'image, il ne reste plus rien pour demander le dossier.
+     C'est ce qui rendait « SecurityError: Must be handling a user gesture ».
+
+     On ne peut donc pas enchainer les deux depuis un seul clic. Le premier
+     import demande le dossier depuis SON PROPRE bouton, puis l'image depuis un
+     second. Ensuite la poignee est memorisee et un seul geste suffit. */
   const II=window.IMPORTIMAGE;
-  function choisirFond(){
+  async function choisirFond(){
     const f=FL[curIdx];if(!f||!REG[f.carte]){toast('Choisis d’abord une carte.','err');return;}
+    if(!II){toast('L’import d’image n’est pas disponible ici.','err');return;}
+
+    // lire la poignee memorisee ne demande rien : le geste reste utilisable
+    const dejaLa=await II.dossierPret();
+    if(dejaLa || !window.DATAFILE.dispoDossier()){ ouvreFichier(dejaLa); return; }
+
+    const ok=await askConfirm('Pour ranger l’image dans le projet, le navigateur doit d’abord '
+      +'t’autoriser a ecrire dans le dossier <b>img</b>.<br><br>'
+      +'A faire <b>une seule fois</b> : il s’en souviendra ensuite, et tu n’auras plus '
+      +'qu’a choisir l’image.',
+      {title:'Ou ranger l’image ?',ok:'Choisir le dossier img',danger:false});
+    if(!ok)return;
+
+    const a=await II.acces();                     // le clic ci-dessus est le geste
+    if(a.ou==='annule')return;
+    if(a.ou==='refuse'){
+      await erreur('Le dossier img n’a pas pu etre ouvert',
+        'Le navigateur a refuse l’acces au dossier. Si le message ci-dessous parle '
+        + 'd’un <b>geste de l’utilisateur</b>, re-essaie : il faut cliquer sur le bouton '
+        + 'de la boite, pas ailleurs.', a.pourquoi);
+      return;}
+
+    const suite=await askConfirm('Dossier <b>img</b> autorise.<br><br>'
+      +'Choisis maintenant l’image de fond — elle sera redimensionnee, convertie et rangee.',
+      {title:'C’est bon',ok:'Choisir l’image',danger:false});
+    if(!suite)return;
+    ouvreFichier(a.dossier);                      // et celui-la est le second geste
+  }
+  function ouvreFichier(dossier){
     const inp=document.createElement('input');
     inp.type='file';inp.accept='image/*';
-    inp.addEventListener('change',()=>{if(inp.files[0])poseFond(inp.files[0]);});
+    inp.addEventListener('change',()=>{if(inp.files[0])poseFond(inp.files[0],dossier);});
     inp.click();
   }
-  async function poseFond(fichier){
+  // `dossier` vient de choisirFond : soit la poignee deja autorisee, soit
+  // celle qu'on vient d'obtenir, soit null quand le navigateur ne sait pas
+  // ecrire dans un dossier.
+  async function poseFond(fichier,dossier){
     const f=FL[curIdx],nomCarte=f.carte,c=REG[nomCarte];
-    if(!II){toast('L’import d’image n’est pas disponible ici.','err');return;}
     const nomFichier=II.nomDeFichier(nomCarte);
-
-    // ⚠ LE DOSSIER D'ABORD. Le navigateur n'ouvre un selecteur de dossier que
-    // dans la foulee du geste de l'utilisateur, et cette autorisation s'eteint
-    // en quelques secondes. En convertissant l'image avant, on arrivait les
-    // mains vides et l'outil annoncait « sans acces au dossier » alors que
-    // personne n'avait rien refuse.
-    const a=await II.acces();
-    if(a.ou==='annule')return;                    // il a ferme le selecteur
-    if(a.ou==='refuse'){
-      toast('Le dossier img n’a pas pu etre ouvert : '+a.pourquoi,'err');
-      return;
-    }
 
     let prete;
     try{ prete=await II.prepare(fichier); }
-    catch(e){ toast('Cette image n’a pas pu etre lue.','err'); return; }
+    catch(e){ await erreur('Cette image n’a pas pu etre lue',
+      'Le navigateur n’a pas su la decoder. Essaie un PNG, un JPEG ou un WebP.',
+      e && (e.name + ' — ' + e.message)); return; }
 
-    if(a.ou==='telechargement'){
+    if(!dossier){
       II.telecharge(prete,nomFichier);
       await askConfirm('Ton navigateur ne sait pas ecrire dans un dossier — Chrome ou Edge le font.<br><br>'
         +'L’image convertie vient d’etre telechargee sous le nom <b>'+esc(nomFichier)+'</b>. '
         +'Depose-la dans le dossier <b>img</b> du projet et elle apparaitra.',
         {title:'A poser toi-meme',ok:'Compris',danger:false});
     } else {
-      const r=await II.depose(a.dossier,prete,nomFichier,{confirme:nom=>
+      const r=await II.depose(dossier,prete,nomFichier,{confirme:nom=>
         askConfirm('<b>'+esc(nom)+'</b> existe deja dans le dossier <b>img</b>.<br><br>'
           +'Une autre carte s’en sert peut-etre : elle changerait de fond elle aussi.',
           {title:'Remplacer l’image ?',ok:'Remplacer'})});
       if(r.ou==='annule')return;
       if(r.ou==='refuse'){
-        toast('L’image n’a pas pu etre ecrite : '+r.pourquoi+'. Re-essaie, on te redemandera le dossier.','err');
+        await erreur('L’image n’a pas pu etre ecrite',
+          'Le dossier a peut-etre ete deplace ou renomme. Il est oublie : au prochain '
+          + 'essai, on te le redemandera.', r.pourquoi);
         return;
       }
     }
@@ -1484,20 +1518,59 @@
   // relâchement d'Espace : toujours traité (sort du mode navigation même si la souris a quitté la carte), sauf en pleine saisie
   window.addEventListener('keyup',e=>{if(inField(e))return;if(e.key===' '&&spaceDown){spaceDown=false;setToolMode();}});
 
-  function toast(msg,cls){const el=document.getElementById('toast');el.textContent=msg;el.className=cls||'';el.style.opacity='1';clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',2200);}
+  // Une erreur porte une information dont on a besoin pour agir : elle reste
+  // trois fois plus longtemps qu'une confirmation, qu'on ne relit jamais.
+  function toast(msg,cls){const el=document.getElementById('toast');el.textContent=msg;el.className=cls||'';
+    el.style.opacity='1';clearTimeout(el._t);
+    el._t=setTimeout(()=>el.style.opacity='0',cls==='err'?9000:2600);}
 
   // modale de confirmation maison → Promise<bool>. opts: {title, ok, danger:false pour un bouton neutre}
   let modalOpen=false;
+  // Recopier dans le presse-papier. navigator.clipboard REFUSE quand la page
+  // n'a pas le focus : un refus ne doit pas rester sans suite, on repasse par
+  // la vieille methode, qui part d'un clic et passe donc partout.
+  function copieTexte(txt){
+    const vieille=()=>new Promise((res,rej)=>{
+      const z=document.createElement('textarea');z.value=txt;
+      z.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
+      document.body.appendChild(z);z.focus();z.select();
+      let ok=false;try{ok=document.execCommand('copy');}catch(e){}
+      z.remove();ok?res():rej(new Error('copie refusee'));});
+    if(navigator.clipboard&&navigator.clipboard.writeText)
+      return navigator.clipboard.writeText(txt).catch(vieille);
+    return vieille();
+  }
+
+  /* Une panne se lit, et se recopie. Un toast s'evapore avant qu'on ait fini
+     la phrase, et on ne peut rien en faire — or c'est justement le message
+     qu'on voudrait pouvoir montrer a quelqu'un. */
+  function erreur(titre,phrase,detail){
+    return askConfirm(phrase+(detail?'<br><br><code class="mdet">'+esc(detail)+'</code>':''),
+      {title:titre,ok:'Fermer',danger:false,seul:true,copie:detail?(titre+' — '+detail):phrase});
+  }
+
   function askConfirm(msg,opts){opts=opts||{};return new Promise(res=>{
-    const back=document.getElementById('modal'),ttl=document.getElementById('modalTtl'),m=document.getElementById('modalMsg'),ok=document.getElementById('modalOk'),cancel=document.getElementById('modalCancel');
+    const back=document.getElementById('modal'),ttl=document.getElementById('modalTtl'),m=document.getElementById('modalMsg'),ok=document.getElementById('modalOk'),cancel=document.getElementById('modalCancel'),cop=document.getElementById('modalCopy');
     ttl.textContent=opts.title||'Confirmer';m.innerHTML=msg;ok.textContent=opts.ok||'Supprimer';ok.className='tbtn '+(opts.danger===false?'primary':'danger');
+    // Fermer une boite programme son escamotage 180 ms plus tard. Si une
+    // seconde s'ouvre avant (une panne juste apres une confirmation, par
+    // exemple), ce minuteur la refermait aussitot. On l'annule.
+    clearTimeout(back._cache);
+    cancel.hidden=!!opts.seul;
+    if(cop){cop.hidden=!opts.copie;cop.textContent='Copier le message';}
     back.hidden=false;modalOpen=true;requestAnimationFrame(()=>back.classList.add('show'));
-    function done(v){back.classList.remove('show');modalOpen=false;setTimeout(()=>{back.hidden=true;},180);
-      ok.removeEventListener('click',onOk);cancel.removeEventListener('click',onCancel);back.removeEventListener('mousedown',onBack);document.removeEventListener('keydown',onKey,true);res(v);}
+    function done(v){back.classList.remove('show');modalOpen=false;back._cache=setTimeout(()=>{back.hidden=true;cancel.hidden=false;if(cop)cop.hidden=true;},180);
+      ok.removeEventListener('click',onOk);cancel.removeEventListener('click',onCancel);back.removeEventListener('mousedown',onBack);document.removeEventListener('keydown',onKey,true);
+      if(cop)cop.removeEventListener('click',onCopy);res(v);}
+    // copier ne ferme PAS : on peut vouloir relire, ou recopier
     function onOk(){done(true);}function onCancel(){done(false);}
+    function onCopy(){copieTexte(opts.copie).then(()=>{cop.textContent='Copie';
+      setTimeout(()=>{if(cop)cop.textContent='Copier le message';},1800);})
+      .catch(()=>{cop.textContent='Selectionne le texte a la main';});}
     function onBack(e){if(e.target===back)done(false);}
     function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();done(true);}}
     ok.addEventListener('click',onOk);cancel.addEventListener('click',onCancel);back.addEventListener('mousedown',onBack);document.addEventListener('keydown',onKey,true);
+    if(cop&&opts.copie)cop.addEventListener('click',onCopy);
     setTimeout(()=>{try{ok.focus();}catch(e){}},30);});}
 
   function boot(){if(typeof Konva==='undefined'){loadmsg.textContent='Konva n’a pas pu se charger.';return;}

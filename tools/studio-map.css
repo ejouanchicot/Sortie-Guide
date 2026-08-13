@@ -227,7 +227,19 @@
 .ms #modal .mttl svg{width:19px;height:19px;fill:none;stroke:var(--danger);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .ms #modal .mmsg{font-family:var(--sans);font-size:13px;color:var(--tx2);line-height:1.55;margin-bottom:18px}
 .ms #modal .mmsg b{color:#fff}
+/* le detail technique d'une panne : on doit pouvoir le lire ET le selectionner */
+.ms #modal .mdet{display:block;margin-top:2px;padding:9px 11px;border-radius:9px;
+  font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--tx2);
+  background:rgba(0,0,0,.34);border:1px solid var(--line);
+  white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:auto;
+  -webkit-user-select:text;user-select:text}
+/* Sans ca, l'attribut `hidden` ne cache RIEN sur ces boutons : le display:none
+   que le navigateur associe a [hidden] est une regle par defaut, et le
+   display:inline-flex de .tbtn la bat. Le bouton « Copier le message »
+   restait donc affiche sur toutes les boites. */
+.ms #modal [hidden]{display:none!important}
 .ms #modal .mact{display:flex;gap:10px;justify-content:flex-end}
+.ms #modal .mact #modalCopy{margin-right:auto}
 .ms #modal .mact .tbtn{min-width:96px;justify-content:center}
 
 @media (prefers-reduced-motion:reduce){.ms{animation-duration:.001ms!important;transition-duration:.001ms!important}}

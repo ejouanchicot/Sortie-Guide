@@ -93,6 +93,11 @@ g.on('request', r => {
   else r.abort();
 });
 await g.goto('file:///' + f.replace(/\\/g, '/'), {waitUntil:'networkidle0'});
+// `networkidle0` ne dit rien du DECODAGE : sur une page qui ne fait aucune
+// requete reseau, il est atteint alors que les images data: sont encore en
+// train d'etre lues. On attend qu'elles aient toutes fini.
+await g.waitForFunction(() => [...document.images].every(i => i.complete),
+                        {timeout:15000}).catch(() => {});
 
 const vue = await g.evaluate(() => ({
   titre:document.getElementById('gTitre')?.textContent,

@@ -18,13 +18,23 @@ const bruit = []; p.on('pageerror', e => bruit.push(String(e)));
 await p.goto('http://localhost:8137/tools/studio.html', {waitUntil:'networkidle0'});
 await p.waitForFunction(() => document.getElementById('carteSel'), {timeout:8000});
 
-// ---- 1. le clic demande-t-il vraiment un fichier ? ----
-const attente = p.waitForFileChooser({timeout:5000}).then(() => true).catch(() => false);
+// ---- 1. le premier import explique d'abord ou l'image ira ----
+// Il ne peut PAS ouvrir le selecteur de fichier tout de suite : demander le
+// dossier ensuite echouerait, le geste ayant ete consomme. Voir verif-geste.
 await p.evaluate(() => {
   const s = document.getElementById('carteSel');
   s.value = '__fond__'; s.dispatchEvent(new Event('change'));
 });
-dit('l\'entree de menu ouvre bien un selecteur de fichier', await attente);
+await p.waitForSelector('#modal', {visible:true, timeout:4000}).catch(() => {});
+const ouverture = await p.evaluate(() => {
+  const m = document.getElementById('modal');
+  return (m && m.checkVisibility()) ? m.textContent.replace(/\s+/g, ' ').trim() : '';
+});
+dit('l\'entree de menu explique d\'abord ou l\'image ira',
+    /dossier .?img/i.test(ouverture), ouverture.slice(0, 90));
+await p.evaluate(() => [...document.querySelectorAll('#modal button')]
+  .find(x => /annuler/i.test(x.textContent))?.click());
+await new Promise(r => setTimeout(r, 300));
 
 // ---- 2. le depot, avec un faux dossier ----
 const r = await p.evaluate(async () => {

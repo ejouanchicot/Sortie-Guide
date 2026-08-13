@@ -84,6 +84,17 @@
 
      Rend ce qui s'est passé, pas un booléen : annuler et échouer ne se
      disent pas de la même façon. */
+  /* Le dossier est-il DEJA autorise ? Ne demande jamais rien, donc ne consomme
+     aucun geste : on peut l'appeler avant d'ouvrir le selecteur de fichier. */
+  async function dossierPret(){
+    if(!DF || !DF.dispoDossier() || !DF.connue) return null;
+    try{
+      var dir = await DF.connue('img');
+      if(!dir) return null;
+      return (await dir.queryPermission({mode:'readwrite'})) === 'granted' ? dir : null;
+    }catch(e){ return null; }
+  }
+
   async function acces(){
     if(!DF || !DF.dispoDossier()) return {ou:'telechargement'};
     var dir;
@@ -129,7 +140,8 @@
 
   function ko(n){ return Math.round(n / 1024) + ' Ko'; }
 
-  global.IMPORTIMAGE = {acces:acces, prepare:prepare, depose:depose,
+  global.IMPORTIMAGE = {acces:acces, dossierPret:dossierPret,
+                        prepare:prepare, depose:depose,
                         telecharge:telecharge, nomDeFichier:nomDeFichier,
                         ko:ko, COTE_MAX:COTE_MAX};
 })(typeof window!=='undefined'?window:this);
