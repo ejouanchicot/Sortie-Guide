@@ -188,6 +188,27 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 #stTxtInfo{font-family:var(--mono);font-size:11px;color:var(--dim)}
 .st-sheetfoot .st-btn{margin-left:auto}
 
+/* ─── quand la place manque ───
+   Sous ~1700 px l'en-tête passait sur deux lignes et recouvrait la carte.
+   Les commandes secondaires se réduisent à leur icône : leur infobulle dit
+   déjà ce qu'elles font, et « Enregistrer » garde son libellé — c'est la
+   seule qu'on cherche des yeux. */
+@media (max-width:1700px){
+  .st-btn,.st-ctx.ms .tbtn{font-size:0;gap:0;padding:8px 10px}
+  .st-btn svg,.st-ctx.ms .tbtn svg{width:16px;height:16px}
+  .st-btn.primary{font-size:12.5px;gap:7px;padding:8px 13px}
+  .st-lib{max-width:210px}
+  .st-lib select{max-width:160px}
+}
+
+/* Un cran plus bas, on retire ce qui ne fait que confirmer : le sous-titre de
+   la strat, le nom du fichier, la mention « partagée par N chapitres ». Rien
+   de tout cela ne se commande — on le retrouve en survolant. */
+@media (max-width:1500px){
+  .st-wm{display:none}
+  .st-lib-sub,.st-file,.st-ctx.ms .cartepart{display:none}
+}
+
 @media (max-width:1100px){
   .st-wm{display:none}
   .st-top{gap:8px;padding:8px 12px}

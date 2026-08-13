@@ -1086,16 +1086,70 @@
     const host=document.getElementById('carteBar');if(!host)return;
     const f=FL[curIdx]||{},noms=Object.keys(REG);
     const n=chapitresAvec(f.carte);
+    // Tout ce qui concerne la carte tient dans le selecteur — comme pour les
+    // strats. Un bouton de plus dans la barre la faisait deborder, et ces
+    // gestes sont rares : on les cherche la ou on choisit la carte.
+    const aFond=!!(REG[f.carte]&&REG[f.carte].fond);
     host.innerHTML='<span class="ctxlab">Carte</span>'
       +'<select id="carteSel" title="La carte utilisee par ce chapitre">'
       + noms.map(k=>'<option value="'+esc(k)+'"'+(k===f.carte?' selected':'')+'>'+esc(k)+'</option>').join('')
-      +'<option value="__neuve__">＋ Nouvelle carte…</option></select>'
-      +'<button class="tbtn" id="carteRen" title="Renommer cette carte partout ou elle sert">Renommer</button>'
+      +'<option disabled>──────────</option>'
+      +'<option value="__neuve__">＋ Nouvelle carte…</option>'
+      +'<option value="__fond__">▣ '+(aFond?'Changer l’image de fond…':'Poser une image de fond…')+'</option>'
+      +'<option value="__renom__">✎ Renommer cette carte</option>'
+      +'</select>'
       +(n>1?'<span class="cartepart" title="Cette carte sert a plusieurs chapitres">partagee par '+n+' chapitres</span>':'');
     document.getElementById('carteSel').addEventListener('change',e=>{
-      if(e.target.value==='__neuve__'){nouvelleCarte();return;}
-      choisirCarte(e.target.value);});
-    document.getElementById('carteRen').addEventListener('click',renommeCarte);
+      const v=e.target.value;
+      if(v==='__neuve__'){nouvelleCarte();return;}
+      if(v==='__fond__'){majSelCarte();choisirFond();return;}
+      if(v==='__renom__'){majSelCarte();renommeCarte();return;}
+      choisirCarte(v);});
+  }
+
+  /* ---- poser une image de fond ----
+     Elle est redimensionnee, convertie en WebP et deposee dans img/ ; la carte
+     n'en retient que le CHEMIN. Une image glissee dans les donnees les ferait
+     grossir de plusieurs centaines de kilo-octets par carte, dans un fichier
+     qu'on lit et qu'on versionne a la main. */
+  const II=window.IMPORTIMAGE;
+  function choisirFond(){
+    const f=FL[curIdx];if(!f||!REG[f.carte]){toast('Choisis d’abord une carte.','err');return;}
+    const inp=document.createElement('input');
+    inp.type='file';inp.accept='image/*';
+    inp.addEventListener('change',()=>{if(inp.files[0])poseFond(inp.files[0]);});
+    inp.click();
+  }
+  async function poseFond(fichier){
+    const f=FL[curIdx],nomCarte=f.carte,c=REG[nomCarte];
+    if(!II){toast('L’import d’image n’est pas disponible ici.','err');return;}
+    let prete;
+    try{ prete=await II.prepare(fichier); }
+    catch(e){ toast('Cette image n’a pas pu etre lue.','err'); return; }
+
+    const nomFichier=II.nomDeFichier(nomCarte);
+    const r=await II.depose(prete,nomFichier,{confirme:nom=>
+      askConfirm('<b>'+esc(nom)+'</b> existe deja dans le dossier <b>img</b>.<br><br>'
+        +'Une autre carte s’en sert peut-etre : elle changerait de fond elle aussi.',
+        {title:'Remplacer l’image ?',ok:'Remplacer'})});
+
+    if(r.ou==='annule')return;
+    if(r.ou==='refuse'){toast('Sans acces au dossier img, l’image ne peut pas etre rangee.','err');return;}
+    if(r.ou==='telechargement'){
+      II.telecharge(prete,nomFichier);
+      await askConfirm('Ton navigateur ne sait pas ecrire dans un dossier — Chrome ou Edge le font.<br><br>'
+        +'L’image convertie vient d’etre telechargee sous le nom <b>'+esc(nomFichier)+'</b>. '
+        +'Depose-la dans le dossier <b>img</b> du projet et elle apparaitra.',
+        {title:'A poser toi-meme',ok:'Compris',danger:false});
+    }
+
+    c.fond='img/'+nomFichier;
+    S.resoudreCartes(FL,REG);
+    delete imgCache[BASE+c.fond];            // sinon on reverrait l'ancienne
+    setDirty(true);await renderFloor(curIdx);fit();majSelCarte();
+    const gain=prete.avant.poids>prete.apres.poids
+      ? ' · '+II.ko(prete.avant.poids)+' → '+II.ko(prete.apres.poids) : '';
+    toast('Fond pose en '+prete.w+'×'+prete.h+gain+'.','ok');
   }
   function choisirCarte(nom){
     const f=FL[curIdx];if(!f||!REG[nom]||f.carte===nom){majSelCarte();return;}
@@ -1110,14 +1164,13 @@
       {title:'Nouvelle carte',valeur:'Nouvelle carte',ok:'Creer'})||'').trim();
     if(!nom)return;
     if(REG[nom]!==undefined){toast('Une carte porte deja ce nom.','err');return;}
-    const fond=(await askText('Chemin de l’image de fond, depuis la racine du projet.<br>'
-      +'Exemple : <code>img/map-e.webp</code>. On peut la poser plus tard.',
-      {title:'Fond de « '+nom+' »',valeur:'img/',ok:'Creer la carte'})||'').trim();
-    const c=CARTE_VIDE();c.fond=(fond==='img/'?'':fond);
-    REG[nom]=c;
+    REG[nom]=CARTE_VIDE();
     const f=FL[curIdx];if(f){f.carte=nom;S.resoudreCartes(FL,REG);}
-    setDirty(true);renderFloor(curIdx);resetHistory();majSelCarte();
-    toast('Carte « '+nom+' » creee.','ok');
+    setDirty(true);await renderFloor(curIdx);resetHistory();majSelCarte();
+    toast('Carte « '+nom+' » creee. Choisis son image de fond.','ok');
+    // On enchaine sur l'image : c'est le geste suivant de toute facon, et une
+    // carte vide sans rien a poser dessus ne dit pas quoi faire.
+    choisirFond();
   }
   async function renommeCarte(){
     const f=FL[curIdx];if(!f||!REG[f.carte])return;

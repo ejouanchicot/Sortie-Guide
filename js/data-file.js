@@ -79,6 +79,33 @@
     return (await h.requestPermission(o)) === 'granted';
   }
 
+  /* ---------------- poignée de dossier ----------------
+     Une image de fond ne se met pas dans data.js : elle va dans img/, et le
+     fichier n'y désigne qu'un chemin. Pour l'y déposer il faut la permission
+     sur le DOSSIER, pas sur un fichier — c'est une autre autorisation, qu'on
+     demande une seule fois et qu'on retient comme les autres. */
+  function dispoDossier(){ return typeof window.showDirectoryPicker === 'function'; }
+
+  async function dossier(cle){
+    if(vives[cle]) return vives[cle];
+    try{ var m = await lit(cle); if(m){ vives[cle] = m; return m; } }catch(e){}
+    var d = await window.showDirectoryPicker({mode:'readwrite'});
+    vives[cle] = d;
+    try{ await ecrit(cle, d); }catch(e){}
+    return d;
+  }
+  // Le nom est rendu, pas suppose : le navigateur peut refuser un caractere.
+  async function deposeFichier(dir, nom, blob){
+    var h = await dir.getFileHandle(nom, {create:true});
+    var w = await h.createWritable();
+    await w.write(blob);
+    await w.close();
+    return h.name;
+  }
+  async function existe(dir, nom){
+    try{ await dir.getFileHandle(nom); return true; }catch(e){ return false; }
+  }
+
   function lisTexte(h){ return h.getFile().then(function(f){ return f.text(); }); }
   async function ecrisTexte(h, texte){
     var w = await h.createWritable();
@@ -122,6 +149,10 @@
     permission: permission,
     lis: lisTexte,
     ecris: ecrisTexte,
-    remplace: remplace
+    remplace: remplace,
+    dispoDossier: dispoDossier,
+    dossier: dossier,
+    deposeFichier: deposeFichier,
+    existe: existe
   };
 })();

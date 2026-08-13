@@ -136,6 +136,7 @@ __STRAT__
 <script src="../js/i18n.js"></script>
 <script src="../js/sortie-map-core.js"></script>
 <script src="../js/data-file.js"></script>
+<script src="../js/import-image.js"></script>
 <script src="../js/biblio.js"></script>
 <script src="../js/minifie.js"></script>
 <script src="../js/export-html.js"></script>
