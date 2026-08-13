@@ -152,7 +152,25 @@
   /* ============================================================
      3 · RENDU D'UN ÉTAGE
      ============================================================ */
-  async function renderFloor(idx){
+  /* Deux rendus qui se chevauchaient se marchaient dessus.
+
+     rendEtage est asynchrone — il attend le fond de carte, puis CHAQUE vignette
+     de mob — et il réaffecte gMap, gPins… au début. Qu'un second rendu parte
+     pendant qu'un premier attend, et le premier continue d'ajouter ses
+     marqueurs dans les groupes du second : la carte portait alors chaque boss
+     en double. Ça se voyait au démarrage, parce que la coque recharge la strat
+     pendant que boot dessine déjà. Changer de carte remettait tout d'aplomb —
+     un rendu seul, sans personne pour lui passer devant.
+
+     On les met à la queue leu leu, et on saute celui qu'une demande plus
+     récente a déjà périmé : seul le dernier étage demandé se dessine. */
+  let rendDemande=0, rendFile=Promise.resolve();
+  function renderFloor(idx){
+    const moi=++rendDemande;
+    rendFile=rendFile.catch(()=>{}).then(()=>(moi===rendDemande)?rendEtage(idx):undefined);
+    return rendFile;
+  }
+  async function rendEtage(idx){
     curIdx=idx;armedPin=null;armedShape=null;select(null);const f=FL[idx];if(!f)return;
     majSelCarte();
     loadingEl.style.display='flex';loadmsg.textContent='Chargement de la carte…';
