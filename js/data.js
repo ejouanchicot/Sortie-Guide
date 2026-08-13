@@ -72,15 +72,15 @@ const BUFFS={
   ln(["ALL"],"Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
   ln(["COR"],"Bolter's + Tactician's"),
   ln(["BRD"],"Mazurka"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
+  ln(["DNC"],"Chocobo Jig")
  ],
  "Buffs de trajet":[
   ln(["COR"],"Bolter's (Tactician's déjà posé)"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
+  ln(["DNC"],"Chocobo Jig")
  ],
  "Buffs avant le dernier boss":[
   ln(["COR"],"Bolter's + Tactician's"),
-  ln(["DNC"],"Chocobo Jig",{comp:"DNC"})
+  ln(["DNC"],"Chocobo Jig")
  ],
  "Buffs de trajet · sous-sol":[
   ln(["ALL"],"Sneak + Invisible"),
@@ -93,7 +93,7 @@ const PHASES=[
 {n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:"Buffs de départ",cards:[
   {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
     {label:"Setup · au camp Fomor",cls:"tank",lines:[
-      ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"],{comp:"PLD"}),
+      ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"]),
       ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
     ]},
     {label:"Buff · farm",cls:"buff",lines:[
@@ -103,7 +103,7 @@ const PHASES=[
     ]},
     {label:"Fomor ×3 · SC Step 4",cls:"dd",img:"Fomor",lines:[
       ln(["MNK"],"Shijin Spiral → Tornado Kick (SC Step 4) ×3",{comp:"PLD"}),
-      ln(["DNC"],"Dancing Edge ×4",{comp:"DNC"})
+      ln(["DNC"],"Dancing Edge ×4")
     ]},
     {label:"Acuex ×3 → SC mono-cible + MB Fire (×3 kills)",cls:"mb",img:"Acuex",lines:[
       ln(["PLD","RDM"],"Chant du Cygne > Chant du Cygne"),
@@ -145,7 +145,7 @@ const PHASES=[
     {label:"DD · on spam",cls:"dd",lines:[
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
       ln(["MNK"],"WS libres (spam)"),
-      ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"],{comp:"DNC"})
+      ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"])
     ]}
   ]}
 ]},
@@ -159,7 +159,7 @@ const PHASES=[
     ]},
     {label:"DD · SC",cls:"dd",lines:[
       ln(["MNK"],"Victory Smite ×2"),
-      ln(["DNC"],"Ruthless Stroke ×2 = Fusion",{comp:"DNC"})
+      ln(["DNC"],"Ruthless Stroke ×2 = Fusion")
     ]},
     {label:"MB Fire",cls:"mb",lines:[
       ln(["RDM","GEO"],"MB Fire sur le SC")
@@ -168,7 +168,7 @@ const PHASES=[
   {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
     {label:"PLD",cls:"tank",lines:[
       ln(["PLD"],"tank sur place"),
-      ln(["PLD"],"Holy Circle + Sepulcher",{comp:"PLD"})
+      ln(["PLD"],"Holy Circle + Sepulcher")
     ]},
     {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
@@ -181,7 +181,7 @@ const PHASES=[
     {label:"DD",cls:"dd",lines:[
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
       ln(["MNK"],"Victory Smite ×2  (ou Victory → Shijin)"),
-      ln(["DNC"],"spam Ruthless Stroke",{comp:"DNC"})
+      ln(["DNC"],"spam Ruthless Stroke")
     ]}
   ]}
 ]},
@@ -217,13 +217,13 @@ const PHASES=[
     ]},
     {label:"◈ Mains THUNDER → proc Earth",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
-      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"}),
+      ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"spam Savage Blade"),
       ln(["RDM","GEO"],"MB Earth sur le SC")
     ]},
     {label:"◈ Mains WIND → proc Ice",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
-      ln(["DNC"],"Rudra's Storm ×2 = Darkness",{comp:"DNC"}),
+      ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"spam Savage Blade"),
       ln(["RDM","GEO"],"MB Ice sur le SC"),
       ln(["ALL"],"Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)",{warn:1})
@@ -246,7 +246,7 @@ const PHASES=[
     {label:"DD",cls:"dd",lines:[
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
       ln(["MNK"],"WS libres, évite Howling Fist > Savage (+ Chakra)"),
-      ln(["DNC"],"Ruthless Stroke (jamais Darkness)",{comp:"DNC"})
+      ln(["DNC"],"Ruthless Stroke (jamais Darkness)")
     ]},
     {label:"Règles",cls:"rules",lines:[
       ln(["ALL"],"absorbe Water → boost ses TP moves"),
@@ -269,7 +269,7 @@ const PHASES_B=[
 {n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
     {label:"Botulus",cls:"",lines:[
-      ln(["DNC"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade",{comp:"DNC"})
+      ln(["DNC"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
   ]},
   {kind:"boss",name:"Boss · Dhartok",tag:"à définir",groups:[]}
@@ -277,7 +277,7 @@ const PHASES_B=[
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
     {label:"Naraka",cls:"",lines:[
-      ln(["DNC"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade",{comp:"DNC"})
+      ln(["DNC"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
   ]},
   {kind:"boss",name:"Boss · Triboulex",tag:"à définir",groups:[]}

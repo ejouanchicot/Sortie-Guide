@@ -410,14 +410,70 @@
   }
 
   /* ---------------- colonne 3 : l'aperçu de toute l'étape ---------------- */
+  /* ---------------- se mettre à la place d'une composition ----------------
+     Une strat avec des remplaçants ne se lit pas pareil selon qui est là :
+     avec PLD on ne voit pas les lignes du DNC, et inversement. Il faut donc
+     pouvoir relire l'étape avec les yeux d'une comp, comme le fait le guide.
+
+     Les comps ne sont écrites nulle part : ce sont les valeurs de `comp`
+     effectivement employées dans la strat. Rien à déclarer, et ça marche pour
+     un contenu qui appellerait ses variantes autrement. */
+  var vueComp = '';   // '' = tout voir
+  function compsUtilisees(){
+    var vus = {}, out = [];
+    function voir(l){ if(l && l.comp && !vus[l.comp]){ vus[l.comp]=1; out.push(l.comp); } }
+    Object.keys(JEUX).forEach(function(k){ (JEUX[k]||[]).forEach(voir); });
+    (FL||[]).forEach(function(f){ (f.phases||[]).forEach(function(p){
+      (p.cards||[]).forEach(function(c){ (c.groups||[]).forEach(function(g){
+        (g.lines||[]).forEach(voir); }); }); }); });
+    return out.sort();
+  }
+  function dessineVue(){
+    var host = $('ssVue'); if(!host) return;
+    var cs = compsUtilisees();
+    if(cs.length < 2){ host.innerHTML = ''; return; }   // rien à choisir
+    if(cs.indexOf(vueComp) < 0) vueComp = '';
+    host.innerHTML = '<button type="button" data-c=""'+(vueComp===''?' class="on"':'')+'>tout</button>'
+      + cs.map(function(c){ return '<button type="button" data-c="'+esc(c)+'"'
+          + (vueComp===c?' class="on"':'')+'>'+esc(c)+'</button>'; }).join('');
+  }
+  // Filtrage fait en JS et pas en CSS : les règles du guide nomment PLD et DNC
+  // en dur, ce qui ne vaut que pour Sortie.
+  function filtreVue(host){
+    var cs = compsUtilisees();
+    host.querySelectorAll('.line, .bl').forEach(function(el){
+      var dc = el.getAttribute('data-comp') || '';
+      var jobs = (el.getAttribute('data-r')||'').split(/\s+/);
+      var cache = false;
+      if(vueComp){
+        // réservée à une AUTRE comp
+        if(dc && dc !== vueComp) cache = true;
+        // ou tenue par un job qui est justement le remplaçant d'une autre comp
+        jobs.forEach(function(j){ if(cs.indexOf(j) >= 0 && j !== vueComp) cache = true; });
+      }
+      el.style.display = cache ? 'none' : '';
+    });
+    // une rubrique ou une carte entièrement masquée n'a plus lieu d'être
+    host.querySelectorAll('.grp').forEach(function(g){
+      var l = g.querySelectorAll('.line');
+      g.style.display = (l.length && ![].every.call(l, function(x){ return x.style.display==='none'; }))
+        || !l.length ? '' : 'none';
+    });
+    var b = host.querySelector('.buffs');
+    if(b){ var bl = b.querySelectorAll('.bl');
+      b.style.display = (bl.length && [].every.call(bl, function(x){ return x.style.display==='none'; })) ? 'none' : ''; }
+  }
+
   function rendre(){
     var host = $('ssPreview'), ps = phases();
+    dessineVue();
     if(selP==null || !ps[selP]){
       host.innerHTML='<p class="ss-empty">Choisis une étape à gauche pour voir son rendu.</p>'; majTrad(); return; }
     var ph = ps[selP], f = etage(), bn = bossParN();
     host.innerHTML = R.buffsHtml(ph.buffs, JEUX[ph.buffs])
       + '<div class="cards">'+(ph.cards||[]).map(function(c){ return R.cardHtml(c, ph, f, bn); }).join('')+'</div>'
       + ((ph.cards||[]).length ? '' : '<p class="ss-empty">Cette étape n’a encore aucun bloc — utilise <b>＋ bloc</b>.</p>');
+    filtreVue(host);
     majTrad();
   }
 
@@ -697,6 +753,9 @@
   });
   $('ssSave').addEventListener('click', enregistrer);
   $('ssReload').addEventListener('click', recharger);
+  $('ssVue').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-c]'); if(!b) return;
+    vueComp = b.dataset.c; rendre(); });
   $('ssCompo').addEventListener('click', ouvrirCompo);
   $('ssCompoClose').addEventListener('click', fermerCompo);
   $('ssCompoTailles').addEventListener('click', function(e){

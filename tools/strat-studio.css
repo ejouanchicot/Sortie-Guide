@@ -258,6 +258,17 @@ button.ss-job.hors:hover{opacity:1}
 .ss-frow .ss-mini[disabled]{opacity:.4;cursor:default}
 .ss-hdr>.ss-wide{flex:0 0 300px}
 
+/* ─── « se mettre à la place d'une comp » au-dessus de l'aperçu ───
+   Discret : c'est une lunette de lecture, pas un réglage de la strat. */
+.ss-vseg{margin-left:auto;display:flex;gap:2px;padding:2px;flex:none;
+  background:rgba(0,0,0,.24);border:1px solid var(--hair);border-radius:9px}
+.ss-vseg button{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.04em;
+  color:var(--dim);background:transparent;border:none;border-radius:7px;padding:3px 8px;cursor:pointer;
+  text-transform:uppercase;transition:.13s var(--ease)}
+.ss-vseg button:hover{color:var(--txt)}
+.ss-vseg button.on{color:#0d1218;background:var(--accent2)}
+.ss-vseg:empty{display:none}
+
 /* ─── bloc de préparation : même carte que les blocs de strat, teintée en
    jaune-buff pour qu'on la distingue au premier coup d'œil ─── */
 .ss-buffbloc{border-color:color-mix(in srgb,var(--r-buff) 32%,var(--line2));
