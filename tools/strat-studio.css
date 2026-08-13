@@ -317,12 +317,10 @@ button.ss-job.hors:hover{opacity:1}
 .ss-rb.r-tank{--jc:var(--r-tank)} .ss-rb.r-heal{--jc:var(--r-heal)}
 .ss-rb.r-buff{--jc:var(--r-buff)} .ss-rb.r-dd{--jc:var(--r-dd)}
 .ss-rb:hover{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 45%,transparent)}
-.ss-rb.on{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 50%,transparent);
-  background:color-mix(in srgb,var(--jc) 14%,transparent)}
-/* le principal est plein, les secondaires restent en contour : on voit d'un
-   coup d'œil lequel colore le badge par défaut */
-.ss-rb.on.first{color:#0d1218;background:var(--jc);border-color:var(--jc)}
-.ss-rb b{font-weight:900}
+/* un seul rôle est retenu par ligne : il est plein, les trois autres restent
+   des contours vides — la ligne se lit sans avoir à comparer des nuances */
+.ss-rb.on{color:#0d1218;background:var(--jc);border-color:var(--jc)}
+.ss-rb:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
 
 @media (max-width:1180px){
   .ss-body{grid-template-columns:230px minmax(0,1fr)}

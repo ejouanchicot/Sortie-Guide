@@ -235,32 +235,23 @@
     if(t.sh==='pill')ex+=", sh:'pill'";   // pastille ronde (« puce ») — même objet, autre forme
     s+=" {x:"+r1(t.x)+",y:"+r1(t.y)+", t:'"+escJs(t.t)+"', s:"+(Math.round((t.s||1.5)*100)/100)+", c:'"+(t.c||'#ffffff')+"'"+ex+"},\n";});return s+'];';}
 
-  /* ---- rôles d'un job ----
-     Un job n'a pas forcément UN rôle : COR buffe et DPS systématiquement,
-     NIN tanke sur un contenu et DPS sur un autre. La table ROLE de data.js
-     accepte donc une chaîne (« PLD »:« tank ») ou une liste ordonnée
-     (« COR »:[« buff »,« dd »]). Le PREMIER est le rôle principal : c'est lui
-     qui donne la couleur du badge quand rien ne dit le contraire. */
+  /* ---- rôle d'un job ----
+     UN rôle par job, et il appartient à la strat : NIN peut tanker sur un
+     contenu et DPS sur un autre, mais dans une strat donnée il est l'un ou
+     l'autre. Le rôle donne la couleur du badge. */
   var ROLES_OK = {tank:1, heal:1, buff:1, dd:1, all:1};
-  function rolesDuJob(table, job){
+  function roleDuJob(table, job){
     var v = (table||{})[job];
-    if(!v) return ['all'];
-    var l = (typeof v === 'string' ? [v] : v).filter(function(r){ return ROLES_OK[r]; });
-    return l.length ? l : ['all'];
+    return ROLES_OK[v] ? v : 'all';
   }
-  function roleDuJob(table, job){ return rolesDuJob(table, job)[0]; }
-  // Écrit la table sous la forme exacte qu'a data.js : une ligne par rôle,
-  // rôle unique en chaîne, rôles multiples en liste.
+  // Écrit la table sous la forme exacte qu'a data.js : une ligne par rôle.
   function roleConst(nm, table){
     var t = table || {}, vus = {}, s = 'const '+nm+'={\n';
     ['tank','heal','buff','dd','all'].forEach(function(r){
       var jobs = Object.keys(t).filter(function(j){ return !vus[j] && roleDuJob(t,j) === r; });
       if(!jobs.length) return;
-      s += ' ' + jobs.map(function(j){
-        vus[j] = 1;
-        var l = rolesDuJob(t, j);
-        return JSON.stringify(j)+':'+(l.length>1 ? JSON.stringify(l) : JSON.stringify(l[0]));
-      }).join(',') + ',\n';
+      s += ' ' + jobs.map(function(j){ vus[j] = 1;
+        return JSON.stringify(j)+':'+JSON.stringify(roleDuJob(t, j)); }).join(',') + ',\n';
     });
     return s.replace(/,\n$/, '\n') + '};';
   }
@@ -273,7 +264,7 @@
   }
 
   global.SORTIE = {
-    ROLES_OK:ROLES_OK, rolesDuJob:rolesDuJob, roleDuJob:roleDuJob, roleConst:roleConst,
+    ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
     TAILLES:TAILLES, compoJobs:compoJobs, compoConst:compoConst,
     EL_KEYS:EL_KEYS, EL_HEX:EL_HEX, EL_VAR:EL_VAR, EL_ZC2:EL_ZC2,
     elHex:elHex,

@@ -466,37 +466,32 @@
   function ouvrirCompo(){ panneauCompo(); $('ssCompoPan').hidden = false; }
   function fermerCompo(){ $('ssCompoPan').hidden = true; }
 
-  /* ---------------- rôles des jobs (par strat) ---------------- */
-  // On coche les rôles d'un job ; l'ORDRE des clics compte, le premier coché
-  // est le rôle principal. Décocher le dernier rôle est refusé : un job sans
-  // rôle n'aurait plus de couleur du tout.
+  /* ---------------- rôle des jobs (par strat) ---------------- */
+  // Un seul rôle par job : on choisit, on ne coche pas. D'où des boutons
+  // radio (aria-checked) et non des cases à cocher — recliquer le rôle déjà
+  // choisi ne le retire pas, un job garde toujours une couleur.
   var ROLE_NOMS = {tank:'Tank', heal:'Soin', buff:'Buff', dd:'DD'};
   function grilleRoles(){
     var g = $('ssRolesGrid'); if(!g || typeof ROLE === 'undefined') return;
     var dansCompo = S.compoJobs(CP);
     g.innerHTML = tousLesJobs().map(function(j){
-      var rs = S.rolesDuJob(ROLE, j);
-      return '<div class="ss-rrow' + (dansCompo.indexOf(j) >= 0 ? ' comp' : '') + '">'
-        + '<span class="ss-rjob r-'+rs[0]+'">'+esc(j)+'</span>'
+      var actuel = S.roleDuJob(ROLE, j);
+      return '<div class="ss-rrow' + (dansCompo.indexOf(j) >= 0 ? ' comp' : '') + '" role="radiogroup" aria-label="'+esc(j)+'">'
+        + '<span class="ss-rjob r-'+actuel+'">'+esc(j)+'</span>'
         + Object.keys(ROLE_NOMS).map(function(r){
-            var i = rs.indexOf(r);
-            return '<button type="button" class="ss-rb r-'+r+(i>=0?' on':'')+(i===0?' first':'')
-              + '" data-job="'+esc(j)+'" data-role="'+r+'"'
-              + (i===0?' title="Rôle principal — colore le badge par défaut"':'')+'>'
-              + ROLE_NOMS[r] + (i===0 ? ' <b>·</b>' : '') + '</button>';
+            var on = (r === actuel);
+            return '<button type="button" role="radio" aria-checked="'+on+'" class="ss-rb r-'+r+(on?' on':'')
+              + '" data-job="'+esc(j)+'" data-role="'+r+'">' + ROLE_NOMS[r] + '</button>';
           }).join('')
         + '</div>';
     }).join('');
   }
   function basculeRole(job, role){
-    var rs = S.rolesDuJob(ROLE, job).slice();
-    var i = rs.indexOf(role);
-    if(i >= 0){
-      if(rs.length === 1){ toast('Un job garde au moins un rôle.','err'); return; }
-      rs.splice(i, 1);
-    } else rs.push(role);
-    ROLE[job] = rs.length > 1 ? rs : rs[0];
-    grilleRoles(); rendre(); touche();
+    if(!S.ROLES_OK[role] || S.roleDuJob(ROLE, job) === role) return;
+    ROLE[job] = role;
+    grilleRoles();
+    panneauCompo();   // la catégorie du job change, la grille de compo suit
+    editeur(); rendre(); touche();
   }
   function ouvrirRoles(){ grilleRoles(); $('ssRolesPan').hidden = false; }
   function fermerRoles(){ $('ssRolesPan').hidden = true; }
