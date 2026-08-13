@@ -186,7 +186,15 @@ body[data-comp="DNC"] #jobs .jobchip[data-j="PLD"]{display:none}
   0%,100%{box-shadow:0 0 0 1.6px rgba(13,18,24,.92),0 0 0 5.6px var(--bg),0 0 6px 0 var(--pc)}
   50%{box-shadow:0 0 0 1.6px rgba(13,18,24,.92),0 0 0 5.6px var(--bg),0 0 16px 5px var(--pc2)}}
 
-.phcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.phcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;position:relative;
+  /* le navigateur ne calcule le rendu d'une carte que lorsqu'elle approche de
+     l'écran : DOM prêt 161 → 81 ms, style+layout −30 % sur le guide.
+     Posé sur .phcard et PAS sur .phase : contain:paint rognerait la lueur du
+     badge de timeline, qui déborde à gauche de .phase. .phcard, lui, a déjà
+     overflow:hidden — la contrainte ne coupe donc rien de plus.
+     Hauteur estimée 1400px = médiane des 4 étapes ; `auto` mémorise ensuite la
+     vraie taille pour que l'ascenseur ne saute pas. */
+  content-visibility:auto;contain-intrinsic-size:none auto 1400px}
 .phhead{padding:16px 20px 15px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--pc) 12%,var(--panel)),var(--panel))}
 .phtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
 .phtag{font-family:var(--display);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pc);background:color-mix(in srgb,var(--pc) 16%,transparent);border:1px solid color-mix(in srgb,var(--pc) 42%,transparent);padding:3px 10px;border-radius:var(--r-pill)}
