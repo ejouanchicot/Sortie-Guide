@@ -1249,8 +1249,14 @@
     // relire le disque écrase tout ce qui n'a pas été enregistré → on demande avant
     if(dirty&&!silent&&!(await askConfirm('Tu as des modifications <b>non enregistrées</b>. Recharger depuis le disque va les <b>perdre définitivement</b>.',{title:'Recharger data.js',ok:'Recharger quand même'})))return;
     try{if(!(await DF.permission(h)))return;const text=await DF.lis(h);
-      const fresh=new Function(text+'\n; return {F:(typeof FLOORS!=="undefined")?FLOORS:null,M:(typeof MOBSCALE!=="undefined")?MOBSCALE:1};')();
-      if(fresh&&fresh.F&&fresh.F.length){FL=fresh.F;mobScale=fresh.M||1;paintGlobals();renderFloor(curIdx);resetHistory();setDirty(false);if(!silent)toast('Rechargé depuis le disque.','ok');}
+      const fresh=new Function(text+'\n; return {F:(typeof FLOORS!=="undefined")?FLOORS:null,C:(typeof CARTES!=="undefined")?CARTES:null,M:(typeof MOBSCALE!=="undefined")?MOBSCALE:1};')();
+      // On REMPLIT FL et le registre, on ne les réaffecte pas : la coque et
+      // l'atelier Stratégie en tiennent les mêmes références depuis le départ.
+      if(fresh&&fresh.F&&fresh.F.length){
+        FL.length=0;fresh.F.forEach(f=>FL.push(f));
+        if(fresh.C){Object.keys(REG).forEach(k=>delete REG[k]);Object.keys(fresh.C).forEach(k=>REG[k]=fresh.C[k]);}
+        S.resoudreCartes(FL,REG);
+        mobScale=fresh.M||1;paintGlobals();renderFloor(curIdx);resetHistory();setDirty(false);if(!silent)toast('Rechargé depuis le disque.','ok');}
     }catch(e){if(!silent)toast('Lecture échouée : '+e.message,'err');}}
 
   /* ============================================================
@@ -1407,8 +1413,13 @@
     sale:function(){return dirty;},
     propre:function(){setDirty(false);},
     fichier:setFname,
-    // la coque a charge une autre strat dans les globales : on repart de zero
-    recharge:function(){curIdx=0;renderFloor(0);resetHistory();setDirty(false);}
+    // la coque a charge une autre strat dans les globales : on repart de zero.
+    // L'echelle des vignettes et la marge des etiquettes sont des nombres :
+    // elles ne peuvent pas voyager par les globales, la coque les passe ici.
+    recharge:function(o){if(o){if(typeof o.mobScale==='number')mobScale=o.mobScale;
+                               if(typeof o.labelMargin==='number')labelMargin=o.labelMargin;}
+                         paintGlobals();curIdx=0;renderFloor(0);resetHistory();setDirty(false);},
+    reglages:function(){return {mobScale:mobScale,labelMargin:labelMargin};}
   };
   if(document.readyState!=='loading')boot();else window.addEventListener('DOMContentLoaded',boot);
 })();

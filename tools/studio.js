@@ -33,6 +33,8 @@
            ROLE:  (typeof ROLE  !== 'undefined') ? ROLE  : {},
            BUFFS: (typeof BUFFS !== 'undefined') ? BUFFS : {},
            CARTES:(typeof CARTES!== 'undefined') ? CARTES: {},
+           MOB:   (typeof MOB   !== 'undefined') ? MOB   : {},
+           TR:    (typeof TR    !== 'undefined') ? TR    : {},
            FLOORS: FL};
   var stratId = null, dernierEcrit = '';
 
@@ -41,7 +43,13 @@
     var o = s && s.querySelector('option[value="'+stratId+'"]');
     return o ? o.textContent : 'Sans titre';
   }
-  function instantane(){ return BI.depuisGlobaux(G, nomCourant()); }
+  function instantane(){
+    return BI.depuisGlobaux(G, nomCourant(), MS && MS.reglages ? MS.reglages() : null);
+  }
+  // Ce qui distingue deux versions d'une strat, c'est son contenu — ni son
+  // identifiant ni sa date. Sans ça, la sauvegarde silencieuse réécrirait à
+  // chaque tour d'horloge, puisque la date change toujours.
+  function signature(s){ return JSON.stringify(Object.assign({}, s, {id:'', maj:0})); }
 
   // Sauvegarde silencieuse dans l'espace de travail. Rien à voir avec
   // « Enregistrer », qui publie dans le dépôt.
@@ -50,7 +58,7 @@
   function sauve(){
     if(!stratId || !BI) return Promise.resolve();
     var s = instantane(); s.id = stratId;
-    var j = JSON.stringify(s);
+    var j = signature(s);
     if(j === dernierEcrit) return Promise.resolve();      // rien n'a bougé
     dernierEcrit = j;
     return BI.ecris(s).catch(function(){});
@@ -68,7 +76,9 @@
       + '<option value="__neuve__">＋ Nouvelle strat…</option>'
       + '<option value="__copie__">⧉ Dupliquer celle-ci</option>'
       + '<option value="__renom__">✎ Renommer celle-ci</option>'
-      + (l.length > 1 ? '<option value="__suppr__">✕ Supprimer celle-ci</option>' : '');
+      + (l.length > 1 ? '<option value="__suppr__">✕ Supprimer celle-ci</option>' : '')
+      + '<option disabled>──────────</option>'
+      + '<option value="__import__">⤓ Ouvrir un guide reçu…</option>';
     var n = l.filter(function(s){ return s.id === stratId; })[0];
     $('stStratInfo').textContent = n ? (n.chapitres + ' chap · ' + n.etapes + ' étapes') : '';
   }
@@ -76,11 +86,11 @@
   // Poser une strat dans les ateliers : on remplit les globales, puis chacun
   // se redessine. Ils n'ont pas à savoir qu'une bibliothèque existe.
   function poseStrat(s){
-    BI.versGlobaux(s, G, S.resoudreCartes);
+    var reg = BI.versGlobaux(s, G, S.resoudreCartes);
     stratId = s.id; BI.noteCourante(s.id);
-    dernierEcrit = JSON.stringify(BI.depuisGlobaux(G, s.nom));
     construitChapitres();
-    if(MS && MS.recharge) MS.recharge();
+    if(MS && MS.recharge) MS.recharge(reg);
+    dernierEcrit = signature(BI.depuisGlobaux(G, s.nom, reg));
     if(SS && SS.recharge) SS.recharge();
     majListeStrats();
   }
@@ -197,7 +207,7 @@
       {titre:'Renommer la strat', valeur:nomCourant(), ok:'Renommer'}) || '').trim();
     if(!nom) { majListeStrats(); return; }
     var s = instantane(); s.id = stratId; s.nom = nom;
-    dernierEcrit = '';                       // on force l'écriture
+    dernierEcrit = signature(s);
     await BI.ecris(s);
     await majListeStrats();
   }
@@ -218,6 +228,61 @@
   function saisie(msg, opts){
     return (SS && SS.saisie) ? SS.saisie(msg, opts) : Promise.resolve(null);
   }
+
+  /* ---------------- partager : un fichier, deux métiers ----------------
+     Le lecteur y voit le guide ; le Studio y retrouve la strat. Un seul
+     fichier circule, donc personne ne se demande quelle version il a. */
+  var EX = window.EXPORTHTML;
+  async function exporte(){
+    if(!EX){ toast('L’export n’est pas disponible ici.','err'); return; }
+    await sauve();
+    var s = instantane(); s.id = stratId;
+    var b = $('stExport'), avant = b ? b.innerHTML : '';
+    if(b){ b.disabled = true; }
+    try{
+      var doc = await EX.fabrique(s, {base:'../', avance:function(m){
+        if(b) b.textContent = m; }});
+      var url = URL.createObjectURL(new Blob([doc], {type:'text/html'}));
+      var a = document.createElement('a');
+      a.href = url; a.download = EX.nomFichier(s);
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      toast('Fichier prêt — ' + Math.round(doc.length / 1024) + ' Ko, tout est dedans.','ok');
+    }catch(e){
+      toast('L’export a échoué : ' + e.message,'err');
+    }finally{
+      if(b){ b.disabled = false; b.innerHTML = avant; }
+    }
+  }
+
+  async function importe(fichier){
+    if(!EX || !fichier) return;
+    var s = EX.extrait(await fichier.text());
+    if(!s){
+      toast('Ce fichier ne contient pas de strat — il faut un guide exporté d’ici.','err');
+      return;
+    }
+    // Deux entrées du même nom dans la liste seraient impossibles à départager :
+    // on numérote à partir de la deuxième.
+    var noms = (await BI.liste()).map(function(x){ return x.nom; });
+    if(noms.indexOf(s.nom) >= 0){
+      var base = s.nom + ' (importée', n = 1, essai;
+      do { essai = base + (n > 1 ? ' ' + n : '') + ')'; n++; } while(noms.indexOf(essai) >= 0);
+      s.nom = essai;
+    }
+    s.id = BI.id();
+    await sauve();
+    await BI.ecris(s);
+    poseStrat(s);
+    toast('« ' + s.nom + ' » ajoutée à ta bibliothèque.','ok');
+  }
+  (function(){
+    var b = $('stExport'); if(b) b.addEventListener('click', exporte);
+    var f = $('stFichier');
+    if(f) f.addEventListener('change', function(){
+      if(f.files[0]) importe(f.files[0]); });
+  })();
+  function choisirFichier(){ var f = $('stFichier'); if(f){ f.value = ''; f.click(); } }
 
   /* ---------------- une seule sauvegarde ---------------- */
   var explique = false;
@@ -298,10 +363,11 @@
     BI.persiste();
     var l = await BI.liste();
     if(!l.length){
-      var s = BI.depuisGlobaux(G, 'Sortie · Nightfallens');
+      var reg = MS && MS.reglages ? MS.reglages() : null;
+      var s = BI.depuisGlobaux(G, (typeof NOM !== 'undefined' && NOM) ? NOM : 'Ma strat', reg);
       await BI.ecris(s);
       stratId = s.id; BI.noteCourante(s.id);
-      dernierEcrit = JSON.stringify(BI.depuisGlobaux(G, s.nom));
+      dernierEcrit = signature(s);
     } else {
       var vise = BI.courante();
       var choix = l.filter(function(x){ return x.id === vise; })[0] || l[0];
@@ -325,6 +391,7 @@
     if(v === '__copie__') return dupliqueStrat();
     if(v === '__renom__') return renommeStrat();
     if(v === '__suppr__') return supprimeStrat();
+    if(v === '__import__'){ majListeStrats(); return choisirFichier(); }
     ouvreStrat(v);
   });
   // les ateliers démarrent sur DOMContentLoaded : on passe juste après

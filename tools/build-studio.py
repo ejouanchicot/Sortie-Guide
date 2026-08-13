@@ -77,6 +77,8 @@ HTML = u'''<!DOCTYPE html>
     <div class="st-spacer"></div>
     <button class="st-btn" id="stInstall" hidden title="Ajouter l\u2019outil \u00e0 ton bureau. Le navigateur demandera confirmation \u2014 c\u2019est lui qui installe, pas le site.">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Installer\u2026</button>
+    <button class="st-btn" id="stExport" title="Fabriquer un fichier unique qui contient tout : le guide se lit d\u2019un double-clic, et le Studio sait le rouvrir pour reprendre la strat.">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7"/><path d="M12 16V3M8 7l4-4 4 4"/></svg>Partager\u2026</button>
     <span class="st-file" id="stFile"></span>
     <span id="stUnsaved" title="Des changements ne sont pas encore sauvegard\u00e9s">non enregistr\u00e9</span>
     <button class="st-btn" id="stReload" title="Repartir de la derni\u00e8re version sauvegard\u00e9e \u2014 les changements en cours sont perdus">
@@ -97,12 +99,14 @@ __STRAT__
   </div>
 
 </div>
+<input type="file" id="stFichier" accept=".html,text/html" hidden>
 
 <script src="../js/data.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/sortie-map-core.js"></script>
 <script src="../js/data-file.js"></script>
 <script src="../js/biblio.js"></script>
+<script src="../js/export-html.js"></script>
 <script src="../js/strat-render.js"></script>
 <script src="../js/strat-core.js"></script>
 <script src="../js/rich-editor.js"></script>

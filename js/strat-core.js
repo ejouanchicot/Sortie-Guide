@@ -302,6 +302,18 @@
       + '\n};';
   }
 
+  // MOB : le nom d'un mob et sa vignette. Le bloc était groupé à la main par
+  // section de run ; ce groupage ne se déduit d'aucune donnée, donc l'outil
+  // ne pouvait que le détruire. Une entrée par ligne : l'ordre reste celui
+  // d'insertion, et deux enregistrements de suite ne changent plus rien.
+  function mobConst(nom, dico){
+    var cles = Object.keys(dico||{});
+    if(!cles.length) return 'const '+nom+'={\n};';
+    return 'const '+nom+'={\n'
+      + cles.map(function(k){ return ' '+q(k)+':'+q(dico[k]); }).join(',\n')
+      + '\n};';
+  }
+
   /* ---------------- CHAÎNES À TRADUIRE ---------------- */
   // Tout ce que le guide passe par tr() : titres, routes, tags, labels, notes,
   // conditions et textes de ligne. Sert à lister ce qui manque dans i18n.js.
@@ -341,7 +353,7 @@
     parseLines: parseLines, linesToText: linesToText,
     THEMES: THEMES,
     blocToText: blocToText, textToBloc: textToBloc, themeDevine: themeDevine, ligneNaturelle: ligneNaturelle,
-    phasesConst: phasesConst, buffsConst: buffsConst, trConst: trConst,
+    phasesConst: phasesConst, buffsConst: buffsConst, trConst: trConst, mobConst: mobConst,
     collecteTextes: collecteTextes, manquantes: manquantes
   };
 })(typeof window!=='undefined'?window:this);

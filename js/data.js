@@ -18,6 +18,10 @@
 // Tout le reste se déduit : la liste des jobs (boutons du filtre « Mon rôle »),
 // et les façons de jouer la strat. Un seul job par créneau = une seule façon
 // de jouer, et le sélecteur disparaît.
+// Le nom de la strat : c'est le titre du guide. Le sous-titre, lui, se déduit
+// de la composition ci-dessous — il n'y a rien à écrire deux fois.
+const NOM="Sortie";
+
 // Réglable dans Strat Studio (bouton « Compo ») — l'outil réécrit ce bloc.
 const COMPO={taille:6,creneaux:[
  ["MNK"],
@@ -47,11 +51,32 @@ const ROLE={
 function ln(r,t,opt){opt=opt||{};return {r:r,t:t,cond:opt.cond,warn:opt.warn,comp:opt.comp};}
 
 // ---- images des mobs / boss ----
-const MOB={"Degei": "img/mob-degei.webp", "Skomora": "img/mob-skomora.webp", "Leshonn": "img/mob-leshonn.webp", "Ghatjot": "img/mob-ghatjot.webp", "Acuex": "img/mob-acuex.webp", "Fomor": "img/mob-fomor.webp", "Ghost": "img/mob-ghost.webp", "Umbril": "img/mob-umbril.webp",
-  "Dhartok": "img/mob-dhartok.webp", "Gartell": "img/mob-gartell.webp", "Triboulex": "img/mob-triboulex.webp", "Aita": "img/mob-aita.webp", "Aminon": "img/mob-aminon.webp",
-  "Botulus": "img/mob-botulus.webp", "Ixion": "img/mob-ixion.webp", "Naraka": "img/mob-naraka.webp", "Tulittia": "img/mob-tulittia.webp",
-  "Slime": "img/mob-slime.webp", "Slug": "img/mob-slug.webp", "Flan": "img/mob-flan.webp",
-  "Obdella": "img/mob-obdella.webp", "Porxie": "img/mob-porxie.webp", "Bhoot": "img/mob-bhoot.webp", "Deleterious": "img/mob-deleterious.webp"};
+const MOB={
+ "Degei":"img/mob-degei.webp",
+ "Skomora":"img/mob-skomora.webp",
+ "Leshonn":"img/mob-leshonn.webp",
+ "Ghatjot":"img/mob-ghatjot.webp",
+ "Acuex":"img/mob-acuex.webp",
+ "Fomor":"img/mob-fomor.webp",
+ "Ghost":"img/mob-ghost.webp",
+ "Umbril":"img/mob-umbril.webp",
+ "Dhartok":"img/mob-dhartok.webp",
+ "Gartell":"img/mob-gartell.webp",
+ "Triboulex":"img/mob-triboulex.webp",
+ "Aita":"img/mob-aita.webp",
+ "Aminon":"img/mob-aminon.webp",
+ "Botulus":"img/mob-botulus.webp",
+ "Ixion":"img/mob-ixion.webp",
+ "Naraka":"img/mob-naraka.webp",
+ "Tulittia":"img/mob-tulittia.webp",
+ "Slime":"img/mob-slime.webp",
+ "Slug":"img/mob-slug.webp",
+ "Flan":"img/mob-flan.webp",
+ "Obdella":"img/mob-obdella.webp",
+ "Porxie":"img/mob-porxie.webp",
+ "Bhoot":"img/mob-bhoot.webp",
+ "Deleterious":"img/mob-deleterious.webp"
+};
 // échelle globale des images de mobs (garde le ratio entre elles) — réglable dans Map Studio
 const MOBSCALE=0.6;
 // marge des labels de mobs (px), identique partout — réglable dans Map Studio ; position par pastille via lp:'top|bottom|left|right'
@@ -313,7 +338,7 @@ const CARTES={
   trace:"17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3",
   depart:{"x":17.7,"y":42.4,"l":"S"}, departNom:"Start · Device",
   bosses:[
-   {name:'Ghatjot',n:4,el:'fire', x:13.9,y:6.6, nx:20.4,ny:7.9, label:'<span style="color:#ff8f6a">Ghatjot</span>'},
+   {name:'Ghatjot',n:4,el:'fire', x:13.4,y:7.1, nx:20.4,ny:7.9, label:'<span style="color:#ff8f6a">Ghatjot</span>'},
    {name:'Leshonn',n:3,el:'blue', x:95,y:7.1, nx:89.1,ny:7.9, label:'<span style="color:#5bd6ef">Leshonn</span>'},
    {name:'Degei',n:1,el:'gray', x:20,y:83.3, nx:20.4,ny:76.7, label:'Degei'},
    {name:'Skomora',n:2,el:'green', x:88.8,y:83.5, nx:89.1,ny:76.7, label:'<span style="color:#8affc0">Skomora</span>'},

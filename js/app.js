@@ -523,15 +523,23 @@ document.documentElement.lang=LANG;
   measure(); window.addEventListener("resize",measure);
   if(document.fonts&&document.fonts.ready){document.fonts.ready.then(measure);}
 })();
+// ---- l'en-tete : titre et sous-titre viennent de la strat ----
+// Ils etaient ecrits en dur dans index.html, et une seconde fois en
+// anglais ici meme. Un guide d'un autre contenu annoncait donc la
+// composition de Sortie. Meme fonction que celle de l'export.
+(function(){
+  var nom = (typeof NOM!=="undefined" && NOM) ? NOM : "";
+  var e = STRATR.entete(tr(nom), (typeof COMPO!=="undefined")?COMPO:null, LANG);
+  var h = document.getElementById("gTitre"); if(h) h.innerHTML = e.titre;
+  var b = document.getElementById("gSous");  if(b) b.innerHTML = e.sous;
+  document.title = nom + (LANG==="en" ? " · Run guide" : " · Guide de run");
+})();
 if(LANG==='en'){
-  document.title="SORTIE · Run guide";
   document.querySelectorAll(".rlabel").forEach(function(el){
     var t=el.textContent.trim();
     if(t==="Mon rôle") el.textContent="My role";
     else if(t==="Étage") el.textContent="Floor";
   });
-  var bsub=document.querySelector(".bsub");
-  if(bsub) bsub.innerHTML='Run · 4 phases · fixed <span class="jc" style="color:var(--r-dd)">MNK</span><span class="jc" style="color:var(--r-buff)">BRD</span><span class="jc" style="color:var(--r-buff)">COR</span><span class="jc" style="color:var(--r-buff)">GEO</span><span class="jc" style="color:var(--r-heal)">RDM</span> + 1 flex (<span class="jc" style="color:var(--r-tank)">PLD</span> or <span class="jc" style="color:var(--r-dd)">DNC</span>)';
   var foot=document.querySelector(".foot");
   if(foot) foot.textContent="Run strategy · interactive layout · click your job to highlight your actions.";
 }

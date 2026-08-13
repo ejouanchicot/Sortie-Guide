@@ -73,13 +73,22 @@
      Les ateliers travaillent sur les globales de data.js. Charger une autre
      strat, c'est donc REMPLACER LEUR CONTENU — jamais les réaffecter : les
      deux ateliers en gardent des références prises au démarrage. */
-  function depuisGlobaux(g, nom){
+  function depuisGlobaux(g, nom, reglages){
+    reglages = reglages || {};
     return {
       id: id(), nom: nom || 'Sans titre', maj: Date.now(),
       compo: copie(g.COMPO || {}),
       role:  copie(g.ROLE  || {}),
       buffs: copie(g.BUFFS || {}),
       cartes: copie(g.CARTES || {}),
+      // les vignettes des mobs et les traductions font partie de la strat :
+      // sans elles, un guide exporté n'a ni images ni version anglaise
+      mob: copie(g.MOB || {}),
+      tr:  copie(g.TR  || {}),
+      // deux nombres, donc impossibles à faire voyager par les globales
+      // (`const`) : l'atelier Carte les donne et les reprend
+      mobScale:   (typeof reglages.mobScale   === 'number') ? reglages.mobScale   : nombre(g, 'MOBSCALE', 1),
+      lblMargin:  (typeof reglages.labelMargin === 'number') ? reglages.labelMargin : nombre(g, 'LBLMARGIN', 6),
       // les étapes descendent DANS le chapitre : hors du fichier, « PHASES »
       // ne désigne rien
       chapitres: (g.FLOORS || []).map(function(f){
@@ -90,21 +99,48 @@
     };
   }
 
+  function nombre(g, nom, def){ var v = g[nom]; return (typeof v === 'number') ? v : def; }
   function videObjet(o){ Object.keys(o).forEach(function(k){ delete o[k]; }); }
-  function remplit(o, src){ videObjet(o); Object.keys(src||{}).forEach(function(k){ o[k] = src[k]; }); }
+  function remplit(o, src){ if(!o) return; videObjet(o); Object.keys(src||{}).forEach(function(k){ o[k] = src[k]; }); }
 
   // `g` porte les globales ; `resoudre` rebranche les chapitres sur leurs cartes.
+  // Rend les deux réglages numériques, que l'appelant doit reporter lui-même.
   function versGlobaux(s, g, resoudre){
     var c = copie(s);
     remplit(g.COMPO, c.compo);
     remplit(g.ROLE,  c.role);
     remplit(g.BUFFS, c.buffs);
     remplit(g.CARTES, c.cartes);
+    remplit(g.MOB,   c.mob);
+    // les mots de l'interface d'abord, ceux de la strat par-dessus : une strat
+    // neuve n'arrive donc jamais avec un guide anglais amputé de ses libellés
+    remplit(g.TR,    Object.assign({}, TR_INTERFACE, c.tr));
     g.FLOORS.length = 0;
     (c.chapitres || []).forEach(function(ch){ g.FLOORS.push(ch); });
     if(resoudre) resoudre(g.FLOORS, g.CARTES);
-    return s.id;
+    return {mobScale: (typeof c.mobScale === 'number') ? c.mobScale : 1,
+            labelMargin: (typeof c.lblMargin === 'number') ? c.lblMargin : 6};
   }
+
+  /* ---------------- les mots de l'interface ----------------
+     Ceux-là ne viennent pas de la strat mais du guide lui-même. Ils sont
+     traduits une fois pour toutes ; sans eux, une strat écrite de zéro
+     s'afficherait en anglais avec des libellés restés en français. */
+  var TR_INTERFACE = {
+    "Vue d'ensemble du run":"Run overview",
+    "cliquer sur la carte pour agrandir":"click the map to zoom",
+    "Trajet":"Route",
+    "Pack de mobs":"Mob pack",
+    "Déplacement :":"Route:",
+    "Tous":"All",
+    "N'afficher que mon rôle":"Show only my role",
+    "Carte à venir":"Map coming soon",
+    "on la placera avec l'éditeur":"we'll place it with the editor",
+    "SECTEUR":"SECTOR",
+    "à venir":"coming soon",
+    "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
+    "Étage":"Floor"
+  };
 
   /* ---------------- créer, dupliquer ---------------- */
   // Une strat neuve n'est pas vide de sens : un chapitre, une carte, une
@@ -119,6 +155,9 @@
              "WAR":"dd","MNK":"dd","THF":"dd","BLM":"dd","DRK":"dd","BST":"dd","RNG":"dd",
              "SAM":"dd","NIN":"dd","DRG":"dd","BLU":"dd","PUP":"dd","DNC":"dd","ALL":"all"},
       buffs: {},
+      mob: {},
+      tr: copie(TR_INTERFACE),
+      mobScale: 1, lblMargin: 6,
       cartes: (function(){ var o = {}; o[carte] = {fond:'', trace:'', depart:null, departNom:'',
         bosses:[], packs:[], mids:[], routes:[], texts:[], shapes:[], zones:[]}; return o; })(),
       chapitres: [{id:'ch1', fr:'Chapitre 1', en:'Chapter 1', carte:carte,

@@ -40,6 +40,36 @@
   }
   function roleChip(r){ return '<span class="role" style="--jc:'+jcol(r)+'">'+esc(r)+'</span>'; }
 
+  /* ---- l'en-tête du guide ----
+     Elle était écrite en dur dans index.html, et une deuxième fois en anglais
+     dans app.js : « SORTIE · Run · 4 phases · fixes MNK BRD… ». Un guide
+     d'Odyssey aurait donc annoncé la composition de Sortie.
+
+     Elle se déduit de la composition : un créneau à un seul job est un poste
+     fixe, un créneau qui en propose plusieurs est un flex. C'est la même
+     lecture que partout ailleurs dans l'outil. */
+  function jobChip(j){ return '<span class="jc" style="color:'+jcol(j)+'">'+esc(j)+'</span>'; }
+  function entete(nom, compo, lang){
+    var en = (lang === 'en');
+    var cr = (compo && compo.creneaux) || [];
+    var fixes = cr.filter(function(c){ return c.length === 1; });
+    var flex  = cr.filter(function(c){ return c.length > 1; });
+    var bouts = [];
+    var n = (compo && compo.taille) || cr.length;
+    if(n) bouts.push(n + (en ? ' players' : ' joueurs'));
+    // Les flex se rattachent aux fixes par un « + » : ils complètent la même
+    // composition, ils ne sont pas une information de plus.
+    if(fixes.length || flex.length){
+      var c = fixes.length ? (en ? 'fixed ' : 'fixes ')
+        + fixes.map(function(x){ return jobChip(x[0]); }).join('') : '';
+      var f = flex.map(function(x){
+        return '1 flex (' + x.map(jobChip).join(en ? ' or ' : ' ou ') + ')'; }).join(' + ');
+      bouts.push(c && f ? (c + ' + ' + f) : (c || f));
+    }
+    return {titre: esc(nom || (en ? 'Strategy' : 'Stratégie')),
+            sous: bouts.join(' · ')};
+  }
+
   // ---- une ligne d'action ----
   function lineHtml(l, g){
     var roles = (l.r || ["ALL"]);
@@ -140,7 +170,7 @@
 
   global.STRATR = {
     config: function(o){ for(var k in o) if(o[k] != null) H[k] = o[k]; },
-    jcol: jcol, colorize: colorize, roleChip: roleChip,
+    jcol: jcol, colorize: colorize, roleChip: roleChip, entete: entete,
     lineHtml: lineHtml, runHtml: runHtml, groupBody: groupBody,
     cardHtml: cardHtml, buffsHtml: buffsHtml
   };

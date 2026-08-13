@@ -786,6 +786,10 @@
   var DF = window.DATAFILE;
   function blocsData(){
     var out = [];
+    // le titre du guide : sans lui, toutes les strats publiees s'appelleraient
+    // encore comme la premiere
+    if(typeof NOM !== 'undefined') out.push({nom:'NOM', scalaire:true, txt:'const NOM='+JSON.stringify(nomStrat())+';'});
+    if(typeof MOB !== 'undefined') out.push({nom:'MOB', txt:SC.mobConst('MOB', MOB)});
     if(typeof COMPO !== 'undefined') out.push({nom:'COMPO', scalaire:true, txt:S.compoConst('COMPO', CP)});
     if(typeof ROLE !== 'undefined') out.push({nom:'ROLE', txt:S.roleConst('ROLE', ROLE)});
     out.push({nom:'BUFFS', txt:SC.buffsConst('BUFFS', JEUX)});
@@ -794,6 +798,14 @@
       out.push({nom:nom, txt:SC.phasesConst(nom, f.phases||[])});
     });
     return out;
+  }
+  // La coque connait le nom de la strat ouverte ; hors d'elle, on garde
+  // celui deja ecrit dans le fichier.
+  function nomStrat(){
+    var s = document.getElementById('stStratSel');
+    var o = s && s.selectedOptions && s.selectedOptions[0];
+    if(o && o.value && o.value.slice(0,2) !== '__') return o.textContent;
+    return (typeof NOM !== 'undefined') ? NOM : '';
   }
   var explique = false;
   async function enregistrer(){
