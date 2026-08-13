@@ -38,6 +38,19 @@ input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px}
 
 .seg button:not(.on):hover{color:var(--tx)}
 .ctxbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* ─── quelle carte pour ce chapitre ─── */
+.ctxlab{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+#carteSel{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--tx);max-width:230px;
+  background:var(--s1);border:1px solid var(--line2);border-radius:9px;padding:7px 9px;cursor:pointer}
+#carteSel:hover{border-color:color-mix(in srgb,var(--cyan) 50%,transparent)}
+/* une carte partagee : le dire, sinon on la corrige pour deux chapitres sans le savoir */
+.cartepart{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--cyan);white-space:nowrap;
+  background:color-mix(in srgb,var(--cyan) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);border-radius:99px;padding:3px 9px}
+.msaisie{display:block;width:100%;margin-top:12px;font-family:var(--sans);font-size:13px;color:#fff;
+  background:rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:9px;padding:9px 11px;outline:none}
+.msaisie:focus{border-color:color-mix(in srgb,var(--cyan) 60%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 20%,transparent)}
 
 .spacer{flex:1}
 

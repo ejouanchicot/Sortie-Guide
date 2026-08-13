@@ -138,11 +138,12 @@
      ============================================================ */
   async function renderFloor(idx){
     curIdx=idx;armedPin=null;armedShape=null;select(null);const f=FL[idx];if(!f)return;
+    majSelCarte();
     loadingEl.style.display='flex';loadmsg.textContent='Chargement de la carte…';
     layer.destroyChildren();if(anim){anim.stop();anim=null;}
     gMap=new Konva.Group();gShapes=new Konva.Group();gRoutes=new Konva.Group();gPins=new Konva.Group();gTexts=new Konva.Group();gEdit=new Konva.Group();
     layer.add(gMap,gShapes,gRoutes,gPins,gTexts,gEdit);   // les formes se posent SOUS les traces et les marqueurs
-    const mimg=await loadImg(BASE+f.map);
+    const mimg=f.map?await loadImg(BASE+f.map):null;   // une carte neuve n'a pas encore de fond
     if(mimg)gMap.add(new Konva.Image({image:mimg,width:MAP,height:MAP,cornerRadius:6,listening:false}));
     else gMap.add(new Konva.Rect({width:MAP,height:MAP,fill:'#e9d9b0',cornerRadius:6}));
     gMap.add(new Konva.Rect({width:MAP,height:MAP,stroke:'#3a5170',strokeWidth:1.5,cornerRadius:6,listening:false}));
@@ -1051,12 +1052,97 @@
   // avant d'ecrire, parce que « annuler » et le premier marqueur d'une carte
   // vide reaffectent f.bosses avec un tableau neuf.
   const REG=(typeof CARTES!=='undefined')?CARTES:{};
+
+  /* ---------------- quelle carte pour ce chapitre ? ----------------
+     Une carte est un module : le chapitre la DESIGNE. On peut donc en
+     choisir une autre, en creer une, ou renommer celle en cours — et deux
+     chapitres qui pointent la meme carte se partagent son travail. */
+  const CARTE_VIDE=()=>({fond:'',trace:'',depart:null,departNom:'',
+    bosses:[],packs:[],mids:[],routes:[],texts:[],shapes:[],zones:[]});
+
+  // Meme modale, avec un champ. window.prompt sort du theme et bloque l'onglet.
+  function askText(msg,opts){opts=opts||{};return new Promise(res=>{
+    const back=document.getElementById('modal'),ttl=document.getElementById('modalTtl'),
+          m=document.getElementById('modalMsg'),ok=document.getElementById('modalOk'),
+          cancel=document.getElementById('modalCancel');
+    ttl.textContent=opts.title||'Saisie';
+    m.innerHTML=msg+'<input type="text" class="msaisie" id="modalIn">';
+    ok.textContent=opts.ok||'Valider';ok.className='tbtn primary';
+    back.hidden=false;modalOpen=true;requestAnimationFrame(()=>back.classList.add('show'));
+    const champ=document.getElementById('modalIn');champ.value=opts.valeur||'';
+    setTimeout(()=>{try{champ.focus();champ.select();}catch(e){}},30);
+    function done(v){back.classList.remove('show');modalOpen=false;setTimeout(()=>{back.hidden=true;},180);
+      ok.removeEventListener('click',onOk);cancel.removeEventListener('click',onCancel);
+      back.removeEventListener('mousedown',onBack);document.removeEventListener('keydown',onKey,true);res(v);}
+    function onOk(){done(champ.value);}function onCancel(){done(null);}
+    function onBack(e){if(e.target===back)done(null);}
+    function onKey(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(null);}
+      else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();done(champ.value);}}
+    ok.addEventListener('click',onOk);cancel.addEventListener('click',onCancel);
+    back.addEventListener('mousedown',onBack);document.addEventListener('keydown',onKey,true);});}
+
+  function chapitresAvec(nom){return FL.filter(f=>f.carte===nom).length;}
+  function majSelCarte(){
+    const host=document.getElementById('carteBar');if(!host)return;
+    const f=FL[curIdx]||{},noms=Object.keys(REG);
+    const n=chapitresAvec(f.carte);
+    host.innerHTML='<span class="ctxlab">Carte</span>'
+      +'<select id="carteSel" title="La carte utilisee par ce chapitre">'
+      + noms.map(k=>'<option value="'+esc(k)+'"'+(k===f.carte?' selected':'')+'>'+esc(k)+'</option>').join('')
+      +'<option value="__neuve__">＋ Nouvelle carte…</option></select>'
+      +'<button class="tbtn" id="carteRen" title="Renommer cette carte partout ou elle sert">Renommer</button>'
+      +(n>1?'<span class="cartepart" title="Cette carte sert a plusieurs chapitres">partagee par '+n+' chapitres</span>':'');
+    document.getElementById('carteSel').addEventListener('change',e=>{
+      if(e.target.value==='__neuve__'){nouvelleCarte();return;}
+      choisirCarte(e.target.value);});
+    document.getElementById('carteRen').addEventListener('click',renommeCarte);
+  }
+  function choisirCarte(nom){
+    const f=FL[curIdx];if(!f||!REG[nom]||f.carte===nom){majSelCarte();return;}
+    S.deposeCartes(FL,REG);          // on n'abandonne pas le travail en cours
+    f.carte=nom;S.resoudreCartes(FL,REG);
+    setDirty(true);renderFloor(curIdx);resetHistory();majSelCarte();
+    toast('Ce chapitre utilise maintenant « '+nom+' ».','ok');
+  }
+  async function nouvelleCarte(){
+    majSelCarte();                   // le select reprend sa valeur le temps de la saisie
+    const nom=(await askText('Ce nom sert a la retrouver et a la reutiliser dans une autre strat.',
+      {title:'Nouvelle carte',valeur:'Nouvelle carte',ok:'Creer'})||'').trim();
+    if(!nom)return;
+    if(REG[nom]!==undefined){toast('Une carte porte deja ce nom.','err');return;}
+    const fond=(await askText('Chemin de l’image de fond, depuis la racine du projet.<br>'
+      +'Exemple : <code>img/map-e.webp</code>. On peut la poser plus tard.',
+      {title:'Fond de « '+nom+' »',valeur:'img/',ok:'Creer la carte'})||'').trim();
+    const c=CARTE_VIDE();c.fond=(fond==='img/'?'':fond);
+    REG[nom]=c;
+    const f=FL[curIdx];if(f){f.carte=nom;S.resoudreCartes(FL,REG);}
+    setDirty(true);renderFloor(curIdx);resetHistory();majSelCarte();
+    toast('Carte « '+nom+' » creee.','ok');
+  }
+  async function renommeCarte(){
+    const f=FL[curIdx];if(!f||!REG[f.carte])return;
+    const ancien=f.carte;
+    const nom=(await askText('Les chapitres qui utilisent cette carte suivront.',
+      {title:'Renommer la carte',valeur:ancien,ok:'Renommer'})||'').trim();
+    if(!nom||nom===ancien)return;
+    if(REG[nom]!==undefined){toast('Une carte porte deja ce nom.','err');return;}
+    // on reconstruit le dictionnaire pour garder l'ORDRE : sinon la carte
+    // renommee sauterait en fin de fichier a chaque enregistrement
+    const neuf={};Object.keys(REG).forEach(k=>{neuf[k===ancien?nom:k]=REG[k];});
+    Object.keys(REG).forEach(k=>{delete REG[k];});
+    Object.keys(neuf).forEach(k=>{REG[k]=neuf[k];});
+    FL.forEach(x=>{if(x.carte===ancien)x.carte=nom;});
+    setDirty(true);majSelCarte();
+    toast('Renommee — '+chapitresAvec(nom)+' chapitre(s) concerne(s).','ok');
+  }
   // ⚠ on sérialise TOUS les étages, pas seulement celui affiché : sinon les modifications
   // faites sur l'autre étage avant de changer d'onglet étaient perdues sans le moindre avertissement.
   function blocksToSave(){
     FL.forEach(f=>{(f.routes||[]).forEach(rt=>{if(rt._pts)rt.points=S.ptsStr(rt._pts);});}); // fige les points edites
     S.deposeCartes(FL,REG);
     return [{nom:'CARTES',txt:S.cartesConst('CARTES',REG)},
+            // le lien chapitre -> carte s'edite ici : ce bloc doit suivre
+            {nom:'FLOORS',txt:S.chapitresConst('FLOORS',FL)},
             {nom:'MOBSCALE',scalaire:true,txt:'const MOBSCALE='+r1(mobScale)+';'},
             {nom:'LBLMARGIN',scalaire:true,txt:'const LBLMARGIN='+r1(labelMargin)+';'}];}
   /* ============================================================

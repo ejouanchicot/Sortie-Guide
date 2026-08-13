@@ -383,9 +383,9 @@ const FLOORS=[
  {id:"top", fr:"Rez-de-chaussée", en:"Top Floor", sub:"A–D",
   carte:"Sortie · rez-de-chaussée",
   introFr:"<p><b>Sortie · run linéaire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu'au dernier boss, en enchaînant Degei → Skomora → Leshonn → Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class=\"ovi-tip\">Clique ton job dans <b>Mon rôle</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p>", introEn:"<p><b>Sortie · linear run, 4 phases.</b> Follow the <b>right wall</b> from Start to the last boss: Degei → Skomora → Leshonn → Ghatjot. Each phase: a <b>farm</b> (pop the chests) then the <b>boss</b>.</p><p class=\"ovi-tip\">Click your job in <b>My role</b> (or <b>Solo</b> to see only your actions), pick the <b>comp</b> at the top, then scroll down the rail.</p>",
-  phases:PHASES},
+  phases:PHASES, phasesNom:"PHASES"},
  {id:"bottom", fr:"Sous-sol", en:"Basement", sub:"E–H",
   carte:"Sortie · sous-sol",
   introFr:"<p><b>Sous-sol · secteurs E → H.</b> 4 boss majeurs : Dhartok (E), Triboulex (G), Aïta (H), Gartell (F), puis <b>Aminon</b> en boss final.</p><p class=\"ovi-tip\">🚧 Strat en cours d'écriture — on la complète run après run. La carte et le placement des points arrivent bientôt.</p>", introEn:"<p><b>Basement · sectors E → H.</b> Four major NMs: Dhartok (E), Triboulex (G), Aita (H), Gartell (F), then <b>Aminon</b> as the final boss.</p><p class=\"ovi-tip\">🚧 Strategy is being written — filled in run after run. Map and point placement coming soon.</p>",
-  phases:PHASES_B}
+  phases:PHASES_B, phasesNom:"PHASES_B"}
 ];

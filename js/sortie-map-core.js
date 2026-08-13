@@ -410,7 +410,10 @@
           s += ',\n  carte:' + JSON.stringify(f.carte || '');
           if(f.introFr != null) s += ',\n  introFr:' + JSON.stringify(f.introFr);
           if(f.introEn != null) s += ', introEn:' + JSON.stringify(f.introEn);
-          return s + ',\n  phases:' + (f.__phases || 'PHASES') + '}';
+          // le chapitre dit lui-meme ou vivent ses etapes : sinon il fallait
+          // le deviner sur son id, ce qui ne valait que pour Sortie
+          var pn = f.phasesNom || f.__phases || 'PHASES';
+          return s + ',\n  phases:' + pn + ', phasesNom:' + JSON.stringify(pn) + '}';
         }).join(',\n')
       + '\n];';
   }

@@ -790,7 +790,7 @@
     if(typeof ROLE !== 'undefined') out.push({nom:'ROLE', txt:S.roleConst('ROLE', ROLE)});
     out.push({nom:'BUFFS', txt:SC.buffsConst('BUFFS', JEUX)});
     FL.forEach(function(f){
-      var nom = (f.id==='top') ? 'PHASES' : 'PHASES_B';
+      var nom = f.phasesNom || ((f.id==='top') ? 'PHASES' : 'PHASES_B');
       out.push({nom:nom, txt:SC.phasesConst(nom, f.phases||[])});
     });
     return out;

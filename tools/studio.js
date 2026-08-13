@@ -78,7 +78,7 @@
     var host = $(cible);
     ids.forEach(function(id){ var el = $(id); if(el) host.appendChild(el); });
   }
-  range(['ctxbar','btnFit','btnExport'], 'stCtxMap');
+  range(['carteBar','ctxbar','btnFit','btnExport'], 'stCtxMap');
   range(['ssCompo','ssRoles'], 'stCtxStrat');
 
   /* ---------------- état « non enregistré » ---------------- */
