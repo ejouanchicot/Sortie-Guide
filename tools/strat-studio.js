@@ -112,9 +112,9 @@
         + '<span class="ss-pl"><b>'+esc(ph.boss||'—')+'</b>'
         + '<i>'+(ph.soon ? 'à venir' : (nb ? nb+(nb>1?' rubriques':' rubrique') : 'vide'))+'</i></span>'
         + '<span class="acts">'
-        + '<button type="button" data-a="up" title="Monter">↑</button>'
-        + '<button type="button" data-a="down" title="Descendre">↓</button>'
-        + '<button type="button" data-a="del" title="Supprimer l’étape">✕</button></span>';
+        + '<button type="button" data-a="up" title="Plus tôt dans le run">↑</button>'
+        + '<button type="button" data-a="down" title="Plus tard dans le run">↓</button>'
+        + '<button type="button" data-a="del" title="Supprimer cette étape du run">✕</button></span>';
       d.addEventListener('click', function(e){
         var b = e.target.closest('button[data-a]');
         if(b){ e.stopPropagation(); actionEtape(b.dataset.a, pi); return; }
@@ -175,17 +175,17 @@
     var cur = ph.buffs || '';
     body.innerHTML =
       '<div class="ss-hdr">'
-      + '<div class="ss-f"><label for="f_boss">Boss</label><input type="text" id="f_boss" value="'+esc(ph.boss||'')+'"></div>'
-      + '<div class="ss-f"><label for="f_title">Titre affiché</label><input type="text" id="f_title" value="'+esc(ph.title||'')+'"></div>'
-      + '<div class="ss-f ss-wide"><label for="f_buffs">Bloc de préparation</label>'
+      + '<div class="ss-f"><label for="f_boss">Cible de l’étape</label><input type="text" id="f_boss" value="'+esc(ph.boss||'')+'" placeholder="Skomora"></div>'
+      + '<div class="ss-f"><label for="f_title">Titre de l’étape</label><input type="text" id="f_title" value="'+esc(ph.title||'')+'" placeholder="Ghost → Skomora"></div>'
+      + '<div class="ss-f ss-wide"><label for="f_buffs">Préparation avant l’étape</label>'
       +   '<div class="ss-frow"><select id="f_buffs">'
       +     '<option value="">aucun</option>'
       +     noms.map(function(o){ return '<option value="'+esc(o)+'"'+(o===cur?' selected':'')+'>'+esc(o)+'</option>'; }).join('')
-      +     '<option value="__neuf__">＋ nouveau bloc…</option>'
+      +     '<option value="__neuf__">＋ nouvelle préparation…</option>'
       +   '</select>'
-      +   '<button type="button" class="ss-mini" id="f_buffsRen" title="Renommer ce bloc partout"'
+      +   '<button type="button" class="ss-mini" id="f_buffsRen" title="Renommer cette préparation partout où elle sert"'
       +     (cur?'':' disabled')+'>renommer</button></div></div></div>'
-      + '<div class="ss-f"><label for="f_route">Comment on y va</label>'
+      + '<div class="ss-f"><label for="f_route">Comment on y va (facultatif)</label>'
       +   '<input type="text" id="f_route" value="'+esc(ph.route||'')+'" placeholder="Mur de droite, plein SUD → coin bas-gauche."></div>'
       + '<div id="ssBuffs"></div>'
       + '<div id="ssBlocs"></div>'
@@ -221,13 +221,13 @@
           var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
           return '<button type="button" class="ss-job r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
             + (dansCompo ? '' : ' hors')+'" data-job="'+esc(j)+'"'
-            + (dansCompo ? '' : ' title="Hors composition — cité ailleurs dans la strat"')+'>'+esc(j)+'</button>'; }).join('')
-      + '<button type="button" class="ss-job ss-jplus" data-plus="1" title="Insérer un job hors composition">＋ job</button>'
+            + (dansCompo ? '' : ' title="Pas dans la compo, mais cité ailleurs dans la strat"')+'>'+esc(j)+'</button>'; }).join('')
+      + '<button type="button" class="ss-job ss-jplus" data-plus="1" title="Citer un job qui n’est pas dans la compo — une alternative, par exemple">＋ job</button>'
       + '<span class="ss-tbsep"></span>'
-      + '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
-      + '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'
-      + '<button type="button" data-mk="comp" title="Réserver la ligne à une composition">@ comp</button>'
-      + '<button type="button" data-mk="sub" title="Action de plus pour le même job">＋ action</button>'
+      + '<button type="button" data-mk="warn" title="Mettre la ligne en alerte — ce qui fait wipe">⚠ alerte</button>'
+      + '<button type="button" data-mk="cond" title="N’appliquer la ligne que dans un cas précis">? condition</button>'
+      + '<button type="button" data-mk="comp" title="N’afficher la ligne que pour une composition">@ comp</button>'
+      + '<button type="button" data-mk="sub" title="Une action de plus pour le même job">＋ action</button>'
       + '</div>';
   }
   // Branche une zone de saisie sur la même barre d'outils que les blocs.
@@ -266,7 +266,7 @@
       +   '<span class="ss-bkind">préparation</span>'
       +   '<b class="ss-bnom">'+esc(nom)+'</b>'
       +   (n > 1 ? '<span class="ss-bpart" title="Ce contenu est partagé">partagé par '+n+' étapes</span>' : '')
-      +   '<button type="button" class="ss-bdel" id="ssBuffDel" title="Supprimer ce bloc de préparation">✕</button>'
+      +   '<button type="button" class="ss-bdel" id="ssBuffDel" title="Supprimer cette préparation">✕</button>'
       + '</div>'
       + barreOutils()
       + '<textarea class="ss-btxt" spellcheck="false" placeholder="COR : Bolter\'s + Tactician\'s&#10;BRD : Mazurka"></textarea>'
@@ -300,10 +300,10 @@
         +   '<div class="ss-chips ss-kind">'
         +     '<button type="button" data-v="pack"'+(c.kind!=='boss'?' class="on"':'')+'>farm</button>'
         +     '<button type="button" data-v="boss"'+(c.kind==='boss'?' class="on"':'')+'>boss</button></div>'
-        +   '<input type="text" class="ss-bname" value="'+esc(c.name||'')+'" placeholder="Nom du bloc — ex. Pack · Ghost ×3">'
-        +   '<button type="button" class="ss-bdel" title="Supprimer ce bloc">✕</button>'
+        +   '<input type="text" class="ss-bname" value="'+esc(c.name||'')+'" placeholder="Ce qu’on affronte — ex. Pack · Ghost ×3">'
+        +   '<button type="button" class="ss-bdel" title="Supprimer ce qu’on affronte, et tout son contenu">✕</button>'
         + '</div>'
-        + '<input type="text" class="ss-btag" value="'+esc(c.tag||'')+'" placeholder="Résumé en une ligne (facultatif)">'
+        + '<input type="text" class="ss-btag" value="'+esc(c.tag||'')+'" placeholder="Le principe en une ligne (facultatif) — ex. weak Fire · SC → MB Fire">'
         + barreOutils()
         + '<textarea class="ss-btxt" spellcheck="false" placeholder="Règle&#10;ALL : ne jamais fermer de SC Light"></textarea>'
         + '<div class="ss-read"></div></div>';
@@ -460,7 +460,7 @@
     var ph = ps[selP], f = etage(), bn = bossParN();
     host.innerHTML = R.buffsHtml(ph.buffs, JEUX[ph.buffs])
       + '<div class="cards">'+(ph.cards||[]).map(function(c){ return R.cardHtml(c, ph, f, bn); }).join('')+'</div>'
-      + ((ph.cards||[]).length ? '' : '<p class="ss-empty">Cette étape n’a encore aucun bloc — utilise <b>＋ bloc</b>.</p>');
+      + ((ph.cards||[]).length ? '' : '<p class="ss-empty">Rien à affronter dans cette étape pour l’instant — ajoute un farm ou un boss.</p>');
     filtreVue(host);
     majTrad();
   }
@@ -515,24 +515,24 @@
     return n;
   }
   async function nouveauBuff(ph){
-    var nom = await saisie('Nom du bloc — c\'est le titre que le guide affichera.',
-      {titre:'Nouveau bloc de préparation', valeur:'Buffs', ok:'Créer'});
+    var nom = await saisie('Ce nom sera le titre affiché en tête du bloc, dans le guide.',
+      {titre:'Nouvelle préparation', valeur:'Buffs', ok:'Créer'});
     if(nom === null){ editeur(); return; }              // annulé : on remet le choix d'avant
     nom = nom.trim();
-    if(!nom){ toast('Il faut un nom.','err'); editeur(); return; }
-    if(JEUX[nom] !== undefined){ toast('Ce nom existe déjà.','err'); editeur(); return; }
+    if(!nom){ toast('Donne-lui un nom.','err'); editeur(); return; }
+    if(JEUX[nom] !== undefined){ toast('Une préparation porte déjà ce nom.','err'); editeur(); return; }
     JEUX[nom] = [];
     ph.buffs = nom;
     touche(); editeur(); rendre();
   }
   async function renommeBuff(ancien){
     if(!ancien || JEUX[ancien] === undefined) return;
-    var nom = await saisie('Le nom sert de titre dans le guide. Les étapes qui utilisent ce bloc suivront.',
+    var nom = await saisie('Ce nom est le titre affiché dans le guide. Toutes les étapes qui s’en servent suivront.',
       {titre:'Renommer le bloc', valeur:ancien, ok:'Renommer'});
     if(nom === null) return;
     nom = nom.trim();
     if(!nom || nom === ancien) return;
-    if(JEUX[nom] !== undefined){ toast('Ce nom existe déjà.','err'); return; }
+    if(JEUX[nom] !== undefined){ toast('Une préparation porte déjà ce nom.','err'); return; }
     // on reconstruit le dico pour garder l'ORDRE : sinon le bloc renommé
     // sauterait en fin de fichier à chaque enregistrement.
     var neuf = {};
@@ -557,12 +557,12 @@
       + lignes + ' ligne' + (lignes>1?'s':'') + ' ?'
       + (n ? '<br><br>' + n + ' étape' + (n>1?'s':'') + ' s\'en ser' + (n>1?'vent':'t')
            + ' — elle' + (n>1?'s':'') + ' n\'aura' + (n>1?'ont':'') + ' plus de bloc de préparation.' : ''),
-      {titre:'Supprimer le bloc de préparation'});
+      {titre:'Supprimer cette préparation'});
     if(!ok) return;
     delete JEUX[nom];
     FL.forEach(function(f){ (f.phases||[]).forEach(function(p){ if(p.buffs === nom) delete p.buffs; }); });
     touche(); editeur(); rendre();
-    toast('Bloc supprimé' + (n ? ' — ' + n + ' étape' + (n>1?'s':'') + ' détachée' + (n>1?'s':'') : '') + '.','ok');
+    toast('Préparation supprimée' + (n ? ' — ' + n + ' étape' + (n>1?'s':'') + ' détachée' + (n>1?'s':'') : '') + '.','ok');
   }
 
   /* ---------------- « ＋ job » : un job hors composition ---------------- */
@@ -633,8 +633,8 @@
         + cr.map(function(j, k){
             return (k ? '<span class="ss-cou">ou</span>' : '')
               + '<span class="ss-cj r-'+S.roleDuJob(RT,j)+'" data-i="'+i+'" data-k="'+k+'">'+esc(j)
-              + '<button type="button" data-act="del" data-i="'+i+'" data-k="'+k+'" title="Retirer">✕</button></span>'; }).join('')
-        + '<button type="button" class="ss-cadd" data-act="alt" data-i="'+i+'" title="Un autre job peut tenir cette place">＋ remplaçant</button>'
+              + '<button type="button" data-act="del" data-i="'+i+'" data-k="'+k+'" title="Retirer de la compo">✕</button></span>'; }).join('')
+        + '<button type="button" class="ss-cadd" data-act="alt" data-i="'+i+'" title="Quelqu’un d’autre peut tenir cette place">＋ remplaçant</button>'
         + '</div></div>';
     }).join('')
       + '<button type="button" class="ss-cnew" data-act="place">＋ ajouter une place</button>';
@@ -646,7 +646,7 @@
   function choisitJobPour(titre, msg){
     var deja = S.compoJobs(CP);
     var reste = tousLesJobs().filter(function(j){ return deja.indexOf(j) < 0; });
-    if(!reste.length){ toast('Les 22 jobs sont déjà placés.','err'); return Promise.resolve(null); }
+    if(!reste.length){ toast('Les 22 jobs sont déjà sur une place.','err'); return Promise.resolve(null); }
     return new Promise(function(res){
       var b = $('ssModal'), oui = $('ssModalYes'), non = $('ssModalNo'), msgEl = $('ssModalMsg');
       $('ssModalTtl').textContent = titre;
@@ -666,14 +666,14 @@
   function actionCompo(act, i, k){
     var crs = S.compoCreneaux(CP);
     if(act === 'del'){
-      if(crs.length === 1 && crs[0].length === 1){ toast('Il faut au moins une place.','err'); return; }
+      if(crs.length === 1 && crs[0].length === 1){ toast('Un groupe garde au moins une place.','err'); return; }
       crs[i].splice(k, 1);
       if(!crs[i].length) crs.splice(i, 1);
       CP.creneaux = crs; majCompo(); return;
     }
     if(act === 'alt'){
       choisitJobPour('Remplaçant de la place ' + (i+1),
-        'Quel autre job peut tenir cette place ? Le guide proposera alors les deux façons de jouer.')
+        'Qui d’autre peut tenir cette place ? Le guide proposera alors les deux façons de jouer le run.')
         .then(function(j){ if(!j) return; crs[i].push(j); CP.creneaux = crs; majCompo(); });
       return;
     }
@@ -734,22 +734,23 @@
   }
   var explique = false;
   async function enregistrer(){
-    if(!DF.dispo()){ toast('Utilise Chrome ou Edge pour l’écriture directe.','err'); return; }
+    if(!DF.dispo()){ toast('La sauvegarde directe demande Chrome ou Edge.','err'); return; }
     if(!explique){
-      var ok = await demande('L’outil va écrire dans <b>js/data.js</b> puis <b>js/i18n.js</b>.<br><br>'
-        + 'Le navigateur va te demander de choisir ces deux fichiers — c’est sa façon d’autoriser l’écriture. '
-        + 'Seuls les blocs de stratégie sont remplacés, le reste des fichiers n’est pas touché.',
-        {titre:'Enregistrer sur le disque', ok:'J’ai compris', danger:false});
+      var ok = await demande('Ta strat et sa version anglaise vont être sauvegardées dans le projet.<br><br>'
+        + 'Le navigateur va te demander de désigner deux fichiers, <b>js/data.js</b> puis <b>js/i18n.js</b> — '
+        + 'c’est sa façon de t’autoriser à écrire. À faire une seule fois.<br><br>'
+        + 'Seule ta strat est remplacée : rien d’autre dans ces fichiers n’est touché.',
+        {titre:'Premier enregistrement', ok:'J’ai compris', danger:false});
       if(!ok) return;
       explique = true;
     }
     try{
       var h = await DF.poignee('data', 'js/data.js');
-      if(!(await DF.permission(h))){ toast('Permission refusée sur data.js.','err'); return; }
+      if(!(await DF.permission(h))){ toast('Permission refusée — la strat n’a pas pu être sauvegardée.','err'); return; }
       var r = DF.remplace(await DF.lis(h), blocsData());
       if(r.absents.length){
         await DF.oublie('data');   // sinon on rejouerait indéfiniment sur le mauvais fichier
-        toast('Blocs introuvables : '+r.absents.join(', ')+'. Ce n’est pas le bon data.js — on le redemandera.','err');
+        toast('Ce fichier ne contient pas ta strat — on te le redemandera au prochain enregistrement.','err');
         return; }
       await DF.ecris(h, r.texte);
 
@@ -757,16 +758,16 @@
       if(await DF.permission(h2)){
         var r2 = DF.remplace(await DF.lis(h2), [{nom:'TR', txt:SC.trConst('TR', TRAD)}]);
         if(r2.absents.length){ await DF.oublie('i18n');
-          toast('data.js écrit, mais le bloc TR est introuvable dans ce fichier.','err'); }
+          toast('Strat sauvegardée, mais la version anglaise n’a pas pu être écrite dans ce fichier.','err'); }
         else { await DF.ecris(h2, r2.texte);
-               propre(); toast('data.js et i18n.js écrits — le guide se met à jour.','ok'); return; }
+               propre(); toast('Strat sauvegardée — le guide est à jour.','ok'); return; }
       }
-      propre(); toast('data.js écrit (i18n.js non enregistré).','ok');
-    }catch(e){ if(e.name!=='AbortError') toast('Erreur : '+e.message,'err'); }
+      propre(); toast('Strat sauvegardée. La version anglaise n’a pas été enregistrée.','ok');
+    }catch(e){ if(e.name!=='AbortError') toast('Échec de la sauvegarde : '+e.message,'err'); }
   }
   async function recharger(){
-    if(dirty && !(await demande('Tu as des modifications <b>non enregistrées</b>. Recharger va les <b>perdre</b>.',
-      {titre:'Recharger', ok:'Recharger quand même'}))) return;
+    if(dirty && !(await demande('Tes changements en cours ne sont <b>pas sauvegardés</b>. Recharger va les <b>perdre</b>.',
+      {titre:'Repartir de la dernière sauvegarde', ok:'Recharger quand même'}))) return;
     location.reload();
   }
 

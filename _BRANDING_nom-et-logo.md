@@ -58,12 +58,14 @@ socle et la même identité visuelle :
 À coller dans un générateur d'images (Midjourney / DALL·E / SDXL). Sortie carrée, fond compris.
 
 ```
-App icon for a gaming strategy tool called "FFXI Strat Studio", square 1:1, rounded-square tile.
+Standalone app logomark for "FFXI Strat Studio", square 1:1, on a FULLY TRANSPARENT background
+(no frame, no tile, no border, no rounded-square container — just the emblem).
 
-SUBJECT: a minimal emblem that reads at once as a folded map AND a tactical route — a stylized
-folded/segmented map shape that peaks in the center like a subtle mountain or letter "A/M",
-crossed by a glowing waypoint path: a thin luminous line linking two small circular nodes and
-ending on a faceted crystal diamond node (a nod to Final Fantasy crystals).
+SUBJECT: a minimal emblem that reads at once as a folded map AND an EDITABLE tactical route —
+a stylized folded map that peaks into two points with a subtle mountain in the center, crossed by
+a glowing route whose nodes are small square anchor handles (like a vector-editor path), ending
+on a faceted crystal diamond node (a nod to Final Fantasy crystals). The editable anchor handles
+signal that this is a map EDITOR / studio, not just a map.
 
 STYLE: modern SaaS / gaming-tool logomark, clean geometric vector, flat design with subtle depth,
 soft inner glow and a faint glassy sheen, crisp thin strokes, high legibility at small sizes
@@ -73,16 +75,21 @@ COLORS: deep near-black navy background (#070b12), the map/emblem in a cyan-to-b
 (cyan #5bd6ef → teal #54d1c4 → blue #4a9eff), waypoint line and crystal glowing cyan #5bd6ef,
 one tiny violet #8b7cff accent highlight. Cohesive, premium, dark UI aesthetic.
 
-BACKGROUND: dark navy rounded-square with an extremely faint topographic/contour grid texture,
-barely visible, plus a soft radial glow behind the emblem.
+BACKGROUND: transparent (alpha). A soft neon glow may radiate from the route line and crystal,
+but NO background shape, NO tile, NO frame.
 
-COMPOSITION: centered, generous padding, balanced negative space, symmetrical, iconic and simple.
+COMPOSITION: centered, generous padding, balanced negative space, iconic and simple, bold enough
+to stay legible at 24px.
 
-DO NOT: no text, no letters, no words, no photorealism, no 3D bevel clutter, no drop-shadow mess,
-no busy background, no gradients banding, no mock UI, not skeuomorphic.
+DO NOT: no frame, no rounded-square tile, no border, no background panel, no text, no letters,
+no photorealism, no 3D bevel clutter, no drop-shadow mess, no busy background, not skeuomorphic.
 
 --ar 1:1 --style raw
 ```
+
+> **Export « icône d'app » (à part)** : pour le favicon / l'icône de bureau, on POSE ce même mark
+> détouré sur une **tuile navy arrondie** (dégradé `#101a2c → #070b12`) — mais c'est un habillage
+> d'export, pas le logo. Le logo de référence reste **transparent**.
 
 ### Variante « monogramme » (si tu veux la lettre)
 Remplacer la phrase SUBJECT par : *« a folded map whose silhouette also forms the letter “S”,

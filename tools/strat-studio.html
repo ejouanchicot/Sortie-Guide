@@ -26,38 +26,41 @@
          inaperçu au milieu de Recharger et Enregistrer. -->
     <span class="ss-div"></span>
     <div class="ss-tools">
-      <button class="ss-tool" id="ssCompo" title="Combien on est, et avec quels jobs">
+      <button class="ss-tool" id="ssCompo" title="Qui compose le groupe, et qui peut remplacer qui">
         <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5" r="2.4"/><circle cx="11.5" cy="6" r="1.9"/><path d="M1.4 13.2c0-2.4 1.9-3.9 4.1-3.9s4.1 1.5 4.1 3.9"/><path d="M10.6 9.6c2 .1 3.9 1.1 3.9 3.6"/></svg>
         <span>Compo</span><b id="ssCompoBadge">6</b></button>
-      <button class="ss-tool" id="ssRoles" title="Quel job tient quel rôle dans CETTE strat">
+      <button class="ss-tool" id="ssRoles" title="Tank, soin, buff ou DD — ce qui donne sa couleur à chaque job">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6 14.4 8 8 14.4 1.6 8z"/><circle cx="8" cy="8" r="2.2"/></svg>
         <span>Rôles</span></button>
     </div>
 
     <div class="ss-spacer"></div>
-    <span id="ssUnsaved" title="Des modifications ne sont pas encore écrites dans les fichiers">non enregistré</span>
-    <button class="ss-btn" id="ssReload" title="Relire data.js et i18n.js depuis le disque">Recharger</button>
-    <button class="ss-btn primary" id="ssSave" title="Écrire dans data.js et i18n.js (Ctrl+S)">Enregistrer</button>
+    <span id="ssUnsaved" title="Des changements ne sont pas encore sauvegardés">non enregistré</span>
+    <button class="ss-btn" id="ssReload" title="Repartir de la dernière version sauvegardée — les changements en cours sont perdus">Recharger</button>
+    <button class="ss-btn primary" id="ssSave" title="Sauvegarder la strat et sa version anglaise (Ctrl+S)">Enregistrer</button>
   </div>
 
   <div class="ss-body">
 
-    <!-- ─── colonne 1 : arbre du run ─── -->
+    <!-- Les trois colonnes racontent la façon dont on prépare un run :
+         on découpe, on écrit, on relit du point de vue du groupe. -->
+
+    <!-- ─── colonne 1 : les étapes ─── -->
     <aside class="ss-tree">
-      <div class="ss-ttl"><span class="ss-num">1</span>Le plan du run<button class="ss-mini" id="ssAddPhase" title="Ajouter une étape">＋ étape</button></div>
+      <div class="ss-ttl"><span class="ss-num">1</span>Le run, étape par étape<button class="ss-mini" id="ssAddPhase" title="Ajouter une étape au run">＋ étape</button></div>
       <div id="ssTree"></div>
     </aside>
 
     <!-- ─── colonne 2 : édition ─── -->
     <section class="ss-edit">
-      <div class="ss-ttl"><span class="ss-num">2</span><span id="ssEditTtl">Ce que tu écris</span><span class="dot" id="ssEditDot" style="margin-left:auto"></span></div>
+      <div class="ss-ttl"><span class="ss-num">2</span><span id="ssEditTtl">La stratégie de l’étape</span><span class="dot" id="ssEditDot" style="margin-left:auto"></span></div>
       <div id="ssEditBody"></div>
     </section>
 
     <!-- ─── colonne 3 : aperçu réel + traductions ─── -->
     <section class="ss-side">
-      <div class="ss-ttl"><span class="ss-num">3</span>Ce que ça donne dans le guide
-        <div class="ss-vseg" id="ssVue" title="Se mettre à la place d’une composition"></div></div>
+      <div class="ss-ttl"><span class="ss-num">3</span>Ce que verra ton groupe
+        <div class="ss-vseg" id="ssVue" title="Relire la strat comme la verra cette composition"></div></div>
       <div class="ss-preview" id="ssPreview"></div>
       <div class="ss-ttl" style="margin-top:18px"><span class="dot" style="background:var(--r-buff)"></span>Version anglaise<span class="ss-count" id="ssTrCount">0</span></div>
       <div id="ssTr"></div>
@@ -104,9 +107,9 @@
     <div class="ss-rhead">
       <div>
         <div class="ss-mttl" id="ssRolesTtl">Rôles des jobs</div>
-        <p class="ss-rsub">Le rôle donne la <b>couleur du badge</b>, et il appartient à cette strat :
-          un NIN peut tanker ici et DPS ailleurs. <b>Un seul rôle par job</b> — c'est aussi lui qui
-          range le job dans la grille de composition.</p>
+        <p class="ss-rsub">Le rôle donne sa <b>couleur au badge</b> du job, dans tout le guide : on
+          repère un tank ou un soigneur sans lire les trois lettres. Il vaut pour <b>cette strat</b> —
+          un NIN peut tanker ici et DPS ailleurs. <b>Un seul rôle par job.</b></p>
       </div>
       <button class="ss-btn" id="ssRolesClose" type="button">Fermer</button>
     </div>
