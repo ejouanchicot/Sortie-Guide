@@ -36,13 +36,13 @@
       b.classList.toggle('on', p[0] === nom);
       b.setAttribute('aria-selected', p[0] === nom ? 'true' : 'false');
     });
-    // la scène Konva a été dimensionnée alors qu'elle était visible ; au retour
-    // on la recadre, la fenêtre a pu changer entre-temps.
-    // Seulement si elle a fini de démarrer : au tout premier appel, la coque
-    // s'exécute AVANT le boot de l'atelier et il n'y a pas encore de scène.
+    // Une scène Konva mesurée pendant qu'elle est masquée fait 0 × 0, et
+    // « Ajuster » ne la répare pas : il ne change que le zoom, pas la taille
+    // de la scène. L'atelier, lui, la re-mesure sur un redimensionnement de
+    // fenêtre — on le lui signale donc en montrant le panneau.
     if(nom === 'map') setTimeout(function(){
-      var f = $('btnFit');
-      if(f && document.querySelector('#stage canvas')) f.click();
+      if(!document.querySelector('#stage canvas')) return;   // pas encore démarré
+      window.dispatchEvent(new Event('resize'));
     }, 0);
     try{ localStorage.setItem('studio_atelier', nom); }catch(e){}
   }
@@ -158,13 +158,22 @@
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); enregistrer(); }
   });
 
-  /* ---------------- démarrage ---------------- */
-  var depart = 'map';
-  try{ var m = localStorage.getItem('studio_atelier'); if(m==='map'||m==='strat') depart = m; }catch(e){}
-  ouvre(depart);
-  try{ var c = +localStorage.getItem('studio_chapitre'); if(c > 0 && c < FL.length) chapitre(c); }catch(e){}
-  if(DF.connue) DF.connue('data').then(function(h){ if(h) $('stFile').textContent = h.name; });
-  majEtat();
+  /* ---------------- démarrage ----------------
+     APRÈS le démarrage des deux ateliers, pas avant. La coque s'exécute au
+     parsing : y rejouer l'onglet et le chapitre mémorisés revenait à masquer
+     le panneau de la carte avant que Konva ne se mesure — la scène naissait
+     à 0 × 0 et il fallait recharger pour la voir. */
+  function restaure(){
+    var depart = 'map';
+    try{ var m = localStorage.getItem('studio_atelier'); if(m==='map'||m==='strat') depart = m; }catch(e){}
+    try{ var c = +localStorage.getItem('studio_chapitre'); if(c > 0 && c < FL.length) chapitre(c); }catch(e){}
+    ouvre(depart);
+    if(DF.connue) DF.connue('data').then(function(h){ if(h) $('stFile').textContent = h.name; });
+    majEtat();
+  }
+  // les ateliers démarrent sur DOMContentLoaded : on passe juste après
+  if(document.readyState === 'loading') window.addEventListener('DOMContentLoaded', function(){ setTimeout(restaure, 0); });
+  else setTimeout(restaure, 0);
 
   /* ---------------- installable, et hors ligne ----------------
      Pas de boutique, pas de signature, pas d'abonnement : le navigateur
@@ -175,12 +184,24 @@
       navigator.serviceWorker.register('../sw.js', {scope:'../'}).catch(function(){});
     });
   }
+  // Déjà installé ? Alors le bouton n'a plus de sens : on est DANS l'app.
+  // Le navigateur n'émettra pas beforeinstallprompt, mais autant ne jamais
+  // afficher le bouton plutôt que de compter là-dessus.
+  function dansLApp(){
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: window-controls-overlay)').matches
+        || navigator.standalone === true;
+  }
   // Le navigateur ne propose l'installation que s'il juge le moment opportun :
   // on garde son invitation de côté et on montre notre bouton à ce moment-là.
   var invite = null;
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault(); invite = e;
-    var b = $('stInstall'); if(b) b.hidden = false;
+    var b = $('stInstall'); if(b && !dansLApp()) b.hidden = false;
+  });
+  // et si l'app est lancée puis installée ailleurs, le mode change en cours de route
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', function(e){
+    var b = $('stInstall'); if(b && e.matches) b.hidden = true;
   });
   var bi = $('stInstall');
   if(bi) bi.addEventListener('click', async function(){
