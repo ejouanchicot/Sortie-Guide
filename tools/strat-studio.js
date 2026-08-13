@@ -30,7 +30,18 @@
                BUFFS_STD:(typeof BUFFS_STD!=='undefined'?BUFFS_STD:null),
                BUFFS_B:(typeof BUFFS_B!=='undefined'?BUFFS_B:null)};
   var TRAD = (typeof TR!=='undefined') ? TR : {};
-  var JOBSL = (typeof JOBS!=='undefined') ? JOBS.concat(['WHM','ALL']) : ['ALL'];
+  // Boutons de job : la comp de la LS d'abord (celle qu'on tape 90 % du temps),
+  // puis les 22 jobs de FFXI. Un outil de strat ne doit pas obliger à taper
+  // « SAM » à la main sous prétexte qu'il n'est pas dans la comp Sortie.
+  var JOBSL = (function(){
+    var comp = (typeof JOBS!=='undefined') ? JOBS.slice() : [];
+    var tous = (typeof ROLE!=='undefined') ? Object.keys(ROLE) : [];
+    var vus = {}, out = [];
+    comp.concat(tous).forEach(function(j){ if(j!=='ALL' && !vus[j]){ vus[j]=1; out.push(j); } });
+    out.push('ALL');
+    return out;
+  })();
+  var JOBS_COMP = (typeof JOBS!=='undefined') ? JOBS.length : 0;   // séparateur après la comp
 
   var idx = 0;        // étage
   var selP = null;    // index de l'étape ouverte
@@ -171,7 +182,9 @@
         + '<input type="text" class="ss-btag" value="'+esc(c.tag||'')+'" placeholder="Résumé en une ligne (facultatif)">'
         + '<div class="ss-tb">'
         +   '<span class="ss-tbl">job</span>'
-        +   JOBSL.map(function(j){ return '<button type="button" data-job="'+j+'">'+j+'</button>'; }).join('')
+        +   JOBSL.map(function(j, i){ return (i===JOBS_COMP ? '<span class="ss-tbsep"></span>' : '')
+              + '<button type="button" class="ss-job r-'+((typeof ROLE!=='undefined'&&ROLE[j])||'all')
+              + (i>=JOBS_COMP && j!=='ALL' ? ' hors' : '')+'" data-job="'+j+'">'+j+'</button>'; }).join('')
         +   '<span class="ss-tbsep"></span>'
         +   '<button type="button" data-mk="warn" title="Marquer la ligne comme un avertissement">⚠ alerte</button>'
         +   '<button type="button" data-mk="cond" title="Ajouter une condition en fin de ligne">? condition</button>'

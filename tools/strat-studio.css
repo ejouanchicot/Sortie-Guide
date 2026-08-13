@@ -11,12 +11,31 @@ body{overflow:hidden;background:var(--bg)}
 .ss-app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
 
 /* ─── barre du haut ─── */
-.ss-top{display:flex;align-items:center;gap:12px;padding:9px 16px;flex:none;
+.ss-top{display:flex;align-items:center;gap:12px;padding:9px 18px;flex:none;
   background:linear-gradient(180deg,var(--panel),var(--bg2));border-bottom:1px solid var(--line)}
-.ss-brand{display:flex;align-items:center;gap:10px}
-.ss-logo{border-radius:9px;object-fit:cover;box-shadow:0 0 0 1px var(--line2),0 0 18px -6px var(--accent2)}
-.ss-wm{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:1.6px;color:var(--txt)}
-.ss-wm b{font-weight:700;color:var(--accent2)}
+
+/* ─── wordmark : les mêmes mesures et le même dégradé que Map Studio ───
+   Les deux outils portent le même logo et forment une paire ; un titre plus
+   petit et plus serré d'un côté les faisait lire comme deux produits.
+   Valeurs reprises telles quelles de map-studio.css (.brand / .brandtxt),
+   y compris les deux points de rupture. */
+.ss-brand{display:flex;align-items:center;gap:11px;font-family:var(--display);
+  font-weight:600;letter-spacing:.2px;color:var(--txt2);white-space:nowrap;font-size:15px}
+.ss-logo{width:44px;height:44px;flex:none;object-fit:cover;border-radius:12px;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 0 1px var(--line2),0 6px 20px -6px #000,0 0 30px -8px color-mix(in srgb,#5bd6ef 72%,transparent)}
+.ss-brand:hover .ss-logo{transform:translateY(-1px) scale(1.03)}
+.ss-wm{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:2px;line-height:1;
+  display:inline-flex;gap:7px;white-space:nowrap;
+  background:linear-gradient(180deg,#ffffff,#c2d6f2);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+/* « STUDIO » en cyan → turquoise, la moitié qui identifie la paire d'outils.
+   Mêmes valeurs que map-studio.css : --cyan #5bd6ef, --teal #54d1c4. */
+.ss-wm b{font-weight:700;background:linear-gradient(180deg,#5bd6ef,#54d1c4);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 10px color-mix(in srgb,#5bd6ef 45%,transparent))}
+@media (max-width:820px){ .ss-wm{font-size:17px;letter-spacing:1.5px} .ss-logo{width:38px;height:38px} }
+@media (max-width:430px){ .ss-wm{display:none} }
 .ss-div{width:1px;height:22px;background:var(--line)}
 .ss-spacer{flex:1}
 .ss-seg{display:flex;gap:3px;padding:3px;background:rgba(0,0,0,.24);border:1px solid var(--hair);border-radius:12px}
@@ -115,6 +134,19 @@ body{overflow:hidden;background:var(--bg)}
   color:var(--txt2);background:var(--chip);border:1px solid var(--chipbd);transition:.13s var(--ease)}
 .ss-tb button:hover{color:#fff;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .ss-tbsep{width:1px;height:16px;background:var(--line2);margin:0 4px}
+
+/* Un bouton de job porte la couleur de son rôle, la MÊME que le badge dans le
+   guide : on reconnaît un tank ou un soigneur avant de lire les trois lettres. */
+.ss-tb button.ss-job.r-tank{--jc:var(--r-tank)} .ss-tb button.ss-job.r-buff{--jc:var(--r-buff)}
+.ss-tb button.ss-job.r-heal{--jc:var(--r-heal)} .ss-tb button.ss-job.r-dd{--jc:var(--r-dd)}
+.ss-tb button.ss-job.r-all{--jc:var(--r-all)}
+.ss-tb button.ss-job{color:var(--jc);border-color:color-mix(in srgb,var(--jc) 34%,transparent);
+  background:color-mix(in srgb,var(--jc) 10%,transparent)}
+.ss-tb button.ss-job:hover{color:#fff;border-color:var(--jc);background:color-mix(in srgb,var(--jc) 28%,transparent)}
+/* Hors de la comp de la LS : présents, mais en retrait — on tape PLD cent fois
+   plus souvent que PUP, et 22 boutons de même poids noieraient les sept utiles. */
+.ss-tb button.ss-job.hors{opacity:.42;font-weight:600}
+.ss-tb button.ss-job.hors:hover{opacity:1}
 
 /* ─── un bloc = une carte de formulaire ─── */
 .ss-bloc{border:1px solid var(--line2);border-radius:var(--r-md);padding:12px 13px;margin:14px 0;

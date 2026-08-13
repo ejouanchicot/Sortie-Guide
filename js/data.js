@@ -8,8 +8,25 @@
    ============================================================ */
 
 // ---- jobs & rôles ----
+// JOBS = la comp de la LS : ce sont les boutons du filtre « Mon rôle » du guide.
 const JOBS=["MNK","BRD","COR","GEO","RDM","PLD","DNC"];
-const ROLE={MNK:"dd",DNC:"dd",WAR:"dd",BRD:"buff",COR:"buff",GEO:"buff",RDM:"heal",WHM:"heal",PLD:"tank",RUN:"tank",ALL:"all"};
+// ROLE = les 22 jobs de FFXI, pas seulement la comp : le rôle donne la COULEUR
+// du badge. Écrire « SAM : Tachi Fudo » dans une strat d'un autre contenu doit
+// colorer juste, sans avoir à toucher au moteur.
+// NIN, BLU, PUP et SMN se jouent des deux côtés selon le contenu — ici on a
+// tranché pour le rôle le plus courant. Changer le mot suffit.
+const ROLE={
+  // tanks
+  PLD:"tank", RUN:"tank", NIN:"tank",
+  // soins / enfeeble
+  WHM:"heal", RDM:"heal", SCH:"heal",
+  // soutien
+  BRD:"buff", COR:"buff", GEO:"buff",
+  // dégâts
+  WAR:"dd", MNK:"dd", THF:"dd", BLM:"dd", DRK:"dd", BST:"dd", RNG:"dd",
+  SAM:"dd", DRG:"dd", SMN:"dd", BLU:"dd", PUP:"dd", DNC:"dd",
+  // pour tout le monde
+  ALL:"all"};
 
 // ---- fabrique de ligne (r = rôles, t = texte ou liste, opt = {cond,warn,comp}) ----
 // helper lignes

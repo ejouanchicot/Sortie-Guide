@@ -135,6 +135,17 @@
     if(!jobs.length || !jobs.every(estJob)) return null;
     return {jobs:jobs, warn:!!m[2], comp:m[3]?m[3].toUpperCase():null, reste:m[4].trim()};
   }
+  // Une rubrique titrée d'un job prend la couleur de ce job. On lit la table
+  // ROLE de data.js plutôt qu'une liste écrite ici : ajouter un job à FFXI
+  // (ou changer le rôle d'un job) suffit, sans toucher au moteur.
+  // `typeof ROLE` et pas `global.ROLE` : data.js déclare `const ROLE`, et un
+  // const de premier niveau n'atterrit PAS sur window — il vit dans la portée
+  // de script, visible par identifiant seulement.
+  function roleDuJobEnTete(t){
+    var m = String(t||'').match(/^\s*([A-Z]{2,3})\b/);
+    var R = (typeof ROLE !== 'undefined') ? ROLE : {};
+    return (m && R[m[1]]) || '';
+  }
   // devine le thème d'une rubrique d'après son titre — l'ordre compte
   function themeDevine(titre){
     var t = String(titre||'');
@@ -142,9 +153,11 @@
     if(/\bproc/i.test(t) && /^proc|·\s*proc|contre par/i.test(t)) return 'rules proc';
     if(/r[èe]gle/i.test(t)) return 'rules';
     if(/buff/i.test(t)) return 'buff';
-    if(/^\s*(PLD|RUN)\b|tank/i.test(t)) return 'tank';
-    if(/^\s*(RDM|WHM)\b|soin|heal/i.test(t)) return 'heal';
-    if(/^\s*(DD|MNK|DNC|COR|SAM)\b|d[ée]g[âa]t|\bSC\b/i.test(t)) return 'dd';
+    var r = roleDuJobEnTete(t);
+    if(r === 'tank' || r === 'heal' || r === 'buff' || r === 'dd') return r;
+    if(/tank/i.test(t)) return 'tank';
+    if(/soin|heal/i.test(t)) return 'heal';
+    if(/^\s*DD\b|d[ée]g[âa]t|\bSC\b/i.test(t)) return 'dd';
     return '';
   }
   function blocToText(c){
