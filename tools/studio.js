@@ -458,18 +458,45 @@
     return (SS && SS.demande) ? SS.demande(msg, opts) : Promise.resolve(true);
   }
 
+  /* Le bouton doit répondre au clic. Enregistrer prend un aller-retour disque :
+     sans rien à l'écran, on ne sait pas si le clic a porté, et on reclique. */
+  var enCours = false;
+  function etatSave(etat){
+    var b = $('stSave'); if(!b) return;
+    var l = b.querySelector('.st-lbl');
+    b.classList.toggle('encours', etat === 'cours');
+    b.classList.toggle('fait',    etat === 'fait');
+    b.disabled = (etat === 'cours');
+    if(l) l.textContent = etat === 'cours' ? 'Enregistrement…'
+                        : etat === 'fait'  ? 'Enregistré'
+                        : 'Enregistrer';
+    if(etat === 'fait'){ clearTimeout(etatSave._t);
+      etatSave._t = setTimeout(function(){ etatSave(null); }, 1600); }
+  }
+
   async function enregistrer(){
+    if(enCours) return;                     // Ctrl+S repete ne relance pas l'ecriture
     if(!DF.dispo()){ toast('La sauvegarde directe demande Chrome ou Edge.','err'); return; }
-    if(!explique){
+    // On n'annonce la question que si elle va vraiment se poser. `connue`
+    // n'ouvre aucun selecteur, donc ne consomme pas le geste. Sans ce test,
+    // la modale revenait a chaque rechargement — et depuis qu'un dossier
+    // suffit, elle annoncait a ceux qui avaient deja repondu une demande
+    // qui n'arrivait jamais.
+    var pret = (await DF.connue('data') && await DF.connue('i18n'))
+            || await DF.connue('projet');
+    if(!pret && !explique){
       var ok = await demande('Ta carte, ta strat et sa version anglaise vont être sauvegardées.<br><br>'
-        + 'Le navigateur va te demander de désigner deux fichiers, <b>js/data.js</b> puis '
-        + '<b>js/i18n.js</b> — c’est sa façon de t’autoriser à écrire. À faire une seule fois.',
-        {titre:'Premier enregistrement', ok:'J’ai compris', danger:false});
+        + 'Le navigateur va te demander <b>le dossier du projet</b> — c’est sa façon de '
+        + 't’autoriser à écrire dedans, et il ne le demandera qu’une fois. Les fichiers à '
+        + 'mettre à jour, l’outil les y trouve tout seul.',
+        {titre:'Premier enregistrement', ok:'Choisir le dossier', danger:false});
       if(!ok) return;
       explique = true;
     }
+    enCours = true; etatSave('cours');
     try{
-      var h = await DF.poignee('data', 'js/data.js');
+      var f = await DF.fichiersProjet();
+      var h = f.data, h2 = f.i18n;
       $('stFile').textContent = h.name;
       if(!(await DF.permission(h))){ toast('Permission refusée — rien n’a été sauvegardé.','err'); return; }
 
@@ -486,7 +513,6 @@
       if(SS) SS.propre();
 
       // la version anglaise vit dans un autre fichier : elle suit, sans bloquer
-      var h2 = await DF.poignee('i18n', 'js/i18n.js');
       if(await DF.permission(h2)){
         var r2 = DF.remplace(await DF.lis(h2), SS ? SS.blocsTr() : []);
         if(r2.absents.length){ await DF.oublie('i18n');
@@ -495,7 +521,15 @@
                toast('Carte et strat sauvegardées — le guide est à jour.','ok'); }
       } else toast('Sauvegardé. La version anglaise n’a pas été enregistrée.','ok');
       majEtat();
-    }catch(e){ if(e.name !== 'AbortError') toast('Échec de la sauvegarde : '+e.message,'err'); }
+      etatSave('fait');
+    }catch(e){
+      if(e.message === 'DOSSIER_SANS_DATA')
+        toast('Ce dossier n’est pas celui du projet — on n’y trouve pas js/data.js.','err');
+      else if(e.name !== 'AbortError') toast('Échec de la sauvegarde : '+e.message,'err');
+    }finally{
+      enCours = false;
+      if(!$('stSave').classList.contains('fait')) etatSave(null);
+    }
   }
 
   async function recharger(){

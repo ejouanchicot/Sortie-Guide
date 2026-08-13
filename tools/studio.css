@@ -132,6 +132,23 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 .st-btn.primary{color:#fff;border-color:transparent;font-weight:700;
   background:linear-gradient(135deg,var(--accent),var(--violet))}
 .st-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+
+/* Un bouton qui ne bouge pas au clic laisse croire qu'on l'a raté. Enregistrer
+   prend un aller-retour disque : sans ces trois états, on reclique. */
+.st-btn:active{transform:translateY(1px) scale(.985)}
+.st-btn:disabled{cursor:default}
+/* pendant l'écriture : l'icône tourne, le libellé le dit */
+.st-btn.encours{opacity:.9}
+.st-btn.encours svg{animation:st-tourne .9s linear infinite;transform-origin:50% 50%}
+@keyframes st-tourne{to{transform:rotate(1turn)}}
+/* juste après : la réussite se voit une seconde et demie, puis s'efface */
+.st-btn.fait{background:linear-gradient(135deg,#3fb883,var(--accent))}
+.st-btn.fait svg{animation:st-pouce .45s var(--ease)}
+@keyframes st-pouce{0%{transform:scale(.7)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .st-btn:active{transform:none}
+  .st-btn.encours svg,.st-btn.fait svg{animation:none}
+}
 .st-file{font-family:var(--mono);font-size:11px;color:var(--dim);max-width:150px;flex:none;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 

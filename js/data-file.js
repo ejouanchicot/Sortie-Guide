@@ -10,8 +10,9 @@
    par bloc (`const NOM = […];`) et on laisse le reste — commentaires,
    contenu écrit à la main, ordre des déclarations — intact.
 
-   La poignée de fichier est mémorisée dans IndexedDB, partagée entre
-   les deux outils : on choisit data.js une seule fois pour les deux.
+   Les poignées sont mémorisées dans IndexedDB et partagées entre les
+   deux outils : on désigne le dossier du projet UNE fois, et les deux
+   fichiers s'y trouvent tout seuls (voir `fichiersProjet`).
 
    Aucune dépendance. Chargé avant le script de l'outil.
    Expose window.DATAFILE.
@@ -109,6 +110,41 @@
   // L'appelant doit avoir demande, et compris ce qu'il demande.
   async function supprimeFichier(dir, nom){ await dir.removeEntry(nom); }
 
+  /* ---------------- les deux fichiers, d'un seul geste ----------------
+     Avant, enregistrer demandait DEUX fois : désigne js/data.js, puis désigne
+     js/i18n.js. Deux questions, et sur des noms de fichiers qu'un lead n'a
+     aucune raison de connaître — il veut enregistrer sa strat, pas piloter
+     une arborescence.
+
+     On demande le DOSSIER du projet, une fois, et on va y chercher les deux.
+     Le navigateur n'accorde pas l'écriture sans un geste : la question ne peut
+     pas disparaître, mais elle peut ne se poser qu'une fois et porter sur
+     quelque chose qui se reconnaît.
+
+     Les poignées déjà accordées avant ce changement restent valables — on ne
+     redemande rien à ceux qui avaient déjà répondu. */
+  async function fichiersProjet(){
+    var d = await connue('data'), i = await connue('i18n');
+    if(d && i) return {data:d, i18n:i};
+
+    var dir = await dossier('projet');
+    // On accepte la racine du projet comme le dossier js/ lui-même : se tromper
+    // d'un cran est l'erreur la plus facile à faire, et la moins utile à punir.
+    var js = dir;
+    try{ js = await dir.getDirectoryHandle('js'); }catch(e){}
+    var h, h2;
+    try{
+      h  = await js.getFileHandle('data.js');
+      h2 = await js.getFileHandle('i18n.js');
+    }catch(e){
+      await oublie('projet');
+      var err = new Error('DOSSIER_SANS_DATA'); err.dossier = dir.name; throw err;
+    }
+    vives.data = h; vives.i18n = h2;
+    try{ await ecrit('data', h); await ecrit('i18n', h2); }catch(e){}
+    return {data:h, i18n:h2};
+  }
+
   function lisTexte(h){ return h.getFile().then(function(f){ return f.text(); }); }
   async function ecrisTexte(h, texte){
     var w = await h.createWritable();
@@ -155,6 +191,7 @@
     remplace: remplace,
     dispoDossier: dispoDossier,
     dossier: dossier,
+    fichiersProjet: fichiersProjet,
     deposeFichier: deposeFichier,
     supprimeFichier: supprimeFichier,
     existe: existe

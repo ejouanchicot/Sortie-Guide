@@ -87,7 +87,7 @@ HTML = u'''<!DOCTYPE html>
     <button class="st-btn" id="stReload" title="Repartir de la derni\u00e8re version sauvegard\u00e9e \u2014 les changements en cours sont perdus">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>Recharger</button>
     <button class="st-btn primary" id="stSave" title="Sauvegarder la carte, la strat et sa version anglaise (Ctrl+S)">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></svg>Enregistrer</button>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h7"/></svg><span class="st-lbl">Enregistrer</span></button>
   </header>
 
   <div class="st-panes">

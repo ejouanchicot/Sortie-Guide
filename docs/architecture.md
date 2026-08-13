@@ -86,8 +86,14 @@ désigne encore — et peut emporter son image.
 Les deux ateliers écrivent dans les mêmes fichiers. Tant que chacun avait sa
 copie du mécanisme, l'un pouvait corrompre ce que l'autre écrivait.
 
-- Poignée de fichier mémorisée en **IndexedDB** (base `sortie-outils`, clés `data`
-  et `i18n`) : on choisit `data.js` **une seule fois pour les deux ateliers**.
+- Poignées mémorisées en **IndexedDB** (base `sortie-outils`, clés `data`, `i18n`,
+  `projet`, `img`), partagées par les deux ateliers.
+- `fichiersProjet()` — on demande **le dossier du projet**, une fois, et les deux
+  fichiers s'y trouvent tout seuls. Avant, la première sauvegarde faisait désigner
+  `js/data.js` **puis** `js/i18n.js` : deux questions, et sur des noms qu'un lead
+  n'a pas à connaître. Le navigateur n'accorde pas l'écriture sans un geste — la
+  question ne peut pas disparaître, seulement se poser une fois et porter sur
+  quelque chose qui se reconnaît. Les poignées déjà accordées restent valables.
 - `remplace(texte, blocs)` substitue **bloc par bloc** (`const NOM=[…\n];`) sans
   toucher au reste : commentaires, contenu écrit à la main et ordre des
   déclarations restent intacts.
