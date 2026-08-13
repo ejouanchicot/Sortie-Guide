@@ -46,6 +46,16 @@ dit('les images sont dedans', (doc.match(/data:image\//g) || []).length > 20,
 dit('les polices aussi', (doc.match(/data:font\/woff2/g) || []).length >= 2,
     (doc.match(/data:[a-z\/+-]+/g) || []).slice(0,4).join(' '));
 dit('rien ne pointe vers le site', !doc.includes('ejouanchicot.github.io'));
+// La ligne du dessus ne regarde QUE les fichiers a telecharger, par leur
+// extension. Un lien vers une autre page du site y echappait : il ne casse
+// pas l'affichage, il ne se voit qu'en cliquant, et le fichier a deja fait
+// le tour de Discord. Ici on refuse tout chemin qui suppose un site autour.
+// On regarde le HTML seul : le code embarque FABRIQUE des href a l'execution
+// (`href="'+esc(o.src)+'"`), ce ne sont pas des liens de la page.
+const sansCode = doc.replace(/<script[\s\S]*?<\/script>/g, '');
+const morts = (sansCode.match(/href="(?!data:|#|https?:|mailto:)[^"]+"/g) || []);
+dit('aucun lien ne suppose le reste du site', morts.length === 0,
+    [...new Set(morts)].slice(0, 3).join(' '));
 
 // Chaque image ne doit y etre qu'UNE fois. Le bloc de sauvegarde nomme les
 // memes fichiers : embarque avant le remplacement, il se voyait coller une

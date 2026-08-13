@@ -169,7 +169,12 @@
       // l'aperçu social pointe vers le site : un fichier qu'on s'échange
       // n'a pas d'adresse, la balise ne veut plus rien dire
       .replace(/<meta property="og:[^>]*>\s*/g, '')
-      .replace(/<meta name="twitter:[^>]*>\s*/g, '');
+      .replace(/<meta name="twitter:[^>]*>\s*/g, '')
+      // Même raison pour la marque de l'en-tête : sur le site elle ouvre
+      // l'atelier, ici le chemin ne mène nulle part. L'image reste — elle est
+      // embarquée comme les autres — mais elle cesse d'être une porte.
+      .replace(/<a class="bmark"[^>]*>([\s\S]*?)<\/a>/,
+               '<span class="bmark">$1</span>');
 
     var scripts = '<script>' + sur(data) + '</script>'
       + code.map(function(c){ return '<script>' + sur(compacte(c, 'js')) + '</script>'; }).join('');
