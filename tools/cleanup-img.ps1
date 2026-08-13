@@ -5,6 +5,13 @@
       - suppression vers la CORBEILLE Windows (récupérable), jamais un delete définitif.
     Lance-le d'un double-clic (clic droit > Exécuter avec PowerShell) ou :
       powershell -ExecutionPolicy Bypass -File .\cleanup-img.ps1
+
+    À SAVOIR : aujourd'hui il ne trouve rien à retirer, et c'est normal — img\ ne
+    contient plus que des .webp et les icônes de l'app, qui n'ont pas de jumeau.
+    Il redevient utile le jour où tu ré-exportes les vignettes de mobs depuis le
+    PSD : c'est ce que sert la table ci-dessous, qui rattache les exports bruts
+    numérotés (_0000_Aminon.png) au .webp qui porte un autre nom. Ne la vide pas
+    en la croyant morte.
 #>
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName Microsoft.VisualBasic

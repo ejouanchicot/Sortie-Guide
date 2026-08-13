@@ -2,6 +2,14 @@
 
 Analyse du projet `Sortie-Guide` et proposition d'identité pour l'application complète.
 
+> **Où ça en est — c'est fait.** Le nom du §2 est verrouillé *et posé partout* : l'atelier
+> et le guide s'annoncent tous deux « FFXI Strat Studio », dans leur en-tête comme dans
+> l'aperçu qui s'affiche quand on colle le lien sur Discord.
+>
+> Ce document reste la **référence de la marque** — la palette, les prompts si le logo est
+> refait un jour, les tailles d'export. Mais le §1 décrit le projet **tel qu'il était avant
+> la décision** : il dit pourquoi ce nom, pas où en est le code. Pour ça, `docs/backlog.md`.
+
 ---
 
 ## 1. Ce qu'est réellement l'app (analyse)
@@ -14,7 +22,8 @@ Analyse du projet `Sortie-Guide` et proposition d'identité pour l'application c
 L'app = un **moteur de guides stratégiques cartographiés**, en deux volets qui partagent le même
 socle et la même identité visuelle :
 
-- **L'éditeur** (`tools/map-studio.html`, aujourd'hui « Map Studio ») : éditeur de cartes
+- **L'éditeur** (`tools/studio.html` ; il s'appelait « Map Studio » quand ces lignes ont
+  été écrites) : éditeur de cartes
   stratégiques (Konva) — marqueurs de mobs (boss/midboss/pack), tracés/routes animés, texte
   enrichi, puces — sérialisé dans `data.js`. **C'est le cœur généralisable** : on l'utilise pour
   n'importe quel contenu.
@@ -129,6 +138,8 @@ DO NOT: no clutter, no photoreal, no 3D, no busy background, keep it clean and l
 - Icône d'app / favicon : carré, prévoir **512, 256, 180 (apple-touch), 32, 16** px.
 - Garder une version **sur fond transparent** (PNG/SVG) pour l'en-tête, + une version **tuile
   navy** pour l'icône d'app et l'`og:image`.
-- Idéalement finaliser en **SVG** (le mark est géométrique) pour la netteté partout ; l'actuel
-  `img/map-studio-logo.webp` (512²) et `map-studio-icon.webp` (256²) pourront être remplacés.
+- Idéalement finaliser en **SVG** (le mark est géométrique) pour la netteté partout. Ce qui
+  sert aujourd'hui : `img/favicon.svg` et `img/favicon-64.png` pour l'onglet, `img/logo.webp`
+  pour les deux en-têtes, `img/icon-180.webp` et `img/icon-*.png` pour l'app installée,
+  `og.png` (le guide) et `img/og-studio.webp` (l'atelier) pour les aperçus de partage.
 - Palette à respecter : voir §1. Le dégradé cyan→bleu sur navy est la signature — ne pas en changer.

@@ -71,6 +71,8 @@ Après une modif de `sw.js`, monter `VERSION` — sinon l'ancien cache reste.
 | `tools/studio.js` | la coque à onglets de l'atelier |
 | `tools/map-studio.*` | atelier Carte (Konva) |
 | `tools/strat-studio.*` | atelier Stratégie |
+| `tools/vendor/konva.min.js` | Konva — la seule dépendance, **copiée** dans le dépôt, jamais un CDN |
+| `tools/cleanup-img.ps1` | retire de `img/` les PNG dont le `.webp` existe (vers la corbeille) |
 | `docs/` | architecture, backlog, marque · `docs/archive/` = notes datées |
 
 Modules exposés en global (`window.X`), chargés dans l'ordre déclaré par le HTML.

@@ -213,7 +213,6 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
 }
 
 @media (max-width:1100px){
-  .st-wm{display:none}
   .st-top{gap:8px;padding:8px 12px}
   .st-tab{padding:8px 11px}
 }
