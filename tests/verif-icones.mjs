@@ -182,6 +182,64 @@ dit('donc c\'est la page qui la colore',
     !!vu && /234,\s*243,\s*255|255,\s*255,\s*255/.test(vu.fond || ''), vu && vu.fond);
 dit('et son label se lit', !!vu && /ici le PLD tank/.test(vu.label || ''), vu && vu.label);
 
+/* ---------------- la taille ----------------
+   Elle vivait dans chaque moteur : 5,5 % dans l'atelier, 7 % dans le guide.
+   La carte changeait donc de tete entre ce qu'on dessine et ce que le groupe
+   lit. Elle est maintenant tenue par le socle, comme celle des boss. */
+console.log('\n— la taille, tenue par le socle —');
+const T = await p.evaluate(() => ({
+  ico: SORTIE.POI_SIZE.ico, mid: SORTIE.POI_SIZE.mid, part: SORTIE.ICO_PART,
+  defaut: SORTIE.icoT({}), pose: SORTIE.icoT({t:1.8}), zero: SORTIE.icoT({t:0}),
+  bornes: SORTIE.ICO_T
+}));
+dit('le socle porte une taille pour les icones', typeof T.ico === 'number', String(T.ico));
+dit('elle vaut le double de celle d\'un mid-boss', Math.abs(T.ico - T.mid * 2) < 1e-9,
+    T.ico + ' contre ' + T.mid);
+dit('la silhouette occupe les deux tiers du disque', T.part > .6 && T.part < .75, String(T.part));
+dit('sans reglage, le facteur vaut 1', T.defaut === 1, String(T.defaut));
+dit('une valeur absurde retombe sur 1', T.zero === 1, String(T.zero));
+dit('le curseur va de la moitie au triple', T.bornes.min === 0.5 && T.bornes.max === 3,
+    JSON.stringify(T.bornes));
+
+console.log('\n— l\'atelier et le guide la lisent pareil —');
+const mesures = await p.evaluate(async () => {
+  const f = FLOORS[0];
+  f.icones = [{ico:'PLD', x:30, y:30, c:'#4c9df0'},
+              {ico:'PLD', x:60, y:30, c:'#4c9df0', t:2}];
+  window.__MS.recharge();
+  await new Promise(r => setTimeout(r, 1700));
+  const st = Konva.stages[0];
+  const g = Array.from(st.find('.pin')).filter(n => n._meta && n._meta.kind === 'ico');
+  return g.map(n => ({d: Math.round(n._disc.radius() * 2), img: Math.round(n._ico.width())}));
+});
+dit('l\'atelier dessine deux icones', mesures.length === 2, JSON.stringify(mesures));
+dit('celle a ×2 fait le double de l\'autre',
+    mesures.length === 2 && Math.abs(mesures[1].d - mesures[0].d * 2) <= 2,
+    JSON.stringify(mesures));
+dit('sa silhouette suit le disque',
+    mesures.length === 2 && Math.abs(mesures[1].img - mesures[0].img * 2) <= 2,
+    JSON.stringify(mesures));
+
+const guideT = await pg.evaluate(() => {
+  const f = FLOORS[0];
+  f.icones = [{ico:'PLD', x:30, y:30, c:'#4c9df0'},
+              {ico:'PLD', x:60, y:30, c:'#4c9df0', t:2}];
+  renderFloor(f);
+  const e = [...document.querySelectorAll('.poi.ico')];
+  return e.map(x => Math.round(x.getBoundingClientRect().width));
+});
+dit('le guide aussi', guideT.length === 2, JSON.stringify(guideT));
+dit('et sa ×2 fait bien le double',
+    guideT.length === 2 && Math.abs(guideT[1] - guideT[0] * 2) <= 2, JSON.stringify(guideT));
+
+console.log('\n— ce que la taille laisse dans data.js —');
+const ecritT = await p.evaluate(() => SORTIE.iconesConst('I',
+  [{ico:'PLD', c:'#4c9df0', x:1, y:2}, {ico:'DANGER', c:'#f2564d', x:3, y:4, t:1.75}]));
+dit('une taille ordinaire ne s\'ecrit pas', !/\{ico:'PLD'[^}]*t:/.test(ecritT),
+    (ecritT.match(/\{ico:'PLD'[^}]*\}/) || [''])[0]);
+dit('une taille reglee, si', /\{ico:'DANGER'[^}]*t:1\.75/.test(ecritT),
+    (ecritT.match(/\{ico:'DANGER'[^}]*\}/) || [''])[0]);
+
 dit('rien ne casse', bruit.length === 0 && bruitG.length === 0,
     bruit.concat(bruitG).slice(0, 3).join('\n       '));
 

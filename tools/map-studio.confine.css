@@ -219,6 +219,12 @@
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
 .ms .palbtn.on .icoprev{background:#fff}
+/* Le marqueur qu'on est en train de glisser : il s'efface de la barre, on le
+   voit deja sous le curseur. Sans ca, on doute d'avoir vraiment pris quelque
+   chose. */
+.ms .palbtn{cursor:grab}
+.ms .palbtn:active{cursor:grabbing}
+.ms .palbtn.tire{opacity:.35;border-color:var(--cyan)}
 .ms .palbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ms .chk{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:12.5px;color:var(--tx2);text-transform:none;letter-spacing:0;cursor:pointer}
 

@@ -33,7 +33,19 @@
   // endroits — pinSize() et renderFloor() dans map-studio, .poi.* dans le CSS du guide — et
   // rien ne garantissait qu'ils restent d'accord. Le CSS les reçoit via des variables posées
   // par app.js, en gardant les valeurs littérales en repli.
-  var POI_SIZE = {boss:0.135, mid:0.07, pack:0.095};
+  /* Une icone se lit de loin : elle porte une consigne, pas une creature qu'on
+     reconnait a sa silhouette. Et sa pastille est un cadre — le dessin dedans
+     n'occupe que 66 % du disque. A la taille d'un mid-boss, il n'en restait
+     presque rien.
+     Cette taille vit ICI et pas dans chaque moteur : l'atelier dessinait a
+     5,5 % et le guide a 7 %, donc la carte changeait de tete entre les deux. */
+  var POI_SIZE = {boss:0.135, mid:0.07, pack:0.095, ico:0.14};
+  // part du disque occupee par la silhouette
+  var ICO_PART = 0.66;
+  // Chaque icone porte SA taille, un facteur autour de 1 : un « danger » qui
+  // couvre une salle et un repere de position n'ont pas a faire la meme taille.
+  var ICO_T = {min:0.5, max:3, pas:0.05};
+  function icoT(o){ var t=o&&o.t; return (typeof t==='number'&&t>0)?t:1; }
   function poiSize(kind){ return POI_SIZE[kind] != null ? POI_SIZE[kind] : POI_SIZE.pack; }
   // Écart entre l'icône et son label, en pixels d'une carte de 1024 (LBLMARGIN vient de data.js).
   function labelGap(m){ return (m == null ? 0 : m) * 1.6 + 4; }
@@ -100,7 +112,13 @@
   }
   // name / q passent par escJs : une apostrophe dans un nom ou une quantité (« L'ombre ×3 »)
   // produisait un data.js invalide — le guide ne se chargeait plus du tout.
-  function bossesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(b){s+=" {name:'"+escJs(b.name)+"',n:"+b.n+",el:'"+b.el+"', x:"+r1(b.x)+",y:"+r1(b.y)+", nx:"+r1(b.nx)+",ny:"+r1(b.ny)+pinMeta(b)+"},\n";});return s+'];';}
+  /* La pastille numerotee est FACULTATIVE : elle n'existe que si le boss porte
+     un nx/ny. Son numero, lui, reste toujours la — c'est ce qui relie le boss a
+     son etape, a son onglet et a son trace. Sans ce test, un boss pose sans
+     pastille s'ecrivait « nx:NaN » et le guide ne se chargeait plus du tout. */
+  function bossesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(b){
+    var pastille=(typeof b.nx==='number'&&typeof b.ny==='number')?", nx:"+r1(b.nx)+",ny:"+r1(b.ny):"";
+    s+=" {name:'"+escJs(b.name)+"',n:"+b.n+",el:'"+b.el+"', x:"+r1(b.x)+",y:"+r1(b.y)+pastille+pinMeta(b)+"},\n";});return s+'];';}
   function packsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(p){s+=" {name:'"+escJs(p.name)+"', el:'"+p.el+"', x:"+r1(p.x)+",y:"+r1(p.y)+", q:'"+escJs(p.q||'')+"', ph:"+p.ph+pinMeta(p)+"},\n";});return s+'];';}
   function midsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(m){s+=" {name:'"+escJs(m.name)+"', el:'"+m.el+"', x:"+r1(m.x)+",y:"+r1(m.y)+pinMeta(m)+"},\n";});return s+'];';}
 
@@ -139,7 +157,10 @@
     if(ICO_JOBS.indexOf(ico) >= 0) return ROLE_HEX[roleDuJob(ROLE || {}, ico)] || ROLE_HEX.all;
     return ROLE_HEX[ICO_ROLE[ico] || 'all'];
   }
-  function iconesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(i){s+=" {ico:'"+escJs(i.ico)+"', c:'"+escJs(i.c||'')+"', x:"+r1(i.x)+",y:"+r1(i.y)+pinMeta(i)+"},\n";});return s+'];';}
+  function iconesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(i){
+    // la taille ne s'ecrit que si on l'a changee : une icone ordinaire reste courte
+    var t=(icoT(i)!==1)?", t:"+(Math.round(icoT(i)*100)/100):"";
+    s+=" {ico:'"+escJs(i.ico)+"', c:'"+escJs(i.c||'')+"', x:"+r1(i.x)+",y:"+r1(i.y)+t+pinMeta(i)+"},\n";});return s+'];';}
   // routesConst lit rt.points (chaîne à jour) + les champs optionnels name/c1/a/fs
   function routesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(rt){var ex='';
     if(rt.name)ex+=", name:'"+escJs(rt.name)+"'";
@@ -494,6 +515,7 @@
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
     pinMeta:pinMeta, bossesConst:bossesConst, packsConst:packsConst, midsConst:midsConst, routesConst:routesConst,
     ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,
+    ICO_PART:ICO_PART, ICO_T:ICO_T, icoT:icoT,
     ROLE_HEX:ROLE_HEX, iconesConst:iconesConst,
     SHAPE_DEF:SHAPE_DEF, shapeAlpha:shapeAlpha, shapeStroke:shapeStroke, shapesConst:shapesConst,
     TEXT_FONT:TEXT_FONT, textFont:textFont, textAdv:textAdv, textAlign:textAlign, textBold:textBold, textItalic:textItalic, textOutline:textOutline, textDeco:textDeco,

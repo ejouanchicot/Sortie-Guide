@@ -52,6 +52,7 @@
   }
   // Phase 3 : création de marqueurs depuis une palette d'images
   let armedPin=null,palCat='boss';
+  let tirePal=null;    // ce qu'on est en train de glisser depuis la palette
   let armedShape=null;   // 'rect' | 'ell' | {src} : ce que les outils Formes / Image vont poser
   let lastPh=1;   // dernière phase choisie pour un pack — reprise à la création suivante
   // rosters par étage : les NM (boss/midboss) diffèrent entre rez-de-chaussée et sous-sol
@@ -126,6 +127,20 @@
       if(tool==='pin'&&armedPin){ if(nm==='pin'||nm==='marker')return; if(mx<0||mx>100||my<0||my>100)return; placePin(armedPin.kind,armedPin.name,mx,my); return; }
       if(tool==='pipette'){ pickColorAt(p); return; }
       if(tool==='text'){ if(nm==='text')return; if(mx<0||mx>100||my<0||my>100)return; createText(mx,my); } });
+    /* Le depot sur la carte. On passe par setPointersPositions pour que Konva
+       traduise l'evenement DOM dans ses coordonnees a lui : zoom et deplacement
+       de la vue sont ainsi pris en compte, comme pour un clic. */
+    const zone=stage.container();
+    zone.addEventListener('dragover',e=>{ if(!tirePal)return;
+      e.preventDefault(); try{e.dataTransfer.dropEffect='copy';}catch(_){} });
+    zone.addEventListener('drop',e=>{ if(!tirePal)return; e.preventDefault();
+      const d=tirePal; tirePal=null;
+      stage.setPointersPositions(e);
+      const q=stage.getPointerPosition(); if(!q)return;
+      const dx=U((q.x-stage.x())/stage.scaleX()), dy=U((q.y-stage.y())/stage.scaleY());
+      if(dx<0||dx>100||dy<0||dy>100)return;      // lache a cote de la carte : sans effet
+      placePin(d.kind,d.name,dx,dy); });
+
     // pinch-zoom + pan à deux doigts (tactile mobile/tablette)
     let _pd=0,_pc=null;
     stage.on('touchmove',ev=>{const t=ev.evt.touches;if(!(t&&t.length>=2))return;ev.evt.preventDefault();
@@ -202,7 +217,7 @@
      Une pastille sombre, un anneau de couleur, une silhouette neutre par-dessus.
      Un seul jeu d'images sert pour les 22 jobs et les 17 marqueurs : c'est
      l'anneau qui dit de quoi on parle, pas le fichier. */
-  const ICO_SIZE=0.055;                 // fraction de la carte — sous un pack
+  const ICO_SIZE=S.poiSize('ico');      // la meme valeur que le guide, tenue par le socle
   const ICOCACHE={};
   // Les 35 icônes sont des silhouettes blanches sur transparent : Konva les
   // dessine telles quelles, c'est l'anneau qui porte la couleur. On les garde
@@ -212,9 +227,9 @@
     if(!ICOCACHE[ico])ICOCACHE[ico]=loadImg(BASE+src);
     return ICOCACHE[ico];
   }
-  function icoDiam(){return MAP*ICO_SIZE*mobScale;}
+  function icoDiam(o){return MAP*ICO_SIZE*mobScale*S.icoT(o);}
   async function addIcone(o){
-    const cible=gPins,col=o.c||'#8a94a6',d=icoDiam();
+    const cible=gPins,col=o.c||'#8a94a6',d=icoDiam(o);
     if(o.name==null)o.name=S.icoNom(o.ico);   // ce que le label affiche par défaut
     const g=new Konva.Group({x:C(o.x),y:C(o.y),name:'pin'});g._meta={kind:'ico',o};g._base=ICO_SIZE;
     const disc=new Konva.Circle({radius:d/2,
@@ -224,7 +239,7 @@
       stroke:col,strokeWidth:2,shadowColor:col,shadowBlur:9,shadowOpacity:.55});
     g.add(disc);g._disc=disc;
     const im=await icoImg(o.ico);
-    if(im){const s=d*.63/Math.max(im.width,im.height),iw=im.width*s,ih=im.height*s;
+    if(im){const s=d*S.ICO_PART/Math.max(im.width,im.height),iw=im.width*s,ih=im.height*s;
       const ki=new Konva.Image({image:im,width:iw,height:ih,offsetX:iw/2,offsetY:ih/2,listening:false});
       g.add(ki);g._ico=ki;}
     const hit=Math.max(d,34);
@@ -237,6 +252,20 @@
     g.on('dragend',commit);
     cible.add(g);
   }
+  // Redonne a une icone son diametre : le disque, la silhouette et la place du
+  // label. Sert au curseur de taille comme a l'echelle globale des vignettes.
+  function retailleIco(o,g){
+    g=g||pinNode(o); if(!g)return;
+    const d=icoDiam(o);
+    if(g._disc)g._disc.radius(d/2);
+    if(g._ico){const im=g._ico.image(),k=d*S.ICO_PART/Math.max(im.width,im.height);
+      const w=im.width*k,h=im.height*k;
+      g._ico.width(w);g._ico.height(h);g._ico.offsetX(w/2);g._ico.offsetY(h/2);}
+    const hit=g.findOne('Rect'); if(hit){const c=Math.max(d,34);
+      hit.width(c);hit.height(c);hit.offsetX(c/2);hit.offsetY(c/2);}
+    g._iw=d;g._ih=d;placeLabel(g);
+    if(selNode===g)drawRing(g);
+    draw();}
   // la couleur est libre (un hex), pas le vocabulaire `el` des boss et des packs :
   // les douze éléments n'ont pas de jaune, et un job buff en a besoin
   function recolorIco(o){const g=pinNode(o);if(!g)return;const col=o.c||'#8a94a6';
@@ -508,7 +537,7 @@
     const q=armSearch.trim().toLowerCase();
     return q?names.filter(n=>(n+' '+S.icoNom(n)).toLowerCase().includes(q)):names;}
   function showPalette(){if(tool!=='pin')return;setInspTitle('Nouveau marqueur','var(--cyan)');
-    document.getElementById('inspBody').innerHTML='<div class="hintbox">La barre en haut de la carte sert à choisir le <b>type</b> et la <b>créature</b>. <b>Clique sur la carte</b> pour poser : sa carte de réglages s’ouvre à côté et l’outil <b>reste armé</b> pour en poser d’autres. <b>Échap</b> désarme, <b>V</b> revient en Sélection pour déplacer.</div>';
+    document.getElementById('inspBody').innerHTML='<div class="hintbox"><b>Glisse</b> un marqueur de la barre vers l’endroit voulu sur la carte — c’est le plus direct. Sinon <b>clique-le</b> puis clique la carte. Dans les deux cas on repasse en <b>Sélection</b> avec le marqueur posé, sa carte de réglages ouverte. <b>Échap</b> ferme la barre.</div>';
     openArmBar();}
   // Coquille commune aux trois barres (marqueur, forme, image) : tete + fermeture + deplacement.
   // Renvoie null si la barre est deja ouverte pour le meme outil, pour ne pas casser une frappe.
@@ -647,8 +676,24 @@
       const u=BASE+S.icoSrc(n);
       const vue=estIco()?'<i class="icoprev" style="-webkit-mask-image:url('+u+');mask-image:url('+u+')"></i>'
                         :'<img src="'+BASE+MOBimg[n]+'" alt="'+esc(n)+'">';
-      return '<button type="button" class="palbtn'+on+'" data-name="'+esc(n)+'">'+vue+
+      return '<button type="button" draggable="true" class="palbtn'+on+'" data-name="'+esc(n)+'">'+vue+
              '<span>'+esc(estIco()?S.icoNom(n):n)+'</span></button>';}).join('');
+    /* Glisser-deposer : on prend le marqueur dans la barre et on le lache ou
+       il va. C'est le geste qu'on fait naturellement — armer puis viser demande
+       de tenir en tete ce qui est arme, et un clic distrait posait un deuxieme
+       marqueur sans qu'on l'ait voulu.
+       Le clic reste possible pour qui prefere viser : il arme, on clique, et on
+       repasse aussitot en Selection. */
+    grid.querySelectorAll('.palbtn').forEach(b=>{
+      b.addEventListener('dragstart',e=>{
+        tirePal={kind:palCat,name:b.dataset.name};
+        // setData est obligatoire pour que le navigateur autorise le glisser
+        try{e.dataTransfer.setData('text/plain',b.dataset.name);
+            e.dataTransfer.effectAllowed='copy';}catch(_){}
+        const v=b.querySelector('img,.icoprev');
+        if(v&&e.dataTransfer.setDragImage)try{e.dataTransfer.setDragImage(v,20,20);}catch(_){}
+        b.classList.add('tire');});
+      b.addEventListener('dragend',()=>{tirePal=null;b.classList.remove('tire');});});
     grid.querySelectorAll('.palbtn').forEach(b=>b.addEventListener('click',()=>{
       armedPin={kind:palCat,name:b.dataset.name};
       grid.querySelectorAll('.palbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
@@ -660,27 +705,35 @@
     // repliée dès qu'une créature est armée : la grille masquerait le haut de la carte
     if(w)w.classList.toggle('armed',!!armedPin&&document.activeElement!==document.getElementById('ar_q'));
     if(!armRoster().length){hint.innerHTML='Rien'+(armSearch.trim()?' pour « '+esc(armSearch)+' »':'')+' dans cette catégorie.';return;}
-    hint.innerHTML=armedPin?('<b>'+esc(armedPin.name)+'</b> armé — clique sur la carte, autant de fois que tu veux. <b>Échap</b> désarme · la recherche rouvre la liste.')
-      :('Choisis '+(estIco()?'une icône':'une créature')+', puis clique sur la carte.');}
+    hint.innerHTML=armedPin?('<b>'+esc(estIco()?S.icoNom(armedPin.name):armedPin.name)+'</b> armé — clique la carte pour le poser. <b>Échap</b> désarme.')
+      :('<b>Glisse</b> '+(estIco()?'une icône':'une créature')+' sur la carte — ou clique-la d’abord, puis la carte.');}
   // pose + ouvre la carte de réglages du marqueur posé, SANS désarmer ni changer d'outil
   async function placePin(kind,name,x,y){const f=FL[curIdx];x=r1(S.clamp(x));y=r1(S.clamp(y));let o;
     // une icone n'est pas une creature : ni element, ni quantite, ni phase —
     // juste une silhouette et la couleur de son anneau
     if(kind==='job'||kind==='marq'){
-      o={ico:name,x,y,c:S.icoCouleur(name,(typeof ROLE!=='undefined')?ROLE:{})};
+      o={ico:name,x,y,c:S.icoCouleur(name,(typeof ROLE!=='undefined')?ROLE:{}),hl:1};
       (f.icones=f.icones||[]).push(o);
       await addIcone(o);
-      buildLayers();draw();openIcoPanel(o);renderArmHint();
-      commit();toast(S.icoNom(name)+' posé — clique encore pour en poser un autre.','ok');
+      poseFinie(o,S.icoNom(name));
       return;}
-    if(kind==='boss'){const maxN=(f.bosses||[]).reduce((m,b)=>Math.max(m,b.n||0),0);o={name,n:maxN+1,el:'gray',x,y,nx:x,ny:r1(S.clamp(y+6))};(f.bosses=f.bosses||[]).push(o);}
-    else if(kind==='mid'){o={name,el:'gray',x,y};(f.mids=f.mids||[]).push(o);}
-    else{o={name,el:'gray',x,y,q:'×1',ph:lastPh};(f.packs=f.packs||[]).push(o);}
+    /* Ce qu'on pose arrive NU : ni etiquette, ni pastille numerotee. On place
+       d'abord, on nomme ensuite — et sur une carte deja chargee, un marqueur
+       qui arrive avec son texte et son rond recouvre ce qu'on visait.
+       Les deux se rallument d'une case dans la carte de reglages. */
+    if(kind==='boss'){const maxN=(f.bosses||[]).reduce((m,b)=>Math.max(m,b.n||0),0);o={name,n:maxN+1,el:'gray',x,y,hl:1};(f.bosses=f.bosses||[]).push(o);}
+    else if(kind==='mid'){o={name,el:'gray',x,y,hl:1};(f.mids=f.mids||[]).push(o);}
+    else{o={name,el:'gray',x,y,q:'×1',ph:lastPh,hl:1};(f.packs=f.packs||[]).push(o);}
     await addPin(kind,o,pinSize(kind),MOBOF());
+    poseFinie(o,name);}
+  /* On repasse en Selection avec le marqueur qu'on vient de poser, et sa carte
+     de reglages ouverte : c'est presque toujours pour l'ajuster tout de suite.
+     L'outil restait arme, et le clic suivant en posait un deuxieme par accident. */
+  function poseFinie(o,nom){
     buildLayers();draw();
-    openPinPanel(o,kind);          // réglages à côté de l'objet ; l'armement reste actif
-    renderArmHint();
-    commit();toast(name+' posé — clique encore pour en poser un autre.','ok');}
+    pick('select');
+    const g=pinNode(o); if(g)select(g);
+    commit();toast(nom+' posé — il est sélectionné, glisse-le pour l’ajuster.','ok');}
   function deletePin(o,kind){const f=FL[curIdx];
     const arr=kind==='ico'?f.icones:kind==='boss'?f.bosses:(kind==='pack'?f.packs:f.mids);
     const i=arr?arr.indexOf(o):-1;if(i>=0)arr.splice(i,1);
@@ -692,6 +745,7 @@
       if(im){const nat=Math.max(im.image().width,im.image().height),s=(MAP*base*mobScale)/nat,w=im.image().width*s,h=im.image().height*s;
         im.width(w);im.height(h);im.offsetX(w/2);im.offsetY(h/2);n._iw=w;n._ih=h;placeLabel(n);}
       const rc=n.findOne('Circle'); if(kind==='mid'&&rc)rc.radius(MAP*base*mobScale*.75);
+      if(kind==='ico')retailleIco(n._meta.o,n);   // pas d'image a l'echelle naturelle : tout suit le disque
     });
     if(selNode)drawRing(selNode); draw();
     commitSoon();   // l'affichage des valeurs est à paintGlobals (deux curseurs à tenir synchronisés)
@@ -1106,6 +1160,7 @@
     h+='<div class="mprow"><span class="mplbl">Label</span><div class="mpseg" id="mp_lp">'+
        ['top','left','bottom','right'].map(d=>'<button data-lp="'+d+'" title="Label en '+({top:'haut',left:'gauche',bottom:'bas',right:'droite'}[d])+'"'+((o.lp||'bottom')===d?' class="on"':'')+'>'+({top:'↑',left:'←',bottom:'↓',right:'→'}[d])+'</button>').join('')+'</div></div>';
     h+='<div class="mprow"><label class="mpchk"><input type="checkbox" id="mp_hl"'+(o.hl?' checked':'')+'> Masquer le label</label></div>';
+    if(kind==='boss')h+='<div class="mprow"><label class="mpchk"><input type="checkbox" id="mp_num"'+(o.nx!=null?' checked':'')+'> Pastille numérotée sur la carte</label></div>';
     h+='<div class="mpacts"><button class="mpbtn primary" id="mp_edlbl">'+PENCIL_SVG+' Éditer le label</button>'+
        '<button class="mpbtn danger" id="mp_del" title="Supprimer ce marqueur">'+TRASH_SVG+'</button></div>';
     openMapPanel(o,anchor,h,()=>{
@@ -1128,6 +1183,15 @@
           document.querySelectorAll('#mp_ph button[data-ph]').forEach(x=>x.classList.remove('on'));btn.classList.add('on');commitSoon();}));}
       document.querySelectorAll('#mp_lp button[data-lp]').forEach(btn=>btn.addEventListener('click',()=>{o.lp=btn.dataset.lp;placeLabel(pinNode(o));draw();document.querySelectorAll('#mp_lp button[data-lp]').forEach(x=>x.classList.remove('on'));btn.classList.add('on');commitSoon();}));
       const hi=document.getElementById('mp_hl');if(hi)hi.addEventListener('change',()=>{if(hi.checked)o.hl=1;else delete o.hl;relabel(o);});
+      /* Le rond numerote se pose et se retire ici. Il vit a cote du marqueur,
+         avec ses propres coordonnees : on l'allume, il apparait sous le boss,
+         et on le glisse ou on veut. */
+      const nb=document.getElementById('mp_num');
+      if(nb)nb.addEventListener('change',e=>{
+        if(e.target.checked){o.nx=r1(o.x);o.ny=r1(S.clamp(o.y+6));
+          if(!o._mk)addMarker(o,elc(o.el),gPins);}
+        else{if(o._mk){o._mk.destroy();o._mk=null;}delete o.nx;delete o.ny;}
+        buildLayers();draw();commitSoon();});
       document.getElementById('mp_edlbl').addEventListener('click',()=>editLabelOnMap(o));
       const del=document.getElementById('mp_del');if(del)del.addEventListener('click',()=>{del.blur();askConfirm('Supprimer le marqueur <b>'+esc(o.name)+'</b> ? Il sera retiré de data.js au prochain enregistrement.',{title:'Supprimer le marqueur'}).then(v=>{if(v){closeMapPanel();deletePin(o,kind);}});});
     });}
@@ -1142,6 +1206,9 @@
     let h='<div class="mptitle" style="--dot:'+esc(o.c||'#8a94a6')+'">Icône · '+esc(nom)+'</div>';
     h+='<div class="mprow"><span class="mplbl">Anneau</span><div class="mpsw" id="mp_ic"></div>'+
        '<input class="mpcol" id="mp_icc" type="color" value="'+esc(o.c||'#8a94a6')+'" title="Une autre couleur"></div>';
+    h+='<div class="mprow"><span class="mplbl">Taille</span>'+
+       '<input class="mprange" id="mp_t" type="range" min="'+S.ICO_T.min+'" max="'+S.ICO_T.max+'" step="'+S.ICO_T.pas+'" value="'+S.icoT(o)+'">'+
+       '<span class="mpval" id="mp_tv">×'+S.icoT(o).toFixed(2)+'</span></div>';
     h+='<div class="mprow"><span class="mplbl">Label</span><div class="mpseg" id="mp_lp">'+
        ['top','left','bottom','right'].map(d=>'<button data-lp="'+d+'" title="Label en '+({top:'haut',left:'gauche',bottom:'bas',right:'droite'}[d])+'"'+((o.lp||'bottom')===d?' class="on"':'')+'>'+({top:'↑',left:'←',bottom:'↓',right:'→'}[d])+'</button>').join('')+'</div></div>';
     h+='<div class="mprow"><label class="mpchk"><input type="checkbox" id="mp_hl"'+(o.hl?' checked':'')+'> Masquer le label</label></div>';
@@ -1157,6 +1224,11 @@
           [...sw.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');});sw.appendChild(b);});
       document.getElementById('mp_icc').addEventListener('input',e=>{pose(e.target.value);
         [...sw.children].forEach(c=>c.classList.remove('on'));});
+      const tr=document.getElementById('mp_t'),tv=document.getElementById('mp_tv');
+      if(tr)tr.addEventListener('input',()=>{const v=parseFloat(tr.value);
+        o.t=(v===1)?undefined:v;            // la valeur par defaut ne s'ecrit pas
+        if(tv)tv.textContent='×'+v.toFixed(2);
+        retailleIco(o,g);commitSoon();});
       document.querySelectorAll('#mp_lp button[data-lp]').forEach(b=>b.addEventListener('click',()=>{
         o.lp=b.dataset.lp;document.querySelectorAll('#mp_lp button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
         placeLabel(g);draw();commitSoon();}));

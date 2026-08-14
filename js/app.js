@@ -45,7 +45,8 @@ try{var _ms=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1, _lm=(typeof LB
     var _P=window.SORTIE.POI_SIZE, _pc=function(v){return (Math.round(v*10000)/100)+'%';};
     document.documentElement.style.setProperty('--poi-boss',_pc(_P.boss));
     document.documentElement.style.setProperty('--poi-pack',_pc(_P.pack));
-    document.documentElement.style.setProperty('--poi-mid',_pc(_P.mid));}catch(e){}
+    document.documentElement.style.setProperty('--poi-mid',_pc(_P.mid));
+    document.documentElement.style.setProperty('--poi-ico',_pc(_P.ico));}catch(e){}
 // (SORTIE.pqHtml n'est plus utilisé ici : la quantité suit le nom en ligne, comme dans Map Studio)
 
 let curFloor=null;      // descripteur d'étage courant
@@ -170,7 +171,7 @@ function placePOIs(f){
     // pastille sombre. Le masque prend la SILHOUETTE du fichier — que ce soit
     // un SVG ou le PNG blanc d'un job — et c'est la page qui la colore.
     const nom=window.SORTIE.icoNom(i.ico);
-    h+='<div class="poi ico lp-'+(i.lp||'bottom')+'" style="left:'+i.x+'%;top:'+i.y+'%;--pc:'+(i.c||'#8a94a6')+'">'
+    h+='<div class="poi ico lp-'+(i.lp||'bottom')+'" style="left:'+i.x+'%;top:'+i.y+'%;--pc:'+(i.c||'#8a94a6')+';--t:'+window.SORTIE.icoT(i)+'">'
       // Le masque se pose ICI et pas dans une variable CSS : une url() portée
       // par une variable se résout depuis la FEUILLE qui s'en sert — on
       // demandait donc « css/xi-studio-icons/… », qui n'existe pas, et la
@@ -186,7 +187,10 @@ function placePOIs(f){
     var ad=(-(N-bo.n)*0.3375)+'s'; // onde de pulsation dans le sens du chemin (1→N)
     var pc2=ZC2[bo.el]||ELC[bo.el];
     h+='<div class="poi boss lp-'+(bo.lp||'bottom')+'" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'" loading="lazy" decoding="async">'+poiLabel(bo,false)+'</div>';
-    h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'">'+bo.n+'</div>';
+    // la pastille numerotee est facultative : elle ne s'affiche que si le
+    // boss en porte une (nx/ny). Son numero existe toujours, lui.
+    if(bo.nx!=null&&bo.ny!=null)
+      h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'">'+bo.n+'</div>';
   });
   wrap.innerHTML=h; ovmap.appendChild(wrap);
 }
