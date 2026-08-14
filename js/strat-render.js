@@ -137,7 +137,9 @@
       // sur les cartes boss — écrire TANKBOX dans un farm ne donnait donc rien
       // du tout, puisque la couleur ne vivait que dans le titre qu'on venait
       // justement de retirer.
-      var boite = (!g.label && !g.img && (g.cls||'')) ? ' boite' : '';
+      // Encadrée soit parce qu'un mot-clé l'a demandé (et elle peut alors
+      // porter un titre), soit parce qu'elle est colorée et muette.
+      var boite = (g.boite || (!g.label && !g.img && (g.cls||''))) ? ' boite' : '';
       groups += '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+boite+'">'+headHtml
         +(g.note?'<div class="gnote">'+esc(H.tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
     });

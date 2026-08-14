@@ -123,6 +123,52 @@ dit('et c\'est exactement le meme cadre des deux cotes',
       && partout[0].bordure === partout[1].bordure,
     JSON.stringify(partout));
 
+/* ---------------- une boite qui porte un titre ----------------
+   Un mot-clé seul suffit quand le badge dit tout. Mais on veut aussi
+   encadrer un morceau qui a un nom et une vignette — et que le cadre
+   s'arrete quand on saute une ligne, sans avoir a le dire. */
+console.log('\n— une boite peut porter un titre, et s\'arrete a la ligne vide —');
+const titree = await p.evaluate(() => {
+  const src = ['DDBOX',
+               'Fomor ×3 · SC Step 4  [img:Fomor]',
+               'MNK@PLD : Shijin Spiral → Tornado Kick (SC Step 4) ×3',
+               'DNC : Dancing Edge ×4',
+               '',
+               'Buff · farm',
+               'COR : Chaos Roll'].join('\n');
+  const bloc = STRATCORE.textToBloc(src);
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:0;top:0;width:840px;z-index:9999';
+  h.innerHTML = STRATR.cardHtml({kind:'pack', klabel:'FARM', name:'Essai', tag:'',
+                                 noHeadImg:true, groups:bloc.groups}, {n:1}, FLOORS[0], {});
+  document.body.appendChild(h);
+  const cadre = g => { const s = getComputedStyle(g);
+    return s.borderRadius !== '0px' && s.backgroundColor !== 'rgba(0, 0, 0, 0)'; };
+  const gs = [...h.querySelectorAll('.grp')];
+  const out = {n: bloc.groups.length,
+    boite: bloc.groups[0] && {label:bloc.groups[0].label, cls:bloc.groups[0].cls,
+      img:bloc.groups[0].img||null, lignes:(bloc.groups[0].lines||[]).length},
+    suivante: bloc.groups[1] && {label:bloc.groups[1].label, boite:!!bloc.groups[1].boite},
+    encadree: gs[0] ? cadre(gs[0]) : null,
+    suivanteEncadree: gs[1] ? cadre(gs[1]) : null,
+    vignette: !!(gs[0] && gs[0].querySelector('.gthumb img')),
+    reecrit: STRATCORE.blocToText(bloc), source: src};
+  h.remove(); return out;
+});
+dit('le titre qui suit le mot-cle est CELUI de la boite, pas une rubrique de plus',
+    titree.n === 2 && titree.boite.label === 'Fomor ×3 · SC Step 4',
+    JSON.stringify(titree.boite));
+dit('elle garde la couleur du mot-cle, et sa vignette',
+    titree.boite.cls === 'dd' && titree.boite.img === 'Fomor' && titree.vignette,
+    JSON.stringify(titree.boite));
+dit('les deux lignes sont dedans', titree.boite.lignes === 2);
+dit('et le cadre se voit', titree.encadree === true);
+dit('un saut de ligne la referme', titree.suivante.label === 'Buff · farm'
+    && titree.suivante.boite === false, JSON.stringify(titree.suivante));
+dit('ce qui suit n\'est donc pas encadre', titree.suivanteEncadree === false);
+dit('et le texte revient au caractere pres', titree.reecrit === titree.source,
+    JSON.stringify(titree.reecrit));
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();

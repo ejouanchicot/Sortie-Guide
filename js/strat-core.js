@@ -185,10 +185,14 @@
     (c.groups||[]).forEach(function(g, i){
       if(i) out.push('');
       var titre = g.label || '';
-      // Rubrique sans titre mais colorée : elle se réécrit avec son mot de
-      // BOÎTE. Sans ça elle repartait en « ␣␣[tank] », qui se relit bien mais
-      // ne se retape pas de mémoire.
-      if(!titre && !g.img && BOITE_INV[g.cls]){ out.push(BOITE_INV[g.cls]); }
+      // Une BOÎTE se réécrit avec son mot-clé, puis son titre en dessous s'il
+      // en a un. Sans ça elle repartait en « ␣␣[tank] » — qui se relit bien,
+      // mais ne se retape pas de mémoire.
+      if(g.boite && BOITE_INV[g.cls]){
+        out.push(BOITE_INV[g.cls]);
+        if(titre || g.img) out.push(titre + (g.img ? '  [img:' + g.img + ']' : ''));
+      }
+      else if(!titre && !g.img && BOITE_INV[g.cls]){ out.push(BOITE_INV[g.cls]); }
       else {
       var extra = [];
       // thème écrit seulement si la devinette se tromperait
@@ -216,9 +220,13 @@
       if(!g){ g = {label:'', cls:'', lines:[]}; groups.push(g); }
       g.lines.push(l);
     }
+    // Une BOÎTE ouverte englobe ce qui suit — son titre compris — et se referme
+    // au premier saut de ligne. Ailleurs, une ligne vide reste ce qu'elle a
+    // toujours été : une respiration sans effet sur la lecture.
+    var enBoite = false;
     String(txt==null?'':txt).split('\n').forEach(function(brut){
       var ligne = brut.replace(/\s+$/,'');
-      if(!ligne.trim()) return;
+      if(!ligne.trim()){ if(enBoite){ enBoite = false; g = null; } return; }
       // ligne INDENTEE : action de plus pour le job du dessus (une puce de la meme ligne)
       if(/^\s/.test(ligne) && g && g.lines.length){
         var prec = g.lines[g.lines.length-1];
@@ -238,9 +246,10 @@
       }
       var mp = ligne.trim().match(/^\((.*)\)$/);          // remarque de la rubrique
       if(mp && g){ if(mp[1].trim()) g.note = mp[1].trim(); return; }
-      // une BOÎTE : la couleur seule, sans rien écrire (voir plus haut)
+      // une BOÎTE : elle ouvre un cadre coloré (voir plus haut)
       var mbx = BOITES[ligne.trim().toUpperCase()];
-      if(mbx !== undefined){ g = {label:'', cls:mbx, lines:[]}; groups.push(g); return; }
+      if(mbx !== undefined){
+        g = {label:'', cls:mbx, boite:1, lines:[]}; groups.push(g); enBoite = true; return; }
       // sinon : titre de rubrique
       var t = ligne.trim(), cls = null, img = null;
       t = t.replace(RE_CROCHET, function(_, v){
@@ -249,9 +258,17 @@
         cls = (THEME_INV[v.trim()] !== undefined) ? THEME_INV[v.trim()] : v.trim();
         return '';
       }).replace(/\s+$/,'').trim();
+      // Juste après une BOÎTE : ce titre est LE SIEN, il n'en ouvre pas une
+      // autre. La couleur reste celle du mot-clé — c'est lui qui l'a choisie,
+      // pas la devinette sur le titre.
+      if(enBoite && g && !g.label && !g.lines.length){
+        g.label = t; if(img) g.img = img; if(cls !== null) g.cls = cls;
+        return;
+      }
       g = {label:t, cls:(cls===null ? themeDevine(t) : cls), lines:[]};
       if(img) g.img = img;
       groups.push(g);
+      enBoite = false;
     });
     c.groups = groups;
     return c;
@@ -276,6 +293,7 @@
   function grpConst(g, ind){
     var s = ind+'{label:'+q(g.label);
     if(g.cls!=null) s += ',cls:'+q(g.cls);   // même vide : on ne modifie pas le fichier d'Eric sans raison
+    if(g.boite) s += ',boite:1';             // encadrée, même quand elle a un titre
     if(g.img) s += ',img:'+q(g.img);
     if(g.note) s += ',note:'+q(g.note);
     return s + ',lines:' + liste(g.lines, ind, lnConst) + '}';
