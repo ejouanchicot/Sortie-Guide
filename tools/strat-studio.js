@@ -195,9 +195,10 @@
       +     '<div class="ss-demo-out">'+demoHtml()+'</div></div>'
       + '</div>'
 
-      // ---- les cinq signes, et rien de plus ----
+      // ---- les signes, et rien de plus ----
       + '<div class="ss-cles">'
       +   '<div class="ss-cle"><code>JOB :</code><span>Le job, en tête de ligne. Une ligne <b>sans</b> job devient un titre de rubrique.</span></div>'
+      +   '<div class="ss-cle r-tank"><code>TANKBOX</code><span>Seule sur sa ligne : colore le bloc <b>sans rien écrire</b>. Le badge du job suffit. Aussi <code>HEALERBOX</code>, <code>BUFFBOX</code>, <code>DDBOX</code>, <code>MBBOX</code>, <code>REGLEBOX</code>, <code>PROCBOX</code>.</span></div>'
       +   '<div class="ss-cle r-sub"><code>··</code><span>Décalée vers la droite : une <b>action de plus</b> pour le même job.</span></div>'
       +   '<div class="ss-cle r-warn"><code>!</code><span>Après le job : c’est une <b>alerte</b>, ce qui fait wipe si on l’oublie.</span></div>'
       +   '<div class="ss-cle r-cond"><code>?</code><span>En fin de ligne : ça ne vaut que dans ce <b>cas précis</b>.</span></div>'

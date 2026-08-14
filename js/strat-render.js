@@ -126,7 +126,11 @@
         var gac = gpk ? H.ELC[gpk.el] : 'var(--r-buff)';
         gthumb = '<span class="gthumb" style="--ac:'+gac+'"><img src="'+img(g.img)+'" alt="'+esc(g.img)+'" loading="lazy" decoding="async"></span>';
       }
-      var glabelHtml = '<div class="glabel '+(g.cls||"")+'">'+colorize(H.tr(g.label))+'</div>';
+      // Pas de titre = pas de ligne de titre. Sans ce test, une rubrique en
+      // BOÎTE (colorée mais muette) laissait sa pastille toute seule au-dessus
+      // du vide, et 10 px de marge sous elle.
+      var glabelHtml = (g.label || g.img)
+        ? '<div class="glabel '+(g.cls||"")+'">'+colorize(H.tr(g.label))+'</div>' : '';
       var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
       groups += '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+'">'+headHtml
         +(g.note?'<div class="gnote">'+esc(H.tr(g.note))+'</div>':'')+groupBody(g)+'</div>';

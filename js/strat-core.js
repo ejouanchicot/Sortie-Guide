@@ -96,6 +96,26 @@
                 rules:'règles', 'rules proc':'procs', mb:'magic burst'};
   var THEME_INV = (function(){ var o={}; for(var k in THEMES) o[THEMES[k]] = k; return o; })();
 
+  /* ---------------- les BOÎTES ----------------
+     Une rubrique tire sa couleur de son titre : écrire « PLD » en tête colore
+     le bloc en bleu tank. Mais le titre s'affiche AUSSI — et la ligne juste en
+     dessous porte déjà son badge PLD. On lisait donc « PLD » deux fois :
+
+         PLD                 au lieu de     TANKBOX
+         PLD : tank sur place                PLD : tank sur place
+
+     Un mot en BOÎTE ne fait que la couleur. Il ne s'écrit nulle part à
+     l'écran : seul le badge de la ligne reste. Le mot occupe la ligne
+     entière — « TANKBOX du camp » reste un titre ordinaire. */
+  var BOITES = {TANKBOX:'tank', HEALERBOX:'heal', HEALBOX:'heal', SOINBOX:'heal',
+                BUFFBOX:'buff', DDBOX:'dd', MBBOX:'mb',
+                REGLEBOX:'rules', RULEBOX:'rules', RULESBOX:'rules',
+                PROCBOX:'rules proc', PROCSBOX:'rules proc'};
+  // Ce qu'on RÉÉCRIT pour chaque couleur — un seul mot par couleur, les autres
+  // restent acceptés à la lecture.
+  var BOITE_INV = {tank:'TANKBOX', heal:'HEALERBOX', buff:'BUFFBOX', dd:'DDBOX',
+                   mb:'MBBOX', rules:'REGLEBOX', 'rules proc':'PROCBOX'};
+
   /* ---------------- UN BLOC <-> UN TEXTE, SANS SYNTAXE ----------------
      On écrit comme on le dirait à quelqu'un :
 
@@ -165,11 +185,17 @@
     (c.groups||[]).forEach(function(g, i){
       if(i) out.push('');
       var titre = g.label || '';
+      // Rubrique sans titre mais colorée : elle se réécrit avec son mot de
+      // BOÎTE. Sans ça elle repartait en « ␣␣[tank] », qui se relit bien mais
+      // ne se retape pas de mémoire.
+      if(!titre && !g.img && BOITE_INV[g.cls]){ out.push(BOITE_INV[g.cls]); }
+      else {
       var extra = [];
       // thème écrit seulement si la devinette se tromperait
       if((g.cls||'') !== themeDevine(titre)) extra.push('[' + (THEMES[g.cls]!==undefined?THEMES[g.cls]:g.cls) + ']');
       if(g.img) extra.push('[img:' + g.img + ']');
       out.push(titre + (extra.length ? '  ' + extra.join(' ') : ''));
+      }
       if(g.note) out.push('(' + g.note + ')');
       (g.lines||[]).forEach(function(l){
         var tete = (l.r||['ALL']).join(',') + (l.warn?'!':'') + (l.comp?'@'+l.comp:'') + ' : ';
@@ -212,6 +238,9 @@
       }
       var mp = ligne.trim().match(/^\((.*)\)$/);          // remarque de la rubrique
       if(mp && g){ if(mp[1].trim()) g.note = mp[1].trim(); return; }
+      // une BOÎTE : la couleur seule, sans rien écrire (voir plus haut)
+      var mbx = BOITES[ligne.trim().toUpperCase()];
+      if(mbx !== undefined){ g = {label:'', cls:mbx, lines:[]}; groups.push(g); return; }
       // sinon : titre de rubrique
       var t = ligne.trim(), cls = null, img = null;
       t = t.replace(RE_CROCHET, function(_, v){
