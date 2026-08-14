@@ -233,14 +233,19 @@
     String(txt==null?'':txt).split('\n').forEach(function(brut){
       var ligne = brut.replace(/\s+$/,'');
       if(!ligne.trim()){ if(enBoite){ enBoite = false; pile = 0; g = null; } return; }
-      // ligne INDENTEE : action de plus pour le job du dessus (une puce de la meme ligne)
-      if(/^\s/.test(ligne) && g && g.lines.length){
+      // Un job écrit devant vaut badge, même en retrait. On tapait « ALL : »
+      // devant une action indentée justement pour lui donner son badge, et
+      // c'est le contraire qui arrivait : la ligne restait une puce, et le
+      // « ALL : » y entrait comme du texte. Le job qu'on écrit décide, l'alinéa
+      // ne décide que pour ce qui n'en porte pas.
+      var nat = ligneNaturelle(ligne.trim());
+      // ligne INDENTEE et sans job : action de plus pour le job du dessus
+      if(!nat && /^\s/.test(ligne) && g && g.lines.length){
         var prec = g.lines[g.lines.length-1];
         if(!Array.isArray(prec.t)) prec.t = [prec.t];
         prec.t.push(ligne.trim());
         return;
       }
-      var nat = ligneNaturelle(ligne.trim());
       if(nat){
         var d = decoupeCond(nat.reste);
         var l = {r:nat.jobs, t:d.texte};
