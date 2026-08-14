@@ -282,16 +282,6 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
    du badge ALL, que portent presque toutes les lignes de regles. */
 .grp.rules{--gc:var(--r-all)}
 .grp.rules.proc{--gc:#3fbfae}
-/* Une boite dans une boite respire un peu, sinon elle colle a la derniere ligne
-   de celle qui la porte.
-
-   Et surtout son fond est OPAQUE : melange a transparent, il laissait passer la
-   teinte du parent et les deux se mariaient. Un cyan dans une boite rouge
-   virait au gris sale. Melange au fond de la carte, la couleur du dessus reste
-   la sienne. */
-.grp.boite .grp.boite{margin-top:12px;
-  background:color-mix(in srgb,var(--gc,var(--line)) 9%,var(--panel2));
-  border-color:color-mix(in srgb,var(--gc,var(--line)) 30%,transparent)}
 .gnote{font-size:12px;font-style:italic;color:var(--dim);margin:-4px 0 11px;line-height:1.45;padding-left:16px;border-left:2px solid var(--hair)}
 /* portrait de mob sur un groupe (ex: Double Farm) : thumb + label en en-tête, lignes en dessous */
 .grp.hasimg .ghead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
@@ -315,6 +305,20 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .grp:is(.tank,.heal,.buff,.dd,.mb,.rules):not(:has(.glabel:not(:empty)))
   {padding:13px 12px;border-radius:12px;margin-top:10px;background:color-mix(in srgb,var(--gc,var(--line)) 7%,transparent);border:1px solid color-mix(in srgb,var(--gc,var(--line)) 16%,transparent)}
 .grp.boite + .grp,.grp + .grp.boite{border-top:0}
+/* Une boite DANS une boite. Deux choses, et l'ordre compte.
+
+   Son fond doit etre OPAQUE. Melange a transparent, il laissait passer la
+   teinte de celle qui la porte : un violet dans une boite rouge virait au brun.
+   Melange au fond de la carte, la couleur du dessus reste la sienne.
+
+   Et cette regle vient APRES celle du dessus, pas avant : `:has()` prend la
+   specificite de son argument, donc le selecteur a `:is()/:not()/:has()` pese
+   exactement autant que `.grp.boite .grp.boite`. A poids egal, c'est le dernier
+   ecrit qui gagne — place plus haut, celle-ci ne s'appliquait tout simplement
+   pas, et le fond restait transparent. */
+.grp.boite .grp.boite{margin-top:12px;
+  background:color-mix(in srgb,var(--gc,var(--line)) 16%,var(--panel2));
+  border:1px solid color-mix(in srgb,var(--gc,var(--line)) 42%,transparent)}
 .card.boss .grp + .grp{border-top:1px solid color-mix(in srgb,var(--gc,var(--line)) 16%,transparent)}
 .card.boss .grp:first-child{margin-top:2px}
 
