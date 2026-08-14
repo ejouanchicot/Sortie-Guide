@@ -37,8 +37,8 @@
   // interrupteur : impossible de ne regarder que les boss. Chaque type a
   // desormais le sien, et le groupe reste la pour tout eteindre d'un coup.
   const layerVis={map:true,shapes:true,routes:true,texts:true,pins:true,
-                  boss:true,mid:true,pack:true,num:true,start:true};
-  const TYPES_PIN=[['boss','Boss'],['mid','Mid-boss'],['pack','Packs'],
+                  boss:true,mid:true,pack:true,ico:true,num:true,start:true};
+  const TYPES_PIN=[['boss','Boss'],['mid','Mid-boss'],['pack','Packs'],['ico','Icônes'],
                    ['num','Numéros d’ordre'],['start','Départ']];
   /* Le type d'un marqueur. Attention : les pastilles numerotees des boss
      portent kind:'marker' — ce sont les ronds 1..4, deplacables a part, pas
@@ -48,7 +48,7 @@
     if(n.name()==='start')return 'start';
     const k=n._meta&&n._meta.kind;
     if(k==='marker')return 'num';
-    return (k==='boss'||k==='mid'||k==='pack')?k:null;   // null : l'anneau de selection
+    return (k==='boss'||k==='mid'||k==='pack'||k==='ico')?k:null;   // null : l'anneau de selection
   }
   // Phase 3 : création de marqueurs depuis une palette d'images
   let armedPin=null,palCat='boss';
@@ -191,12 +191,59 @@
     const MOBimg=(typeof MOB!=='undefined')?MOB:{};
     const jobs=[];(f.packs||[]).forEach(o=>jobs.push({kind:'pack',o}));(f.mids||[]).forEach(o=>jobs.push({kind:'mid',o}));(f.bosses||[]).forEach(o=>jobs.push({kind:'boss',o}));
     for(const j of jobs){await addPin(j.kind,j.o,pinSize(j.kind),MOBimg);}
+    for(const o of (f.icones||[]))await addIcone(o);
     (f.texts||[]).forEach(o=>addText(o));
 
     applyVis();
     anim=new Konva.Animation(fr=>{const d=fr.time/1000*20;gRoutes.find('.flow').forEach(l=>{const dd=l.dash(),per=(dd[0]+dd[1])||24.5;l.dashOffset(-(d%per));});},layer);updateAnim();
     setToolMode();fit();buildLayers();loadingEl.style.display='none';
   }
+  /* ---------- les ICÔNES : un job, ou un marqueur générique ----------
+     Une pastille sombre, un anneau de couleur, une silhouette neutre par-dessus.
+     Un seul jeu d'images sert pour les 22 jobs et les 17 marqueurs : c'est
+     l'anneau qui dit de quoi on parle, pas le fichier. */
+  const ICO_SIZE=0.055;                 // fraction de la carte — sous un pack
+  const ICOCACHE={};
+  // Les 35 icônes sont des silhouettes blanches sur transparent : Konva les
+  // dessine telles quelles, c'est l'anneau qui porte la couleur. On les garde
+  // en mémoire — la même icône sert souvent plusieurs fois sur une carte.
+  function icoImg(ico){
+    const src=S.icoSrc(ico);if(!src)return Promise.resolve(null);
+    if(!ICOCACHE[ico])ICOCACHE[ico]=loadImg(BASE+src);
+    return ICOCACHE[ico];
+  }
+  function icoDiam(){return MAP*ICO_SIZE*mobScale;}
+  async function addIcone(o){
+    const cible=gPins,col=o.c||'#8a94a6',d=icoDiam();
+    if(o.name==null)o.name=S.icoNom(o.ico);   // ce que le label affiche par défaut
+    const g=new Konva.Group({x:C(o.x),y:C(o.y),name:'pin'});g._meta={kind:'ico',o};g._base=ICO_SIZE;
+    const disc=new Konva.Circle({radius:d/2,
+      fillRadialGradientStartPoint:{x:-d*.12,y:-d*.16},fillRadialGradientStartRadius:0,
+      fillRadialGradientEndPoint:{x:0,y:0},fillRadialGradientEndRadius:d/2,
+      fillRadialGradientColorStops:[0,'#16233c',1,'#0b1220'],
+      stroke:col,strokeWidth:2,shadowColor:col,shadowBlur:9,shadowOpacity:.55});
+    g.add(disc);g._disc=disc;
+    const im=await icoImg(o.ico);
+    if(im){const s=d*.63/Math.max(im.width,im.height),iw=im.width*s,ih=im.height*s;
+      const ki=new Konva.Image({image:im,width:iw,height:ih,offsetX:iw/2,offsetY:ih/2,listening:false});
+      g.add(ki);g._ico=ki;}
+    const hit=Math.max(d,34);
+    g.add(new Konva.Rect({width:hit,height:hit,offsetX:hit/2,offsetY:hit/2,fill:'transparent'}));
+    g._iw=d;g._ih=d;
+    const lbl=pinLabel(o,col);g.add(lbl);g._lbl=lbl;placeLabel(g);if(o.hl)lbl.visible(false);
+    wireHover(g);
+    g.on('click tap',e=>{e.cancelBubble=true;if(mapEd&&mapEd.cfg.o===o)return;if(selNode===g)editLabelOnMap(o);else select(g);});
+    g.on('dragmove',()=>{o.x=r1(U(g.x()));o.y=r1(U(g.y()));liveUpdate();});
+    g.on('dragend',commit);
+    cible.add(g);
+  }
+  // la couleur est libre (un hex), pas le vocabulaire `el` des boss et des packs :
+  // les douze éléments n'ont pas de jaune, et un job buff en a besoin
+  function recolorIco(o){const g=pinNode(o);if(!g)return;const col=o.c||'#8a94a6';
+    if(g._disc){g._disc.stroke(col);g._disc.shadowColor(col);}
+    if(g._lbl&&g._lbl._bg)g._lbl._bg.stroke(col);
+    draw();}
+
   function startMarker(s){const g=new Konva.Group({x:C(s.x),y:C(s.y),listening:false,name:'start'});
     g.add(new Konva.Circle({radius:20,fill:BK.INK}),new Konva.Circle({radius:18.5,fill:BK.CREAM}),new Konva.Circle({radius:15,fill:'#3f86d6'}));
     g.add(new Konva.Text({text:s.l||'S',fontFamily:'JetBrains Mono',fontStyle:'bold',fontSize:18,fill:'#fff',width:40,height:40,align:'center',verticalAlign:'middle',offsetX:20,offsetY:20}));return g;}
@@ -451,8 +498,15 @@
   const MOBPIN_SVG='<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21c5-5.5 7-8.5 7-11a7 7 0 10-14 0c0 2.5 2 5.5 7 11z"/></svg>';
   function ensureArmEl(){let w=document.getElementById('armbar');if(!w){w=document.createElement('div');w.id='armbar';stageWrap.appendChild(w);}return w;}
   function closeArmBar(){const w=document.getElementById('armbar');if(w){w.classList.remove('on');w.innerHTML='';}}
-  function armRoster(){const names=rosterFor(FL[curIdx].id,palCat,MOBOF());
-    const q=armSearch.trim().toLowerCase();return q?names.filter(n=>n.toLowerCase().includes(q)):names;}
+  // Jobs et marqueurs ne sont pas des creatures : ils ne viennent pas du roster
+  // de l'etage, et on peut les chercher par leur nom francais (« coffre »).
+  const estIco=()=>palCat==='job'||palCat==='marq';
+  function placeholderPalette(){return palCat==='job'?'chercher un job…'
+    :palCat==='marq'?'chercher un repère…':'chercher une créature…';}
+  function armRoster(){const names=palCat==='job'?S.ICO_JOBS:palCat==='marq'?S.ICO_MARQUEURS
+                        :rosterFor(FL[curIdx].id,palCat,MOBOF());
+    const q=armSearch.trim().toLowerCase();
+    return q?names.filter(n=>(n+' '+S.icoNom(n)).toLowerCase().includes(q)):names;}
   function showPalette(){if(tool!=='pin')return;setInspTitle('Nouveau marqueur','var(--cyan)');
     document.getElementById('inspBody').innerHTML='<div class="hintbox">La barre en haut de la carte sert à choisir le <b>type</b> et la <b>créature</b>. <b>Clique sur la carte</b> pour poser : sa carte de réglages s’ouvre à côté et l’outil <b>reste armé</b> pour en poser d’autres. <b>Échap</b> désarme, <b>V</b> revient en Sélection pour déplacer.</div>';
     openArmBar();}
@@ -475,15 +529,16 @@
     placeArmBar();
     return w;}
   function openArmBar(){
-    const cats=[['boss','Boss'],['mid','Midboss'],['pack','Pack']];
+    const cats=[['boss','Boss'],['mid','Midboss'],['pack','Pack'],['job','Jobs'],['marq','Marqueurs']];
     const w=armShell('pin',MOBPIN_SVG,'Poser un marqueur',
       '<div class="arseg" id="ar_cat">'+cats.map(c=>'<button type="button" data-pc="'+c[0]+'"'+(palCat===c[0]?' class="on"':'')+'>'+c[1]+'</button>').join('')+'</div>'+
-      '<input class="arsearch" id="ar_q" placeholder="chercher une créature…" value="'+esc(armSearch)+'">',
+      '<input class="arsearch" id="ar_q" placeholder="'+placeholderPalette()+'" value="'+esc(armSearch)+'">',
       '<div class="argrid" id="ar_grid"></div><div class="arhint" id="ar_hint"></div>');
     if(!w){renderArmGrid();return;}   // déjà ouverte : ne pas casser la frappe en cours
     w.querySelectorAll('#ar_cat button[data-pc]').forEach(b=>b.addEventListener('click',()=>{
       palCat=b.dataset.pc;armedPin=null;
       w.querySelectorAll('#ar_cat button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      const q=document.getElementById('ar_q');if(q)q.placeholder=placeholderPalette();
       renderArmGrid();}));
     const qi=document.getElementById('ar_q');
     qi.addEventListener('input',()=>{armSearch=qi.value;renderArmGrid();});
@@ -583,7 +638,17 @@
   function renderArmGrid(){const w=document.getElementById('armbar');if(!w||!w.classList.contains('on'))return;
     const grid=document.getElementById('ar_grid'),MOBimg=MOBOF(),names=armRoster();
     grid.style.display=names.length?'':'none';
-    grid.innerHTML=names.map(n=>'<button type="button" class="palbtn'+(armedPin&&armedPin.name===n?' on':'')+'" data-name="'+esc(n)+'"><img src="'+BASE+MOBimg[n]+'" alt="'+esc(n)+'"><span>'+esc(n)+'</span></button>').join('');
+    grid.innerHTML=names.map(n=>{
+      const on=armedPin&&armedPin.name===n?' on':'';
+      // Une icone s'affiche par MASQUE : un SVG charge en <img> ne prend pas la
+      // couleur de la page, et sortirait en noir sur le fond sombre de la barre.
+      // le masque en style en ligne : une url() dans une variable CSS se
+      // resoudrait depuis la feuille, donc « tools/xi-studio-icons/… »
+      const u=BASE+S.icoSrc(n);
+      const vue=estIco()?'<i class="icoprev" style="-webkit-mask-image:url('+u+');mask-image:url('+u+')"></i>'
+                        :'<img src="'+BASE+MOBimg[n]+'" alt="'+esc(n)+'">';
+      return '<button type="button" class="palbtn'+on+'" data-name="'+esc(n)+'">'+vue+
+             '<span>'+esc(estIco()?S.icoNom(n):n)+'</span></button>';}).join('');
     grid.querySelectorAll('.palbtn').forEach(b=>b.addEventListener('click',()=>{
       armedPin={kind:palCat,name:b.dataset.name};
       grid.querySelectorAll('.palbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
@@ -594,11 +659,20 @@
   function renderArmHint(){const w=document.getElementById('armbar'),hint=document.getElementById('ar_hint');if(!hint)return;
     // repliée dès qu'une créature est armée : la grille masquerait le haut de la carte
     if(w)w.classList.toggle('armed',!!armedPin&&document.activeElement!==document.getElementById('ar_q'));
-    if(!armRoster().length){hint.innerHTML='Aucune créature'+(armSearch.trim()?' pour « '+esc(armSearch)+' »':'')+' dans cette catégorie.';return;}
+    if(!armRoster().length){hint.innerHTML='Rien'+(armSearch.trim()?' pour « '+esc(armSearch)+' »':'')+' dans cette catégorie.';return;}
     hint.innerHTML=armedPin?('<b>'+esc(armedPin.name)+'</b> armé — clique sur la carte, autant de fois que tu veux. <b>Échap</b> désarme · la recherche rouvre la liste.')
-      :'Choisis une créature, puis clique sur la carte.';}
+      :('Choisis '+(estIco()?'une icône':'une créature')+', puis clique sur la carte.');}
   // pose + ouvre la carte de réglages du marqueur posé, SANS désarmer ni changer d'outil
   async function placePin(kind,name,x,y){const f=FL[curIdx];x=r1(S.clamp(x));y=r1(S.clamp(y));let o;
+    // une icone n'est pas une creature : ni element, ni quantite, ni phase —
+    // juste une silhouette et la couleur de son anneau
+    if(kind==='job'||kind==='marq'){
+      o={ico:name,x,y,c:S.icoCouleur(name,(typeof ROLE!=='undefined')?ROLE:{})};
+      (f.icones=f.icones||[]).push(o);
+      await addIcone(o);
+      buildLayers();draw();openIcoPanel(o);renderArmHint();
+      commit();toast(S.icoNom(name)+' posé — clique encore pour en poser un autre.','ok');
+      return;}
     if(kind==='boss'){const maxN=(f.bosses||[]).reduce((m,b)=>Math.max(m,b.n||0),0);o={name,n:maxN+1,el:'gray',x,y,nx:x,ny:r1(S.clamp(y+6))};(f.bosses=f.bosses||[]).push(o);}
     else if(kind==='mid'){o={name,el:'gray',x,y};(f.mids=f.mids||[]).push(o);}
     else{o={name,el:'gray',x,y,q:'×1',ph:lastPh};(f.packs=f.packs||[]).push(o);}
@@ -607,7 +681,8 @@
     openPinPanel(o,kind);          // réglages à côté de l'objet ; l'armement reste actif
     renderArmHint();
     commit();toast(name+' posé — clique encore pour en poser un autre.','ok');}
-  function deletePin(o,kind){const f=FL[curIdx];const arr=kind==='boss'?f.bosses:(kind==='pack'?f.packs:f.mids);
+  function deletePin(o,kind){const f=FL[curIdx];
+    const arr=kind==='ico'?f.icones:kind==='boss'?f.bosses:(kind==='pack'?f.packs:f.mids);
     const i=arr?arr.indexOf(o):-1;if(i>=0)arr.splice(i,1);
     const g=pinNode(o);if(g)g.destroy();if(o._mk)o._mk.destroy();
     select(null);buildLayers();draw();commit();}
@@ -854,6 +929,9 @@
       body.innerHTML='<div class="hintbox"><b>Clique</b> la forme sur la carte : sa carte de réglages s\u2019ouvre à côté (couleur, opacité, contour, taille). <b>Glisse</b> la forme sur la carte pour la déplacer.</div>';
       openShapePanel(o);return;}
     if(m.kind==='text'){renderTextInspector(o);return;}
+    if(m.kind==='ico'){setInspTitle('Icône · '+S.icoNom(o.ico),o.c||'var(--cyan)');
+      body.innerHTML='<div class="hintbox"><b>Clique</b> l’icône sur la carte : sa carte de réglages s’ouvre à côté (couleur de l’anneau, position du label, masquer). <b>Glisse</b> l’icône pour la déplacer, « <b>Éditer le label</b> » pour le texte, la corbeille pour la supprimer.</div>';
+      openIcoPanel(o);return;}
     // boss / pack / mid : réglages sur la carte (carte flottante), inspecteur = simple astuce cohérente avec le texte
     const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[m.kind];
     setInspTitle(kindLbl+' · '+o.name,elc(o.el));
@@ -1054,11 +1132,48 @@
       const del=document.getElementById('mp_del');if(del)del.addEventListener('click',()=>{del.blur();askConfirm('Supprimer le marqueur <b>'+esc(o.name)+'</b> ? Il sera retiré de data.js au prochain enregistrement.',{title:'Supprimer le marqueur'}).then(v=>{if(v){closeMapPanel();deletePin(o,kind);}});});
     });}
 
+  /* La carte de reglages d'une ICONE. Elle ressemble a celle d'un marqueur,
+     mais sa couleur est LIBRE : pas les douze elements, un simple selecteur.
+     Les elements n'ont aucun jaune, et un job buff en a besoin — et surtout
+     une icone n'appartient a aucun element, elle dit une consigne. */
+  function openIcoPanel(o){const g=pinNode(o);if(!g)return;const nom=S.icoNom(o.ico);
+    const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y,y2:bb.y+bb.height};};
+    const roles=[['tank','Tank'],['heal','Soin'],['dd','Dégâts'],['buff','Buffs'],['all','Neutre']];
+    let h='<div class="mptitle" style="--dot:'+esc(o.c||'#8a94a6')+'">Icône · '+esc(nom)+'</div>';
+    h+='<div class="mprow"><span class="mplbl">Anneau</span><div class="mpsw" id="mp_ic"></div>'+
+       '<input class="mpcol" id="mp_icc" type="color" value="'+esc(o.c||'#8a94a6')+'" title="Une autre couleur"></div>';
+    h+='<div class="mprow"><span class="mplbl">Label</span><div class="mpseg" id="mp_lp">'+
+       ['top','left','bottom','right'].map(d=>'<button data-lp="'+d+'" title="Label en '+({top:'haut',left:'gauche',bottom:'bas',right:'droite'}[d])+'"'+((o.lp||'bottom')===d?' class="on"':'')+'>'+({top:'↑',left:'←',bottom:'↓',right:'→'}[d])+'</button>').join('')+'</div></div>';
+    h+='<div class="mprow"><label class="mpchk"><input type="checkbox" id="mp_hl"'+(o.hl?' checked':'')+'> Masquer le label</label></div>';
+    h+='<div class="mpacts"><button class="mpbtn primary" id="mp_edlbl">'+PENCIL_SVG+' Éditer le label</button>'+
+       '<button class="mpbtn danger" id="mp_del" title="Supprimer cette icône">'+TRASH_SVG+'</button></div>';
+    openMapPanel(o,anchor,h,()=>{
+      mapPanel.node=g;
+      const pose=c=>{o.c=c;recolorIco(o);const t=document.querySelector('#mappanel .mptitle');if(t)t.style.setProperty('--dot',c);commitSoon();};
+      const sw=document.getElementById('mp_ic');
+      roles.forEach(([k,titre])=>{const col=S.ROLE_HEX[k];const b=document.createElement('div');
+        b.className='sw'+((o.c||'').toLowerCase()===col.toLowerCase()?' on':'');b.style.background=col;b.title=titre;
+        b.addEventListener('click',()=>{pose(col);const ci=document.getElementById('mp_icc');if(ci)ci.value=col;
+          [...sw.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');});sw.appendChild(b);});
+      document.getElementById('mp_icc').addEventListener('input',e=>{pose(e.target.value);
+        [...sw.children].forEach(c=>c.classList.remove('on'));});
+      document.querySelectorAll('#mp_lp button[data-lp]').forEach(b=>b.addEventListener('click',()=>{
+        o.lp=b.dataset.lp;document.querySelectorAll('#mp_lp button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+        placeLabel(g);draw();commitSoon();}));
+      document.getElementById('mp_hl').addEventListener('change',e=>{o.hl=e.target.checked?1:0;
+        if(g._lbl)g._lbl.visible(!o.hl);draw();commitSoon();});
+      document.getElementById('mp_edlbl').addEventListener('click',()=>editLabelOnMap(o));
+      const del=document.getElementById('mp_del');
+      if(del)del.addEventListener('click',()=>{del.blur();
+        askConfirm('Supprimer l’icône <b>'+esc(nom)+'</b> ? Elle sera retirée de data.js au prochain enregistrement.',
+          {title:'Supprimer l’icône'}).then(v=>{if(v){closeMapPanel();deletePin(o,'ico');}});});
+    });}
+
   /* ============================================================
      8 · CALQUES
      ============================================================ */
   function eye(on){return on?'<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.2 4.2M9.9 5.2A10.9 10.9 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 3.9M6.1 6.1A17 17 0 002 12s3.5 7 10 7a10.6 10.6 0 003.4-.6"/></svg>';}
-  function comptePins(){const c={boss:0,mid:0,pack:0,num:0,start:0};
+  function comptePins(){const c={boss:0,mid:0,pack:0,ico:0,num:0,start:0};
     if(gPins)gPins.getChildren().forEach(n=>{const t=typePin(n);if(t&&t in c)c[t]++;});return c;}
   function ligneCalque(k,nom,n,sous){
     const el=document.createElement('div');

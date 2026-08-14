@@ -368,6 +368,8 @@ const CARTES={
   ],
   shapes:[
   ],
+  icones:[
+  ],
   zones:[{"sector":"A","n":4,"mid":"Obdella"},{"sector":"B","n":3,"mid":"Porxie"},{"sector":"C","n":2,"mid":"Bhoot"},{"sector":"D","n":1,"mid":"Deleterious"}]
  },
  "Sortie · sous-sol":{
@@ -398,6 +400,8 @@ const CARTES={
   texts:[
   ],
   shapes:[
+  ],
+  icones:[
   ],
   zones:[{"sector":"E","map":"img/map-e.webp","n":1,"mid":"Botulus"},{"sector":"F","map":"img/map-f.webp","n":4,"mid":"Ixion"},{"sector":"G","map":"img/map-g.webp","n":2,"mid":"Naraka"},{"sector":"H","map":"img/map-h.webp","n":3,"mid":"Tulittia"}]
  }

@@ -161,6 +161,25 @@ function placePOIs(f){
   const ovmap=document.querySelector('.ovmap'); if(!ovmap) return;
   const N=f.bosses.length;
   const wrap=document.createElement('div'); wrap.className='ovpoi'; let h='';
+  // Les icones (jobs, reperes, danger…) passent AVANT les mobs : ce sont des
+  // annotations, elles ne doivent pas recouvrir ce qu'on affronte.
+  (f.icones||[]).forEach(i=>{
+    const src=window.SORTIE.icoSrc(i.ico); if(!src) return;
+    // Masque CSS et pas <img> : un SVG chargé en image est un document isolé,
+    // son `currentColor` ne voit pas la page et sortirait en noir sur la
+    // pastille sombre. Le masque prend la SILHOUETTE du fichier — que ce soit
+    // un SVG ou le PNG blanc d'un job — et c'est la page qui la colore.
+    const nom=window.SORTIE.icoNom(i.ico);
+    h+='<div class="poi ico lp-'+(i.lp||'bottom')+'" style="left:'+i.x+'%;top:'+i.y+'%;--pc:'+(i.c||'#8a94a6')+'">'
+      // Le masque se pose ICI et pas dans une variable CSS : une url() portée
+      // par une variable se résout depuis la FEUILLE qui s'en sert — on
+      // demandait donc « css/xi-studio-icons/… », qui n'existe pas, et la
+      // silhouette disparaissait sans un mot. En style en ligne, elle se
+      // résout depuis la page, où le chemin est juste.
+      +'<span class="icodisc"><i class="icoimg" role="img" aria-label="'+esc(nom)+'"'
+      +' style="-webkit-mask-image:url('+src+');mask-image:url('+src+')"></i></span>'
+      +poiLabel({label:i.label, hl:i.hl, name:nom},false)+'</div>';
+  });
   f.packs.forEach(p=>{ h+='<div class="poi pack lp-'+(p.lp||'bottom')+'" style="left:'+p.x+'%;top:'+p.y+'%;--pc:'+ELC[p.el]+'"><img src="'+MOB[p.name]+'" alt="'+p.name+'" loading="lazy" decoding="async">'+poiLabel(p,true)+'</div>'; });
   (f.mids||[]).forEach(m=>{ h+='<div class="poi mid lp-'+(m.lp||'bottom')+'" style="left:'+m.x+'%;top:'+m.y+'%;--pc:'+ELC[m.el]+'"><img src="'+MOB[m.name]+'" alt="'+m.name+'" loading="lazy" decoding="async">'+poiLabel(m,false)+'</div>'; });
   f.bosses.forEach(bo=>{
@@ -293,6 +312,7 @@ function effectiveFloor(f){
     // elles n'apparaissaient QUE sur l'onglet « Tous » — l'outil Texte était invisible partout ailleurs.
     texts: zoneMap ? [] : (f.texts||[]),
     shapes: zoneMap ? [] : (f.shapes||[]),
+    icones: zoneMap ? [] : (f.icones||[]),   // une annotation comme les autres
     // avec un tronçon d'étape (routes) on n'affiche QUE ce tronçon ; le "S" seulement sur l'étape 1
     points: showWhole ? (f.points||'') : '',
     start: showWhole ? (f.start||null) : (route && z.n===1 ? (f.start||null) : null),

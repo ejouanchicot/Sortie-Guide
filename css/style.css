@@ -382,6 +382,24 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 @keyframes lblflash{0%,100%{border-color:var(--pc);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 5px var(--pc)}50%{border-color:var(--pc2);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 11px var(--pc2)}}
 .poi.pack{width:calc(var(--poi-pack,9.5%) * var(--mobscale,1));aspect-ratio:1}
 /* midboss (NM mineur) : roame aléatoirement → petit, dérive douce, cercle pointillé */
+/* Une ICONE posee sur la carte : un job, un repere, une zone a eviter.
+   L'image est neutre — c'est l'anneau qui porte la couleur, donc un seul jeu
+   d'images sert pour les 22 jobs et les 17 marqueurs. Elle ne pulse pas : ce
+   n'est pas un mob, c'est une consigne, et elle ne doit pas voler l'oeil aux
+   boss et aux packs. */
+.poi.ico{width:calc(var(--poi-mid,7%) * var(--mobscale,1));aspect-ratio:1;z-index:1}
+.poi.ico .icodisc{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 38% 28%,#16233c,#0b1220);
+  box-shadow:0 0 0 2px var(--pc),0 0 10px -2px var(--pc),0 2px 6px -2px rgba(0,0,0,.7)}
+/* La silhouette vient du fichier, la couleur vient d'ici. Un SVG charge en
+   <img> est un document isole : son currentColor ne voit pas la page, et
+   sortait en noir sur la pastille sombre. Le masque marche pour un SVG comme
+   pour le PNG blanc d'un job — c'est l'alpha qui compte. */
+.poi.ico .icoimg{width:63%;height:63%;display:block;background:#eaf3ff;
+  -webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.poi.ico .plabel{font-size:8px;padding:0 5px}
 .poi.mid{width:calc(var(--poi-mid,7%) * var(--mobscale,1));aspect-ratio:1;z-index:1;opacity:.7;animation:midwander 11s linear infinite}
 /* déplacement circulaire doux et discret (rayon ~11% de la pastille), vitesse constante */
 @keyframes midwander{

@@ -103,6 +103,43 @@
   function bossesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(b){s+=" {name:'"+escJs(b.name)+"',n:"+b.n+",el:'"+b.el+"', x:"+r1(b.x)+",y:"+r1(b.y)+", nx:"+r1(b.nx)+",ny:"+r1(b.ny)+pinMeta(b)+"},\n";});return s+'];';}
   function packsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(p){s+=" {name:'"+escJs(p.name)+"', el:'"+p.el+"', x:"+r1(p.x)+",y:"+r1(p.y)+", q:'"+escJs(p.q||'')+"', ph:"+p.ph+pinMeta(p)+"},\n";});return s+'];';}
   function midsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(m){s+=" {name:'"+escJs(m.name)+"', el:'"+m.el+"', x:"+r1(m.x)+",y:"+r1(m.y)+pinMeta(m)+"},\n";});return s+'];';}
+
+  /* ---- les ICÔNES posées sur la carte ----
+     Un job, ou un marqueur générique — « ici on se regroupe », « zone mortelle ».
+     Elles se posent sur une pastille sombre cerclée de couleur, et l'image reste
+     neutre : c'est l'anneau qui parle. Un seul jeu d'images suffit donc.
+
+     La couleur est LIBRE, un hex, comme celle d'une forme — et pas le
+     vocabulaire `el` des boss et des packs. Les douze éléments n'ont aucun
+     jaune, et un job buff en a besoin. À la pose, elle prend pour défaut le
+     rôle du job, lu dans ROLE : la carte et la strat parlent alors la même
+     couleur pour le même job. */
+  var ICO_JOBS = ['WAR','MNK','WHM','BLM','RDM','THF','PLD','DRK','BST','BRD','RNG','SMN',
+                  'SAM','NIN','DRG','BLU','COR','PUP','DNC','SCH','GEO','RUN'];
+  var ICO_MARQUEURS = ['GROUP','STACK','SPREAD','DANGER','STUN','HEAL','BUFF',
+                       'ATTACK','KITE','CHEST','START','SKULL','FOCUS'];
+  // le nom qu'un lead lit — le code du fichier ne dit rien à personne
+  var ICO_NOM = {GROUP:'Groupe', STACK:'Regroupé', SPREAD:'Écarté',
+                 DANGER:'Danger', STUN:'Stun', HEAL:'Soigner', BUFF:'Buff',
+                 ATTACK:'Attaquer', KITE:'Kite', CHEST:'Coffre', START:'Départ',
+                 SKULL:'Mort · wipe', FOCUS:'Focus'};
+  var ICO_DOSSIER = 'xi-studio-icons/';
+  function icoSrc(ico){
+    if(ICO_JOBS.indexOf(ico) >= 0) return ICO_DOSSIER + 'jobs/' + ico + '.png';
+    if(ICO_MARQUEURS.indexOf(ico) >= 0) return ICO_DOSSIER + 'markers/' + ico + '.png';
+    return '';
+  }
+  function icoNom(ico){ return ICO_NOM[ico] || ico; }
+  // Les couleurs de rôle du guide, en hex : Konva ne lit pas les variables CSS.
+  var ROLE_HEX = {tank:'#4c9df0', heal:'#3fca6a', dd:'#f2564d', buff:'#e9c23e', all:'#8a94a6'};
+  // le rôle qu'un marqueur générique évoque — le reste reste neutre
+  var ICO_ROLE = {DANGER:'dd', ATTACK:'dd', HEAL:'heal', START:'heal',
+                  BUFF:'buff', CHEST:'buff', FOCUS:'buff'};
+  function icoCouleur(ico, ROLE){
+    if(ICO_JOBS.indexOf(ico) >= 0) return ROLE_HEX[roleDuJob(ROLE || {}, ico)] || ROLE_HEX.all;
+    return ROLE_HEX[ICO_ROLE[ico] || 'all'];
+  }
+  function iconesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(i){s+=" {ico:'"+escJs(i.ico)+"', c:'"+escJs(i.c||'')+"', x:"+r1(i.x)+",y:"+r1(i.y)+pinMeta(i)+"},\n";});return s+'];';}
   // routesConst lit rt.points (chaîne à jour) + les champs optionnels name/c1/a/fs
   function routesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(rt){var ex='';
     if(rt.name)ex+=", name:'"+escJs(rt.name)+"'";
@@ -340,7 +377,8 @@
      f.map ou f.routes continue de marcher sans une ligne de changement. */
   var CHAMPS_CARTE = [['map','fond'], ['points','trace'], ['start','depart'],
     ['startNode','departNom'], ['bosses','bosses'], ['packs','packs'], ['mids','mids'],
-    ['routes','routes'], ['texts','texts'], ['shapes','shapes'], ['zones','zones']];
+    ['routes','routes'], ['texts','texts'], ['shapes','shapes'], ['icones','icones'],
+    ['zones','zones']];
   function resoudreCartes(floors, cartes){
     (floors || []).forEach(function(f){
       var c = (cartes || {})[f.carte];
@@ -379,7 +417,8 @@
     return c.split('\n').map(function(l, i){ return i ? ind + l : l; }).join('\n');
   }
   var TABLEAUX_CARTE = [['bosses', bossesConst], ['packs', packsConst], ['mids', midsConst],
-                        ['routes', routesConst], ['texts', textsConst], ['shapes', shapesConst]];
+                        ['routes', routesConst], ['texts', textsConst], ['shapes', shapesConst],
+                        ['icones', iconesConst]];
   function carteConst(nom, c, ind){
     var s = ind + JSON.stringify(nom) + ':{\n';
     var d = ind + ' ';
@@ -454,6 +493,8 @@
     esc:esc, escAttr:escAttr, pqHtml:pqHtml,
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
     pinMeta:pinMeta, bossesConst:bossesConst, packsConst:packsConst, midsConst:midsConst, routesConst:routesConst,
+    ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,
+    ROLE_HEX:ROLE_HEX, iconesConst:iconesConst,
     SHAPE_DEF:SHAPE_DEF, shapeAlpha:shapeAlpha, shapeStroke:shapeStroke, shapesConst:shapesConst,
     TEXT_FONT:TEXT_FONT, textFont:textFont, textAdv:textAdv, textAlign:textAlign, textBold:textBold, textItalic:textItalic, textOutline:textOutline, textDeco:textDeco,
     parseInline:parseInline, parseRich:parseRich, runsToHtml:runsToHtml, stripRuns:stripRuns,
