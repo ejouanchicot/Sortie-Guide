@@ -100,6 +100,29 @@ dit('le badge du job, lui, reste', vu.boite.badges.indexOf('PLD') >= 0,
 dit('et le bloc y gagne en hauteur', vu.boite.hauteur < vu.ancienne.hauteur,
     vu.ancienne.hauteur + 'px → ' + vu.boite.hauteur + 'px');
 
+// Le cadre teinte n'existait que sur les cartes boss. Dans un farm, ecrire
+// TANKBOX ne donnait donc RIEN : on venait de retirer le titre, seul endroit
+// ou la couleur vivait. Un mot nomme BOX doit faire une boite partout.
+console.log('\n— sur un farm comme sur un boss —');
+const partout = await p.evaluate(() => ['pack', 'boss'].map(kind => {
+  const bloc = STRATCORE.textToBloc('TANKBOX\nPLD : tank sur place');
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:0;top:0;width:820px;z-index:9999';
+  h.innerHTML = STRATR.cardHtml({kind, klabel:'FARM', name:'Essai', tag:'',
+                                 noHeadImg:true, groups:bloc.groups}, {n:1}, FLOORS[0], {});
+  document.body.appendChild(h);
+  const s = getComputedStyle(h.querySelector('.grp'));
+  const out = {kind, fond:s.backgroundColor, rayon:s.borderRadius,
+               bordure:s.borderTopWidth + ' ' + s.borderTopColor};
+  h.remove(); return out;
+}));
+partout.forEach(x => dit(`la boite se voit sur une carte « ${x.kind} »`,
+  x.fond !== 'rgba(0, 0, 0, 0)' && parseFloat(x.rayon) > 0, JSON.stringify(x)));
+dit('et c\'est exactement le meme cadre des deux cotes',
+    partout[0].fond === partout[1].fond && partout[0].rayon === partout[1].rayon
+      && partout[0].bordure === partout[1].bordure,
+    JSON.stringify(partout));
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();
