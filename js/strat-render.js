@@ -86,30 +86,15 @@
       +'<span class="roles" style="display:flex;gap:3px;flex:none">'+chips+'</span>'
       +'<span class="txt">'+body+(l.cond?' <span class="cond">'+esc(H.tr(l.cond))+'</span>':'')+'</span></div>';
   }
-  // plusieurs lignes du même job à la suite → un seul badge + liste à puces
-  function runHtml(run){
-    var roles = (run[0].r || ["ALL"]);
-    var chips = roles.map(roleChip).join("");
-    var comp = run[0].comp, lis = "";
-    run.forEach(function(l){
-      if(Array.isArray(l.t)){ l.t.forEach(function(it){ lis += '<li>'+colorize(H.tr(it))+'</li>'; }); }
-      else { lis += '<li'+(l.warn?' class="warn"':'')+'>'+colorize(H.tr(l.t))+(l.cond?' <span class="cond">'+esc(H.tr(l.cond))+'</span>':'')+'</li>'; }
-    });
-    return '<div class="line stack" data-r="'+roles.join(" ")+'"'+(comp?' data-comp="'+comp+'"':'')+'>'
-      +'<span class="roles" style="display:flex;gap:3px;flex:none">'+chips+'</span>'
-      +'<span class="txt"><ul class="acts">'+lis+'</ul></span></div>';
-  }
+  /* Une ligne écrite = un badge. Deux lignes du même job à la suite étaient
+     réunies sous un seul badge, et devenaient des puces : on écrivait
+     « ALL : … » sous un autre « ALL : … », et la ligne repartait en puce, sans
+     badge, sans rien pour dire qu'on n'en voulait pas. Le badge du job est ce
+     qui se lit en diagonale pendant un run — il ne se déduit pas.
+     La liste à puces reste demandée à la main, en indentant les actions
+     sous une même ligne : c'est là qu'elle veut dire quelque chose. */
   function groupBody(g){
-    if(/\bproc\b/.test(g.cls||"")) return (g.lines||[]).map(function(l){ return lineHtml(l, g); }).join("");
-    var out = "", i = 0, L = g.lines || [];
-    while(i < L.length){
-      var key = (L[i].r||["ALL"]).join(" ")+"|"+(L[i].comp||"");
-      var j = i+1;
-      while(j < L.length && ((L[j].r||["ALL"]).join(" ")+"|"+(L[j].comp||"")) === key) j++;
-      if(j-i > 1) out += runHtml(L.slice(i,j)); else out += lineHtml(L[i], g);
-      i = j;
-    }
-    return out;
+    return (g.lines||[]).map(function(l){ return lineHtml(l, g); }).join("");
   }
 
   // ---- une carte (farm ou boss) ----
@@ -201,7 +186,7 @@
   global.STRATR = {
     config: function(o){ for(var k in o) if(o[k] != null) H[k] = o[k]; },
     jcol: jcol, colorize: colorize, roleChip: roleChip, entete: entete,
-    lineHtml: lineHtml, runHtml: runHtml, groupBody: groupBody,
+    lineHtml: lineHtml, groupBody: groupBody,
     cardHtml: cardHtml, buffsHtml: buffsHtml
   };
 })(typeof window!=='undefined'?window:this);

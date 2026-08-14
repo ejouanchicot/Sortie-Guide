@@ -18,7 +18,7 @@ function tr(s){ return (LANG==='en' && s!=null && TR[s]!==undefined) ? TR[s] : s
 const esc=window.SORTIE.esc;
 STRATR.config({tr:tr, MOB:MOB, ELC:window.SORTIE.EL_VAR, ROLE:ROLE});
 const jcol=STRATR.jcol, colorize=STRATR.colorize, roleChip=STRATR.roleChip;
-const lineHtml=STRATR.lineHtml, runHtml=STRATR.runHtml, groupBody=STRATR.groupBody;
+const lineHtml=STRATR.lineHtml, groupBody=STRATR.groupBody;
 const cardHtml=STRATR.cardHtml;
 
 
