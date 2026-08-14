@@ -87,10 +87,10 @@ cette page est du contenu à écrire.
 
 ## Comment on bosse
 
-1. **Eric** écrit la strat dans l'atelier et l'enregistre — ça écrit directement `js/data.js`.
-2. **Claude** touche au moteur et aux outils, jamais au contenu sans prévenir : `git status`
-   avant `data.js`, et on committe le travail d'Eric **à part** s'il y en a en attente.
-3. Les commits restent **locaux**. C'est Eric qui publie — GitHub Pages suit tout seul.
+1. La strat s'écrit **dans l'atelier**, et s'enregistre — ça écrit directement `js/data.js`.
+2. Le moteur et les outils se touchent **à part du contenu** : `git status` avant `data.js`,
+   et on committe ce qui y attend **séparément**, avant d'entamer autre chose.
+3. Les commits restent **locaux**. Publier est une décision — GitHub Pages suit tout seul.
 
 > Règle d'or : on committe à chaque point stable, avec un message qui dit ce qu'on peut
 > refaire ou défaire. C'est ce qui permet de revenir en arrière sans y penser.

@@ -23,10 +23,13 @@ Ce qui est partagé est le **modèle**, pas le dessin. Ne pas chercher à les fu
 1. **`git status` avant de toucher `js/data.js`.** Eric l'édite via l'atelier. S'il y a
    des modifs, les committer **à part** d'abord. Ne jamais écraser son travail.
 2. **Jamais `git push`.** Commits locaux oui ; publier est sa décision.
-3. **Ne pas éditer les fichiers générés** (voir plus bas) — la modif serait écrasée.
-4. **Tester le rendu, pas l'intention.** Trois pannes ont survécu à un test vert.
+3. **Aucune signature d'assistant dans les commits.** Pas de `Co-Authored-By:`, pas de
+   « generated with », rien. Le dépôt est signé Eric, un point. Les 108 commits qui en
+   portaient une ont été nettoyés le 14 août 2026 — ne pas en réintroduire.
+4. **Ne pas éditer les fichiers générés** (voir plus bas) — la modif serait écrasée.
+5. **Tester le rendu, pas l’intention.** Trois pannes ont survécu à un test vert.
    Un test qui n'ouvre pas la page ne prouve rien.
-5. **Écrire pour le lead.** Commentaires, libellés, messages et commits en français,
+6. **Écrire pour le lead.** Commentaires, libellés, messages et commits en français,
    du point de vue de quelqu'un qui mène un run — jamais le vocabulaire du dev.
    Les en-têtes de fichier expliquent **pourquoi**, pas *quoi*.
 
