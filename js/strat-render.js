@@ -22,6 +22,9 @@
 (function(global){
   "use strict";
   var esc = global.SORTIE.esc;
+  // dans un attribut, esc() ne suffit pas : il laisse passer le guillemet
+  var escAttr = global.SORTIE.escAttr;
+  var couleurSure = global.SORTIE.couleurSure;
   var H = {tr:function(s){return s;}, MOB:{}, ELC:{}, ROLE:{}, base:''};
   function img(nom){ return esc(H.base + H.MOB[nom]); }
 
@@ -82,7 +85,10 @@
     }
     else if(Array.isArray(l.t)){ body = '<ul class="acts">'+l.t.map(function(it){ return '<li>'+colorize(H.tr(it))+'</li>'; }).join("")+'</ul>'; }
     else { body = colorize(H.tr(l.t)); }
-    return '<div class="line'+(l.warn?' warn':'')+(isProc?' proc':'')+(Array.isArray(l.t)?' stack':'')+'" data-r="'+roles.join(" ")+'"'+(l.comp?' data-comp="'+l.comp+'"':'')+'>'
+    // roles et comp viennent de la strat, donc d'un fichier qu'on a pu RECEVOIR :
+    // dans un attribut, c'est escAttr — sinon un guillemet en sort et pose un
+    // gestionnaire d'evenement. Cette ligne sert au guide comme a l'atelier.
+    return '<div class="line'+(l.warn?' warn':'')+(isProc?' proc':'')+(Array.isArray(l.t)?' stack':'')+'" data-r="'+escAttr(roles.join(" "))+'"'+(l.comp?' data-comp="'+escAttr(l.comp)+'"':'')+'>'
       +'<span class="roles" style="display:flex;gap:3px;flex:none">'+chips+'</span>'
       +'<span class="txt">'+body+(l.cond?' <span class="cond">'+esc(H.tr(l.cond))+'</span>':'')+'</span></div>';
   }
@@ -126,7 +132,7 @@
       if(g.img && H.MOB[g.img]){
         var gpk = packs.find(function(x){ return x.name === g.img; });
         var gac = gpk ? H.ELC[gpk.el] : 'var(--r-buff)';
-        gthumb = '<span class="gthumb" style="--ac:'+gac+'"><img src="'+img(g.img)+'" alt="'+esc(g.img)+'" loading="lazy" decoding="async"></span>';
+        gthumb = '<span class="gthumb" style="--ac:'+couleurSure(gac,'var(--r-buff)')+'"><img src="'+escAttr(img(g.img))+'" alt="'+escAttr(g.img)+'" loading="lazy" decoding="async"></span>';
       }
       // Pas de titre = pas de ligne de titre. Sans ce test, une rubrique en
       // BOÎTE (colorée mais muette) laissait sa pastille toute seule au-dessus
@@ -167,11 +173,11 @@
     }
     if(c.noHeadImg) mks = [];
     var thumbHtml = mks.length ? '<span class="cthumbs'+(mks.length>1?' multi':'')+'">'
-      + mks.map(function(k){ return '<span class="cthumb"><img src="'+img(k)+'" alt="'+esc(k)+'" loading="lazy" decoding="async"></span>'; }).join('')
+      + mks.map(function(k){ return '<span class="cthumb"><img src="'+escAttr(img(k))+'" alt="'+escAttr(k)+'" loading="lazy" decoding="async"></span>'; }).join('')
       + '</span>' : '';
-    return '<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+acc+'">'
+    return '<div class="card '+(c.kind==="boss"?"boss":"pack")+'" style="--ac:'+couleurSure(acc,'var(--r-buff)')+'">'
       +'<div class="chead">'+thumbHtml
-      +'<div class="chmeta"><div class="chtop"><span class="ckind '+c.kind+'">'+(c.kind==="boss"?"BOSS":(c.klabel||"FARM"))+'</span>'
+      +'<div class="chmeta"><div class="chtop"><span class="ckind '+(c.kind==="boss"?"boss":"pack")+'">'+(c.kind==="boss"?"BOSS":esc(c.klabel||"FARM"))+'</span>'
       +'<span class="cname">'+esc(H.tr(c.name))+'</span></div>'
       +'<span class="ctag">'+colorize(H.tr(c.tag))+'</span></div></div>'
       +'<div class="cbody">'+groups+'</div></div>';

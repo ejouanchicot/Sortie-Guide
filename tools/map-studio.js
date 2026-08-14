@@ -961,7 +961,7 @@
   function renderRouteInspector(){if(tool!=='path')return;const routes=activeRoutes(),body=document.getElementById('inspBody');
     if(!routes.length){body.innerHTML='<div class="empty">Aucun tracé. Clique sur ＋ dans la barre du haut pour en créer un.</div>';setInspTitle('Tracés');return;}
     const rt=routes[curRoute];if(!rt)return;
-    setInspTitle('Tracé '+(rt.n!=null?rt.n:curRoute+1),rt.c1||elc(rt.el));
+    setInspTitle('Tracé '+(rt.n!=null?rt.n:curRoute+1),S.couleurSure(rt.c1,elc(rt.el)));
     body.innerHTML='<div class="hintbox">Les réglages du tracé (nom, couleur, opacité, largeur, suppression) sont dans la <b>carte flottante posée au milieu du tracé</b>.<br><br>'+
       '<b>Clic</b> = ajouter un point · <b>glisser</b> = déplacer · <b>double-clic</b> sur le tracé = insérer · <b>Suppr</b> = retirer.<br>'+
       '<b>Maj</b>+glisser = axe horizontal/vertical · <b>Ctrl</b>+glisser = centrer entre voisins · <b>Ctrl+Maj</b>+glisser = aligner sur la droite préc→suiv.</div>';}
@@ -1013,7 +1013,7 @@
      7 · SÉLECTION + INSPECTEUR (marqueurs / numéros)
      ============================================================ */
   // titre + pastille de couleur de l'inspecteur reflètent ce qu'on édite
-  function setInspTitle(t,color){const el=document.getElementById('inspTitle');if(el)el.textContent=t;const d=document.getElementById('inspDot');if(d){d.style.background=color||'var(--cyan)';d.style.boxShadow='0 0 8px '+(color||'var(--cyan)');}}
+  function setInspTitle(t,color){const el=document.getElementById('inspTitle');if(el)el.textContent=t;const d=document.getElementById('inspDot');if(d){const c=S.couleurSure(color,'var(--cyan)');d.style.background=c;d.style.boxShadow='0 0 8px '+c;}}
   const isMobile=()=>window.matchMedia('(max-width:820px)').matches;
   function openInsp(){if(isMobile())document.body.classList.add('insp-open');}
   function closeInsp(){document.body.classList.remove('insp-open');}
@@ -1347,10 +1347,15 @@
     const total=TYPES_PIN.reduce((n,t)=>n+c[t[0]],0);   // pas une somme ecrite a la main : un type de plus l'aurait oubliee
     host.appendChild(ligneCalque('pins','Marqueurs',total,false));
     TYPES_PIN.forEach(([k,nom])=>{ if(c[k])host.appendChild(ligneCalque(k,nom,c[k],true)); });
-    [['texts','Textes & notes',gTexts],['routes','Tracés',gRoutes],
-     ['shapes','Formes & images',gShapes],['map','Carte (fond)',gMap]]
-      .forEach(([k,nom,grp])=>host.appendChild(
-        ligneCalque(k,nom,grp?grp.getChildren().length:0,false)));
+    /* On compte ce que porte la CARTE, pas ce que Konva dessine : un trace vaut
+       trois lignes a l'ecran (gaine, rail, flux) et un fond vaut l'image plus
+       son cadre. Le panneau annoncait donc « Tracés = 12 » pour quatre traces. */
+    const f=FL[curIdx]||{};
+    [['texts','Textes & notes',(f.texts||[]).length],
+     ['routes','Tracés',(f.routes||[]).length],
+     ['shapes','Formes & images',(f.shapes||[]).length],
+     ['map','Carte (fond)',f.map?1:0]]
+      .forEach(([k,nom,n])=>host.appendChild(ligneCalque(k,nom,n,false)));
   }
   function applyVis(){if(gMap)gMap.visible(layerVis.map);if(gShapes)gShapes.visible(layerVis.shapes);if(gRoutes)gRoutes.visible(layerVis.routes);if(gTexts)gTexts.visible(layerVis.texts);
     if(gPins){gPins.visible(layerVis.pins);
@@ -1476,7 +1481,9 @@
     const suite=noms.filter(k=>k!==nom)[0];
 
     // ce qu'on perd vraiment : le contenu pose sur la carte
-    const quoi=[['marqueur',(c.bosses||[]).length+(c.packs||[]).length+(c.mids||[]).length],
+    // les icones comptent parmi les marqueurs : sans elles, supprimer une carte
+    // qui porte dix reperes annoncait qu'on ne perdait rien
+    const quoi=[['marqueur',(c.bosses||[]).length+(c.packs||[]).length+(c.mids||[]).length+(c.icones||[]).length],
                 ['trace',(c.routes||[]).length],['texte',(c.texts||[]).length],
                 ['forme',(c.shapes||[]).length]]
       .filter(x=>x[1]).map(x=>x[1]+' '+x[0]+(x[1]>1?'s':'')).join(', ');
@@ -1725,7 +1732,10 @@
   function texteBlocs(){
     return '/* Blocs générés par Map Studio — à coller dans js/data.js en remplacement\n'
       +'   des blocs de même nom. Le reste du fichier ne doit pas être touché. */\n\n'
-      + blocksToSave().map(b=>b.text).join('\n\n')+'\n';}
+      // `txt`, pas `text` : c'est le nom que blocksToSave donne à ses blocs, et
+      // celui que data-file.js relit. Avec `text`, l'export sortait vide — neuf
+      // lignes blanches sous l'en-tête, sans un mot pour prévenir.
+      + blocksToSave().map(b=>b.txt).join('\n\n')+'\n';}
   function exportBlocs(copier){
     const txt=texteBlocs();
     if(copier){
@@ -1844,12 +1854,15 @@
   function snapState(){const f=FL[curIdx];(f.routes||[]).forEach(rt=>{if(rt._pts)rt.points=S.ptsStr(rt._pts);});
     return JSON.stringify({
       bosses:(f.bosses||[]).map(cleanPin),packs:(f.packs||[]).map(cleanPin),mids:(f.mids||[]).map(cleanPin),
+      // les icones aussi : sans cette ligne, Ctrl+Z ne defaisait pas leur pose
+      icones:(f.icones||[]).map(cleanPin),
       texts:(f.texts||[]).map(o=>Object.assign({},o)),
       shapes:(f.shapes||[]).map(o=>Object.assign({},o)),
       routes:(f.routes||[]).map(rt=>({n:rt.n,el:rt.el,c1:rt.c1,a:rt.a,fs:rt.fs,name:rt.name,points:rt.points})),
       mobScale:mobScale,labelMargin:labelMargin});}
   function restoreState(json){const st=JSON.parse(json),f=FL[curIdx];
     f.bosses=st.bosses;f.packs=st.packs;f.mids=st.mids;f.texts=st.texts;f.routes=st.routes;f.shapes=st.shapes||[];
+    f.icones=st.icones||[];
     mobScale=st.mobScale;labelMargin=st.labelMargin;paintGlobals();
     renderFloor(curIdx);}
   // un pas d'historique = une vraie modification → c'est le bon endroit pour lever le témoin
@@ -1869,6 +1882,11 @@
     o.x=r1(S.clamp((o.x!=null?o.x:50)+2));o.y=r1(S.clamp((o.y!=null?o.y:50)+2));
     if(kind==='shape'){(f.shapes=f.shapes||[]).push(o);await addShape(o);buildLayers();pick('select');const g=shapeNode(o);if(g)select(g);}
     else if(kind==='text'){(f.texts=f.texts||[]).push(o);addText(o);buildLayers();pick('select');const g=textNode(o);if(g)select(g);}
+    /* Une icone n'est ni une forme ni une creature : sans cette branche, elle
+       tombait dans « pack » et s'ecrivait dans data.js en creature fantome,
+       sans element ni phase — « el:'undefined', ph:undefined ». */
+    else if(kind==='ico'){(f.icones=f.icones||[]).push(o);await addIcone(o);
+      buildLayers();pick('select');const g=pinNode(o);if(g)select(g);}
     else{const MOBimg=(typeof MOB!=='undefined')?MOB:{};
       if(kind==='boss'){const maxN=(f.bosses||[]).reduce((mx,b)=>Math.max(mx,b.n||0),0);o.n=maxN+1;
         o.nx=r1(S.clamp((o.nx!=null?o.nx:o.x)+2));o.ny=r1(S.clamp((o.ny!=null?o.ny:o.y)+2));(f.bosses=f.bosses||[]).push(o);}

@@ -16,6 +16,9 @@ function tr(s){ return (LANG==='en' && s!=null && TR[s]!==undefined) ? TR[s] : s
 // Rendu d'une carte de strat : js/strat-render.js, partagé avec l'outil d'écriture
 // (tools/strat-studio.html) pour que l'aperçu y soit le VRAI rendu, pas une imitation.
 const esc=window.SORTIE.esc;
+// Dans un ATTRIBUT, esc() ne suffit pas : il laisse passer le guillemet, et une
+// strat reçue en profitait pour poser un gestionnaire d'événement.
+const escAttr=window.SORTIE.escAttr;
 STRATR.config({tr:tr, MOB:MOB, ELC:window.SORTIE.EL_VAR, ROLE:ROLE});
 const jcol=STRATR.jcol, colorize=STRATR.colorize, roleChip=STRATR.roleChip;
 const lineHtml=STRATR.lineHtml, groupBody=STRATR.groupBody;
@@ -27,10 +30,10 @@ const cardHtml=STRATR.cardHtml;
 // ============================================================
 const app=document.getElementById("app");
 // marqueur de départ "S" — même style plat que les destinations : disque bleu, liseré crème, contour encre
-function ovDot(x,y,l){return '<circle cx="'+x+'" cy="'+y+'" r="2.0" fill="#0d1218"/>'
+function ovDot(x,y,l){x=window.SORTIE.nombreSur(x);y=window.SORTIE.nombreSur(y);return '<circle cx="'+x+'" cy="'+y+'" r="2.0" fill="#0d1218"/>'
   +'<circle cx="'+x+'" cy="'+y+'" r="1.82" fill="#f6ead0"/>'
   +'<circle cx="'+x+'" cy="'+y+'" r="1.48" fill="#3f86d6"/>'
-  +'<text x="'+x+'" y="'+(y+0.62)+'" text-anchor="middle" class="ovn">'+l+'</text>';}
+  +'<text x="'+x+'" y="'+(y+0.62)+'" text-anchor="middle" class="ovn">'+window.SORTIE.esc(l)+'</text>';}
 // couleurs des éléments + accents + constantes de bande : socle partagé (js/sortie-map-core.js, chargé avant app.js)
 const ELC=window.SORTIE.EL_VAR;
 const ZC2=window.SORTIE.EL_ZC2;
@@ -64,7 +67,7 @@ function zoneTabsHtml(floor){
   var items = floor.zones.map(function(z,i){ return {i:i, label: useNum?String(z.n):z.sector, sort: useNum?z.n:i, title:z.sector}; });
   if(useNum) items.sort(function(a,b){ return a.sort-b.sort; });
   return '<div class="zonetabs">'+allTab+items.map(function(it){
-    return '<button class="zonetab'+(it.i===curZone?' on':'')+'" data-z="'+it.i+'" title="'+esc(it.title)+'">'+it.label+'</button>';
+    return '<button class="zonetab'+(it.i===curZone?' on':'')+'" data-z="'+it.i+'" title="'+escAttr(it.title)+'">'+esc(it.label)+'</button>';
   }).join('')+'</div>';
 }
 // annotation texte → SVG (viewBox 0..100, donc s = taille en unités = % de carte)
@@ -73,13 +76,13 @@ function txtSvg(o){
   var S=window.SORTIE;
   // « puce » (sh:'pill') = même objet texte rendu en pastille ronde, comme le numéro d'un boss
   var pill=(o.sh==='pill');
-  var parsed=S.parseRich(o), fs=(o.s||1.5), lh=fs*1.34, defc=pill?'#ffffff':(o.c||'#ffffff'), adv=S.textAdv(o), blockAl=S.textAlign(o), outline=S.textOutline(o);
+  var parsed=S.parseRich(o), fs=S.nombreSur(o.s,1.5), lh=fs*1.34, defc=pill?'#ffffff':S.couleurSure(o.c,'#ffffff'), adv=S.textAdv(o), blockAl=S.textAlign(o), outline=S.textOutline(o);
   var lineW=parsed.map(function(ln){var s=(ln.prefix||'');(ln.runs||[]).forEach(function(r){s+=r.t;});return s.length*fs*adv;});
   var blockW=Math.max.apply(null,lineW.concat([fs]));
   var x0=o.x-blockW/2, xR=o.x+blockW/2, yc=o.y-(parsed.length-1)*lh/2;
   var box='';
   if(pill){var d=Math.max(blockW+fs*1.1, parsed.length*lh+fs*0.5)+fs*0.25;
-    box='<circle cx="'+o.x+'" cy="'+o.y+'" r="'+(d/2)+'" style="fill:'+(o.c||SB.FALLBACK)+';stroke:#f6ead0;stroke-width:'+(fs*0.13)+'px"/>';}
+    box='<circle cx="'+o.x+'" cy="'+o.y+'" r="'+(d/2)+'" style="fill:'+S.couleurSure(o.c,SB.FALLBACK)+';stroke:#f6ead0;stroke-width:'+(fs*0.13)+'px"/>';}
   else if(o.bg){var w=blockW+fs*1.1, hh=parsed.length*lh+fs*0.5;
     box='<rect x="'+(o.x-w/2)+'" y="'+(o.y-hh/2)+'" width="'+w+'" height="'+hh+'" rx="'+(fs*0.28)+'" style="fill:rgba(9,13,18,.82);stroke:rgba(246,234,208,.22);stroke-width:'+(fs*0.03)+'px"/>';}
   var base='font-size:'+fs+'px;font-family:'+S.textFont(o)+';fill:'+defc+';dominant-baseline:central'
@@ -90,7 +93,7 @@ function txtSvg(o){
     var tspans=segs.map(function(r){ if(r.t==null||r.t==='')return '';
       var st=''; if(r.b)st+='font-weight:700;'; if(r.i)st+='font-style:italic;';
       var d=(r.u?'underline':'')+(r.st?' line-through':''); if(d.trim())st+='text-decoration:'+d.trim()+';';
-      if(r.c)st+='fill:'+r.c+';';
+      if(r.c)st+='fill:'+S.couleurSure(r.c,'#ffffff')+';';
       return '<tspan'+(st?' style="'+st+'"':'')+'>'+esc(r.t)+'</tspan>';}).join('');
     return '<text x="'+ax+'" y="'+(yc+i*lh)+'" text-anchor="'+anchor+'" style="'+base+'">'+tspans+'</text>';}).join('');
   return box+texts;
@@ -99,17 +102,22 @@ function textsSvg(f){ return (f.texts&&f.texts.length)?f.texts.map(txtSvg).join(
 // formes libres (outils Formes / Image de Map Studio) — rendues EN PREMIER dans le SVG,
 // donc sous les tracés, le départ et les annotations, comme dans l'éditeur
 function shapeSvg(o){
-  var S=window.SORTIE, a=S.shapeAlpha(o), sw=S.shapeStroke(o), c=o.c||S.SHAPE_DEF.c;
-  var x=o.x-o.w/2, y=o.y-o.h/2;
+  // Une forme vient de la strat, donc d'un fichier qu'on a pu recevoir : sa
+  // couleur, sa taille et sa source d'image sont du texte d'auteur, pas des
+  // valeurs sûres. Un guillemet suffisait à sortir de l'attribut.
+  var S=window.SORTIE, a=S.shapeAlpha(o), sw=S.shapeStroke(o), c=S.couleurSure(o.c,S.SHAPE_DEF.c);
+  var N=S.nombreSur;
+  var ox=N(o.x), oy=N(o.y), ow=N(o.w), oh=N(o.h);
+  var x=ox-ow/2, y=oy-oh/2;
   // rotation autour du centre, comme dans l'éditeur
-  var rot = o.rot ? ' transform="rotate('+o.rot+' '+o.x+' '+o.y+')"' : '';
+  var rot = o.rot ? ' transform="rotate('+N(o.rot)+' '+ox+' '+oy+')"' : '';
   if(o.k==='img') return o.src
-    ? '<image href="'+esc(o.src)+'" x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'"'
+    ? '<image href="'+escAttr(o.src)+'" x="'+x+'" y="'+y+'" width="'+ow+'" height="'+oh+'"'
       +' preserveAspectRatio="none" opacity="'+a+'"'+rot+'/>'
     : '';
   var trait = sw ? ';stroke:'+c+';stroke-width:'+sw+'px' : '';
-  if(o.k==='ell') return '<ellipse cx="'+o.x+'" cy="'+o.y+'" rx="'+(o.w/2)+'" ry="'+(o.h/2)+'" style="fill:'+c+';opacity:'+a+trait+'"'+rot+'/>';
-  return '<rect x="'+x+'" y="'+y+'" width="'+o.w+'" height="'+o.h+'" rx="'+(o.r||0)+'" style="fill:'+c+';opacity:'+a+trait+'"'+rot+'/>';
+  if(o.k==='ell') return '<ellipse cx="'+ox+'" cy="'+oy+'" rx="'+(ow/2)+'" ry="'+(oh/2)+'" style="fill:'+c+';opacity:'+a+trait+'"'+rot+'/>';
+  return '<rect x="'+x+'" y="'+y+'" width="'+ow+'" height="'+oh+'" rx="'+N(o.r)+'" style="fill:'+c+';opacity:'+a+trait+'"'+rot+'/>';
 }
 function shapesSvg(f){ return (f.shapes&&f.shapes.length)?f.shapes.map(shapeSvg).join(''):''; }
 function buildOverview(f, floor){
@@ -117,14 +125,16 @@ function buildOverview(f, floor){
   var mapBlock;
   if(f.map){
     mapBlock='<div class="ovmap mapfig">'
-      +'<img src="'+f.map+'" alt="Carte complète du run" loading="lazy" decoding="async" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
+      +'<img src="'+escAttr(f.map)+'" alt="Carte complète du run" loading="lazy" decoding="async" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
       +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
       +'<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true">'
       +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'
       +shapesSvg(f)
       +((f.routes&&f.routes.length)
-          ? f.routes.map(function(rt){var col=rt.c1||ELC[rt.el]||SB.FALLBACK;var op=(rt.a!=null?rt.a:SB.ALPHA);var s=(rt.fs!=null?rt.fs:1);var cw=(SB.cw*s),rw=(SB.rw*s),fw=(SB.fw*s),fda=(SB.fdaA*s)+' '+(SB.fdaB*s),foff=(SB.foff*s);return '<polyline class="ovcase" points="'+rt.points+'" style="--cw:'+cw+'"/><polyline class="ovrail" points="'+rt.points+'" style="stroke:'+col+';opacity:'+op+';--rw:'+rw+'"/><polyline class="ovflow" points="'+rt.points+'" style="--fw:'+fw+';--fda:'+fda+';--foff:'+foff+'"/>';}).join('')
-          : (f.points?'<polyline class="ovcase" points="'+f.points+'"/><polyline class="ovrail" points="'+f.points+'"/><polyline class="ovflow" points="'+f.points+'"/>':''))
+          // couleur, opacité et points d'un tracé viennent de la strat reçue :
+          // la couleur est normalisée, le reste ramené à des nombres
+          ? f.routes.map(function(rt){var col=window.SORTIE.couleurSure(rt.c1,ELC[rt.el]||SB.FALLBACK);var op=(rt.a!=null?window.SORTIE.nombreSur(rt.a,SB.ALPHA):SB.ALPHA);var s=(rt.fs!=null?window.SORTIE.nombreSur(rt.fs,1):1);var cw=(SB.cw*s),rw=(SB.rw*s),fw=(SB.fw*s),fda=(SB.fdaA*s)+' '+(SB.fdaB*s),foff=(SB.foff*s);var pts=escAttr(rt.points);return '<polyline class="ovcase" points="'+pts+'" style="--cw:'+cw+'"/><polyline class="ovrail" points="'+pts+'" style="stroke:'+col+';opacity:'+op+';--rw:'+rw+'"/><polyline class="ovflow" points="'+pts+'" style="--fw:'+fw+';--fda:'+fda+';--foff:'+foff+'"/>';}).join('')
+          : (f.points?'<polyline class="ovcase" points="'+escAttr(f.points)+'"/><polyline class="ovrail" points="'+escAttr(f.points)+'"/><polyline class="ovflow" points="'+escAttr(f.points)+'"/>':''))
       +(f.start?ovDot(f.start.x,f.start.y,f.start.l):'')
       +textsSvg(f)
       +'</svg></div>';
@@ -135,7 +145,12 @@ function buildOverview(f, floor){
   return '<section class="overview">'
     +'<div class="ovhead"><span class="ovtitle">'+tr("Vue d'ensemble du run")+'</span>'+sub+'</div>'
     +'<div class="ovgrid">'
-    +'<div class="ovside"><div class="ovintro">'+intro+'</div></div>'
+    // L'intro est écrite EN HTML par l'auteur — paragraphes, gras, classe
+    // d'astuce — donc on ne peut pas l'échapper sans casser la mise en page.
+    // Injectée telle quelle, elle exécutait son code à l'ouverture du guide,
+    // sans un clic : c'était le chemin le plus court pour une strat reçue.
+    // Le socle ne garde que la mise en forme, et jette le reste.
+    +'<div class="ovside"><div class="ovintro">'+window.SORTIE.htmlSur(intro)+'</div></div>'
     +'<div class="ovmapwrap">'+mapBlock+zoneTabsHtml(floor)+'</div>'
     +'</div></section>';
 }
@@ -188,7 +203,7 @@ function placePOIs(f){
     // prend la SILHOUETTE du fichier — que ce soit un SVG ou le PNG blanc d'un
     // job — et c'est la page qui la colore, à la couleur du rôle.
     const nom=window.SORTIE.icoNom(i.ico);
-    h+='<div class="poi ico lp-'+(i.lp||'bottom')+'" style="left:'+i.x+'%;top:'+i.y+'%;--pc:'+(i.c||'#8a94a6')+';--t:'+window.SORTIE.icoT(i)
+    h+='<div class="poi ico lp-'+escAttr(i.lp||'bottom')+'" style="left:'+window.SORTIE.nombreSur(i.x)+'%;top:'+window.SORTIE.nombreSur(i.y)+'%;--pc:'+window.SORTIE.couleurSure(i.c,'#8a94a6')+';--t:'+window.SORTIE.icoT(i)
       // --bordf : lequel des deux contours cette icone porte
       +';--bordf:url(#'+window.SORTIE.icoFiltreId(window.SORTIE.icoBord(i))+')">'
       // Le masque se pose ICI et pas dans une variable CSS : une url() portée
@@ -196,20 +211,23 @@ function placePOIs(f){
       // demandait donc « css/xi-studio-icons/… », qui n'existe pas, et la
       // silhouette disparaissait sans un mot. En style en ligne, elle se
       // résout depuis la page, où le chemin est juste.
-      +'<span class="icocolle"><i class="icoimg" role="img" aria-label="'+esc(nom)+'"'
-      +' style="-webkit-mask-image:url('+src+');mask-image:url('+src+')"></i></span>'
+      +'<span class="icocolle"><i class="icoimg" role="img" aria-label="'+escAttr(nom)+'"'
+      +' style="-webkit-mask-image:url('+escAttr(src)+');mask-image:url('+escAttr(src)+')"></i></span>'
       +poiLabel({label:i.label, hl:i.hl, name:nom},false)+'</div>';
   });
-  f.packs.forEach(p=>{ h+='<div class="poi pack lp-'+(p.lp||'bottom')+'" style="left:'+p.x+'%;top:'+p.y+'%;--pc:'+ELC[p.el]+'"><img src="'+MOB[p.name]+'" alt="'+p.name+'" loading="lazy" decoding="async">'+poiLabel(p,true)+'</div>'; });
-  (f.mids||[]).forEach(m=>{ h+='<div class="poi mid lp-'+(m.lp||'bottom')+'" style="left:'+m.x+'%;top:'+m.y+'%;--pc:'+ELC[m.el]+'"><img src="'+MOB[m.name]+'" alt="'+m.name+'" loading="lazy" decoding="async">'+poiLabel(m,false)+'</div>'; });
+  // Le nom d'un mob et le chemin de sa vignette viennent tous deux de la strat
+  // reçue : ils partent dans des attributs, donc par escAttr.
+  const nb=window.SORTIE.nombreSur, coul=window.SORTIE.couleurSure;
+  f.packs.forEach(p=>{ h+='<div class="poi pack lp-'+escAttr(p.lp||'bottom')+'" style="left:'+nb(p.x)+'%;top:'+nb(p.y)+'%;--pc:'+coul(ELC[p.el],'#a6b2c2')+'"><img src="'+escAttr(MOB[p.name])+'" alt="'+escAttr(p.name)+'" loading="lazy" decoding="async">'+poiLabel(p,true)+'</div>'; });
+  (f.mids||[]).forEach(m=>{ h+='<div class="poi mid lp-'+escAttr(m.lp||'bottom')+'" style="left:'+nb(m.x)+'%;top:'+nb(m.y)+'%;--pc:'+coul(ELC[m.el],'#a6b2c2')+'"><img src="'+escAttr(MOB[m.name])+'" alt="'+escAttr(m.name)+'" loading="lazy" decoding="async">'+poiLabel(m,false)+'</div>'; });
   f.bosses.forEach(bo=>{
     var ad=(-(N-bo.n)*0.3375)+'s'; // onde de pulsation dans le sens du chemin (1→N)
     var pc2=ZC2[bo.el]||ELC[bo.el];
-    h+='<div class="poi boss lp-'+(bo.lp||'bottom')+'" style="left:'+bo.x+'%;top:'+bo.y+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'"><img src="'+MOB[bo.name]+'" alt="'+bo.name+'" loading="lazy" decoding="async">'+poiLabel(bo,false)+'</div>';
+    h+='<div class="poi boss lp-'+escAttr(bo.lp||'bottom')+'" style="left:'+nb(bo.x)+'%;top:'+nb(bo.y)+'%;--pc:'+coul(ELC[bo.el],'#a6b2c2')+';--pc2:'+coul(pc2,'#a6b2c2')+';--ad:'+ad+'"><img src="'+escAttr(MOB[bo.name])+'" alt="'+escAttr(bo.name)+'" loading="lazy" decoding="async">'+poiLabel(bo,false)+'</div>';
     // la pastille numerotee est facultative : elle ne s'affiche que si le
     // boss en porte une (nx/ny). Son numero existe toujours, lui.
     if(bo.nx!=null&&bo.ny!=null)
-      h+='<div class="ovnum" style="left:'+bo.nx+'%;top:'+bo.ny+'%;--pc:'+ELC[bo.el]+';--pc2:'+pc2+';--ad:'+ad+'">'+bo.n+'</div>';
+      h+='<div class="ovnum" style="left:'+nb(bo.nx)+'%;top:'+nb(bo.ny)+'%;--pc:'+coul(ELC[bo.el],'#a6b2c2')+';--pc2:'+coul(pc2,'#a6b2c2')+';--ad:'+ad+'">'+esc(bo.n)+'</div>';
   });
   wrap.innerHTML=h; ovmap.appendChild(wrap);
 }
@@ -225,9 +243,10 @@ function buildTimeline(f){
   f.phases.forEach(p=>{
     const sec=document.createElement("section");
     sec.className="phase"+(p.soon?" soon":""); sec.id=idpfx+p.n;
-    const ptag = p.sector ? tr("SECTEUR")+' '+p.sector : 'PHASE '+p.n;
+    // secteur et numéro viennent de la strat reçue, et finissent dans du balisage
+    const ptag = p.sector ? tr("SECTEUR")+' '+esc(p.sector) : 'PHASE '+esc(p.n);
     if(p.soon){
-      sec.innerHTML='<div class="tlnode soon">'+p.n+'</div>'
+      sec.innerHTML='<div class="tlnode soon">'+esc(p.n)+'</div>'
         +'<div class="phcard sooncard">'
         +'<div class="phhead"><div class="phtop"><span class="phtag">'+ptag+'</span><span class="soonbadge">'+tr("à venir")+'</span></div>'
         +'<h2 class="phtitle">'+esc(tr(p.title||p.boss))+' 👑</h2>'
@@ -238,12 +257,12 @@ function buildTimeline(f){
     let cards=""; p.cards.forEach(c=>{ cards+=cardHtml(c,p,f,bossByN); });
     // p.buffs est le NOM d'un jeu de BUFFS ; le titre affiché est ce nom.
     const buffsHtml = STRATR.buffsHtml(p.buffs, BUFFS[p.buffs]);
-    const numPill=(k)=>{const bb=bossByN[k];return '<span class="segpill" style="--sc:'+(bb?ELC[bb.el]:'var(--dim)')+'">'+k+'</span>';};
+    const numPill=(k)=>{const bb=bossByN[k];return '<span class="segpill" style="--sc:'+window.SORTIE.couleurSure(bb?ELC[bb.el]:'var(--dim)','var(--dim)')+'">'+esc(k)+'</span>';};
     const fromHtml=p.n===1?'<span class="segstart">Start</span>':numPill(p.n-1);
     const segHtml='<span class="pseg">'+fromHtml+'<span class="segar">→</span>'+numPill(p.n)+'</span>';
     const bz=bossByN[p.n]; const pc=bz?ELC[bz.el]:'var(--r-buff)'; const pc2=bz?(ZC2[bz.el]||ELC[bz.el]):'var(--r-buff)';
     sec.style.setProperty('--pc',pc); sec.style.setProperty('--pc2',pc2);
-    sec.innerHTML='<div class="tlnode" style="--pc:'+pc+';--pc2:'+pc2+'">'+p.n+'</div>'
+    sec.innerHTML='<div class="tlnode" style="--pc:'+window.SORTIE.couleurSure(pc,'var(--r-buff)')+';--pc2:'+window.SORTIE.couleurSure(pc2,'var(--r-buff)')+'">'+esc(p.n)+'</div>'
       +'<div class="phcard">'
       +'<div class="phhead">'
       +'<div class="phtop"><span class="phtag">'+ptag+'</span>'+segHtml+'</div>'
@@ -265,7 +284,7 @@ function buildNav(f){
   const idpfx=(f.id==='top'?'phase':'bphase');
   f.phases.forEach(p=>{
     const a=document.createElement("a");a.href="#"+idpfx+p.n;a.className="chip"+(p.soon?" soonchip":"");
-    a.innerHTML='<b>'+(p.sector||p.n)+'</b>'+esc(p.boss);
+    a.innerHTML='<b>'+esc(p.sector||p.n)+'</b>'+esc(p.boss);
     nav.appendChild(a);
   });
 }
@@ -490,7 +509,7 @@ function buildFloorSwitcher(){
   FLOORS.forEach(f=>{
     const b=document.createElement("button");
     b.className="chip floorchip"; b.dataset.f=f.id;
-    b.innerHTML='<b>'+f.sub+'</b>'+floorLabel(f);
+    b.innerHTML='<b>'+esc(f.sub)+'</b>'+floorLabel(f);
     floorEl.appendChild(b);
   });
 }

@@ -100,9 +100,76 @@
     return [ox, ny];
   }
 
-  // ---- échappement HTML ----
+  /* ---- échappement HTML ----
+     esc() ne touche PAS au guillemet : dans un attribut il laisse donc sortir
+     n'importe quelle valeur qui en contient un. Dans un attribut, c'est
+     escAttr(), jamais esc(). */
   function esc(s){ return String(s==null?'':s).replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
   function escAttr(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  /* Une couleur qui vient d'une strat RECUE n'est pas une couleur : c'est du
+     texte écrit par quelqu'un d'autre, et il finit dans un attribut `style`.
+     Un simple guillemet y suffisait à sortir de l'attribut et à poser un
+     gestionnaire d'événement. On n'accepte donc qu'un hex ou un rgb(), et rien
+     d'autre passe — le repli vaut mieux qu'une carte qui exécute du code. */
+  function couleurSure(v, repli){
+    var s = String(v == null ? '' : v).trim();
+    if(/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;
+    if(/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\)$/.test(s)) return s;
+    // les jetons du guide (« var(--e-fire) ») sont écrits par NOUS, pas reçus
+    if(/^var\(--[a-z0-9-]+\)$/i.test(s)) return s;
+    return repli == null ? '' : repli;
+  }
+  // Un nombre reçu qui part dans une géométrie ou un style. NaN et « 12;x » dehors.
+  function nombreSur(v, repli){
+    var n = parseFloat(v);
+    return isFinite(n) ? n : (repli == null ? 0 : repli);
+  }
+
+  /* Une intro de chapitre est écrite EN HTML par l'auteur : des paragraphes, du
+     gras, une classe d'astuce. On ne peut donc ni l'échapper — la mise en page
+     tomberait — ni l'injecter telle quelle : une strat REÇUE y logeait un
+     gestionnaire d'événement qui partait à l'ouverture du guide, sans un clic.
+     On la relit donc balise par balise et on ne garde que ce qui met en forme.
+     Une balise inconnue est déballée (son texte reste) ; une balise qui peut
+     porter du code part avec son contenu ; tous les attributs tombent, sauf une
+     classe, qui n'est que du nom. */
+  var HTML_MISE_EN_FORME = {P:1,BR:1,B:1,STRONG:1,I:1,EM:1,U:1,S:1,SPAN:1,CODE:1,
+                            UL:1,OL:1,LI:1,SMALL:1,H3:1,H4:1};
+  var HTML_DANGEREUX = {SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,LINK:1,META:1,
+                        SVG:1,MATH:1,FORM:1,INPUT:1,BUTTON:1,TEXTAREA:1,BASE:1};
+  var CLASSE_SURE = /^[A-Za-z0-9 _-]*$/;
+  function htmlSur(s){
+    var src = String(s == null ? '' : s);
+    // hors navigateur (ou analyseur absent), on préfère du texte à un risque
+    if(typeof DOMParser === 'undefined') return esc(src);
+    var doc = new DOMParser().parseFromString('<div>' + src + '</div>', 'text/html');
+    var racine = doc.body.firstChild;
+    if(!racine) return '';
+    (function nettoie(n){
+      var enfants = Array.prototype.slice.call(n.childNodes);
+      for(var i = 0; i < enfants.length; i++){
+        var e = enfants[i];
+        if(e.nodeType === 3) continue;                       // du texte : on garde
+        if(e.nodeType !== 1){ e.parentNode.removeChild(e); continue; }  // commentaire
+        var nom = e.tagName;
+        if(HTML_DANGEREUX[nom]){ e.parentNode.removeChild(e); continue; }
+        if(!HTML_MISE_EN_FORME[nom]){                        // inconnue : on déballe
+          nettoie(e);
+          while(e.firstChild) e.parentNode.insertBefore(e.firstChild, e);
+          e.parentNode.removeChild(e);
+          continue;
+        }
+        var attrs = Array.prototype.slice.call(e.attributes);
+        for(var k = 0; k < attrs.length; k++){
+          var a = attrs[k];
+          if(!(a.name === 'class' && CLASSE_SURE.test(a.value))) e.removeAttribute(a.name);
+        }
+        nettoie(e);
+      }
+    })(racine);
+    return racine.innerHTML;
+  }
 
   // ---- quantité de pack « ×12 » / « WHM/BLM/RDM ×5 » → HTML (guide + éditeur DOM) ----
   function pqHtml(q){
@@ -582,7 +649,7 @@
     r1:r1, clamp:clamp,
     parsePts:parsePts, ptsStr:ptsStr,
     segDist:segDist, projectOnSeg:projectOnSeg, midpoint:midpoint, axisLock:axisLock,
-    esc:esc, escAttr:escAttr, pqHtml:pqHtml,
+    esc:esc, escAttr:escAttr, couleurSure:couleurSure, nombreSur:nombreSur, htmlSur:htmlSur, pqHtml:pqHtml,
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
     pinMeta:pinMeta, bossesConst:bossesConst, packsConst:packsConst, midsConst:midsConst, routesConst:routesConst,
     ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,

@@ -323,7 +323,8 @@
     var jb = $('stTxtJob'), aj = jb.value;
     jb.innerHTML = '<option value="">Tout le groupe</option>'
       + (S.compoJobs(compo()) || []).map(function(j){
-          return '<option value="' + j + '">Seulement ' + j + '</option>'; }).join('');
+          // le nom du job vient de la compo, donc d'une strat qu'on a pu recevoir
+          return '<option value="' + S.escAttr(j) + '">Seulement ' + S.esc(j) + '</option>'; }).join('');
     if(aj) jb.value = aj;
   }
 
