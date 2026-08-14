@@ -1,4 +1,4 @@
-# FFXI Strat Studio
+# XI STUDIO
 
 > 🚧 **En cours d'écriture** — l'outil et les strats évoluent au fil des runs.
 > Remontez-moi toute erreur.

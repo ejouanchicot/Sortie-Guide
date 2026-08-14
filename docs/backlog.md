@@ -1,4 +1,4 @@
-# Backlog · FFXI Strat Studio
+# Backlog · XI STUDIO
 
 > Feuille de route. On coche au fur et à mesure.
 > Une strat s'écrit dans l'atelier (`tools/studio.html`), qui l'enregistre dans `js/data.js`.
@@ -36,7 +36,7 @@
 - **Images des mobs** en WebP 256 px — le guide est passé de 732 à 544 Ko.
 - **Squelette du sous-sol** (E–H) avec sa carte d'ensemble *et* une carte par secteur.
 - **Le guide porte la marque de l'outil** : son onglet et son aperçu Discord annoncent
-  la strat *et* « FFXI Strat Studio », et le logo de l'en-tête ramène à l'atelier. Dans un
+  la strat *et* « XI STUDIO », et le logo de l'en-tête ramène à l'atelier. Dans un
   fichier exporté, le logo reste mais cesse d'être un lien — il n'y aurait rien au bout.
 
 ## ✅ Les fondations

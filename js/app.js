@@ -558,7 +558,7 @@ document.documentElement.lang=LANG;
   // L'onglet nomme d'abord le contenu, l'outil ensuite : un onglet se coupe par
   // la droite, et ce qu'on cherche entre dix onglets ouverts c'est « Sortie ».
   document.title = nom + (LANG==="en" ? " · Run guide" : " · Guide de run")
-                       + " — FFXI Strat Studio";
+                       + " — XI STUDIO";
 })();
 if(LANG==='en'){
   document.querySelectorAll(".rlabel").forEach(function(el){

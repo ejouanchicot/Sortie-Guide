@@ -1112,7 +1112,7 @@
      regex dans data.js, sans toucher au reste du fichier.
      ============================================================ */
   // Poignées, permissions et remplacement bloc par bloc : js/data-file.js,
-  // partagé avec Strat Studio pour que les deux outils écrivent à l'identique.
+  // partagé avec l’atelier Stratégie pour que les deux outils écrivent à l'identique.
   const DF=window.DATAFILE;
   function setFname(n){document.getElementById('fname').textContent=n?'📄 '+n:'';}
   // témoin « non enregistré » : le seul rappel visuel que le travail n'est encore qu'en mémoire

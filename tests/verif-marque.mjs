@@ -14,7 +14,7 @@
    ============================================================ */
 import {puppeteer, GUIDE, STUDIO, RACINE, rapport} from './navigateur.mjs';
 
-const OUTIL = 'FFXI Strat Studio';
+const OUTIL = 'XI STUDIO';
 const {dit, bilan} = rapport();
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
 const bruit = [];

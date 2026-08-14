@@ -2,9 +2,14 @@
 
 Analyse du projet `Sortie-Guide` et proposition d'identité pour l'application complète.
 
-> **Où ça en est — c'est fait.** Le nom du §2 est verrouillé *et posé partout* : l'atelier
-> et le guide s'annoncent tous deux « FFXI Strat Studio », dans leur en-tête comme dans
-> l'aperçu qui s'affiche quand on colle le lien sur Discord.
+> **Où ça en est — c'est fait.** L'atelier et le guide s'annoncent tous deux
+> « XI STUDIO », dans leur en-tête comme dans l'aperçu qui s'affiche quand on colle le
+> lien sur Discord.
+>
+> ⚠ **Le nom a changé le 14 août 2026** : « FFXI Strat Studio » → **XI STUDIO**, forme
+> longue *FFXI Strategy Editor*, tagline *Plan your endgame.* Le §2 ci-dessous garde le
+> raisonnement d'origine — il explique pourquoi un nom en « FFXI + mot-clé », ce qui vaut
+> toujours. Seul le mot retenu a bougé, vers plus court.
 >
 > Ce document reste la **référence de la marque** — la palette, les prompts si le logo est
 > refait un jour, les tailles d'export. Mais le §1 décrit le projet **tel qu'il était avant
@@ -49,14 +54,20 @@ socle et la même identité visuelle :
 
 ## 2. Nom de l'app
 
-## ✅ NOM VERROUILLÉ : **FFXI Strat Studio**
+## ✅ NOM VERROUILLÉ : **XI STUDIO**
 
-- Format **« FFXI + mot-clé »**, content-agnostic (couvre Odyssey, Sortie & tout event FFXI).
-- Garde la **filiation** avec l'actuel « Map Studio » → « Strat Studio » = l'atelier de stratégie.
-- **Wordmark** : `FFXI` (petit, en préfixe/tag) + **STRAT** (fin) **STUDIO** (gras) — même logique
-  que l'actuel `MAP` fin + `STUDIO` gras.
-- **Tagline** (sans répéter « FFXI ») : **« Strategy map builder »** ou **« Plan every run —
-  Odyssey · Sortie & more »**.
+*Forme longue, quand il faut préciser ce que c'est : **FFXI Strategy Editor**.
+Tagline : **Plan your endgame.***
+
+- Content-agnostic (couvre Odyssey, Sortie & tout event FFXI) — aucune référence à un donjon.
+- Garde la **filiation** avec l'ancien « Map Studio » : c'est toujours un *Studio*.
+- **Wordmark** : `XI` (fin) + **STUDIO** (gras) — même logique que l'ancien `MAP` fin +
+  `STUDIO` gras, en plus court : deux mots au lieu de trois, lisibles à 11 px.
+- *Retenu le 14 août 2026, en remplacement de « FFXI Strat Studio » — trois mots, dont deux
+  qui se disputaient la place dans un en-tête.*
+- **Tagline retenue** : **« Plan your endgame. »** *(les pistes d'origine — « Strategy map
+  builder », « Plan every run — Odyssey · Sortie & more » — disaient l'outil ; celle-ci dit
+  ce qu'on vient y faire.)*
 
 *Historique des pistes explorées (Stratlas, Vana'Map, Waymark…) conservé plus bas pour mémoire.*
 
@@ -67,7 +78,7 @@ socle et la même identité visuelle :
 À coller dans un générateur d'images (Midjourney / DALL·E / SDXL). Sortie carrée, fond compris.
 
 ```
-Standalone app logomark for "FFXI Strat Studio", square 1:1, on a FULLY TRANSPARENT background
+Standalone app logomark for "XI STUDIO", square 1:1, on a FULLY TRANSPARENT background
 (no frame, no tile, no border, no rounded-square container — just the emblem).
 
 SUBJECT: a minimal emblem that reads at once as a folded map AND an EDITABLE tactical route —
@@ -111,17 +122,17 @@ crossed by a glowing waypoint route ending on a crystal diamond node »*.
 Pour l'en-tête du site (comme l'actuel « MAP STUDIO »).
 
 ```
-Horizontal logo lockup for "FFXI STRAT STUDIO", a strategy-map tool. Transparent or dark navy
+Horizontal logo lockup for "XI STUDIO", a strategy-map tool. Transparent or dark navy
 background (#070b12).
 
 LEFT: the icon mark — a folded map peaking in the center, crossed by a glowing cyan waypoint
 route with two round nodes ending on a faceted crystal diamond; cyan-to-blue gradient
 (#5bd6ef → #4a9eff), soft neon glow.
 
-RIGHT: the wordmark on two visual weights — a small "FFXI" tag/prefix in cyan (#5bd6ef) above or
-before, then "STRAT" in a thin light weight and "STUDIO" in a bold weight, clean modern geometric
-sans-serif, uppercase, wide tracking, white-to-light-cyan gradient; below it a tiny tagline in
-spaced letters "STRATEGY MAP BUILDER" in muted slate-blue (#a4b5cf).
+RIGHT: the wordmark on two visual weights — "XI" in a thin light weight and "STUDIO" in a bold
+weight, clean modern geometric sans-serif, uppercase, wide tracking, white-to-light-cyan
+gradient; below it a tiny tagline in spaced letters "PLAN YOUR ENDGAME" in muted slate-blue
+(#a4b5cf).
 
 STYLE: premium dark-UI gaming brand, sharp, minimal, thin accent line details, subtle glow.
 Vector, flat, crisp at small sizes.

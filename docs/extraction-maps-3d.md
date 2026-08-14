@@ -139,7 +139,7 @@ Objectif : ne garder que la **dalle où le perso marche**, supprimer tout ce qui
 
 ---
 
-## 8. Bonus — Réutiliser pour FFXI Strat Studio
+## 8. Bonus — Réutiliser pour XI STUDIO
 
 - Le **PNG 2048 final** = un **fond de carte HD** directement utilisable comme background dans
   l'éditeur (à la place des maps actuelles).
@@ -165,4 +165,4 @@ avec cette méthode, elles sont à toi (le workflow, lui, n'est pas protégé).
 2. **Blender** : importer, `Ctrl+J`, isoler le sol (**box‑select X‑ray** ou **Bisect**).
 3. **Rendu top‑down ortho** → PNG.
 4. **Photoshop** : tracer la carte legacy 2048² par‑dessus.
-5. (Strat Studio) l'utiliser comme **fond HD** + éventuel **pathing**.
+5. (l’atelier) l'utiliser comme **fond HD** + éventuel **pathing**.

@@ -1,4 +1,4 @@
-# Architecture — FFXI Strat Studio
+# Architecture — XI STUDIO
 
 > Le détail. Pour l'essentiel, lire `CLAUDE.md` à la racine.
 > **La source de vérité, ce sont les fichiers**, pas ce document. Au moindre doute, les relire.

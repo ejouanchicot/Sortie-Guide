@@ -1,4 +1,4 @@
-# FFXI Strat Studio
+# XI STUDIO
 
 Atelier de stratégie FFXI. Un **lead** y écrit une strat cartographiée, la publie
 dans le guide, l'exporte en fichier unique ou la colle sur Discord.

@@ -1,7 +1,7 @@
 /* ============================================================
    data-file.js — ÉCRITURE DE js/data.js ET js/i18n.js
    ------------------------------------------------------------
-   Map Studio et Strat Studio écrivent tous les deux dans les mêmes
+   Les deux ateliers écrivent tous les deux dans les mêmes
    fichiers. Tant que chacun avait sa copie du mécanisme, un changement
    d'un côté pouvait corrompre ce que l'autre écrivait. Tout passe
    désormais par ici.
