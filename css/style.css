@@ -271,7 +271,14 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
    un point bleu sans rien a cote, impossible a comprendre. */
 .glabel:empty{display:none}
 .grp.tank{--gc:var(--r-tank)} .grp.buff{--gc:var(--r-buff)} .grp.dd{--gc:var(--r-dd)}
-.grp.heal{--gc:var(--r-heal)} .grp.rules{--gc:#e0964f} .grp.mb{--gc:var(--e-fire)}
+.grp.heal{--gc:var(--r-heal)} .grp.mb{--gc:var(--e-fire)}
+/* Les regles etaient en ambre #e0964f, a un cheveu de l'or des buffs (#e9c23e) :
+   cote a cote en boites, on ne les distinguait plus. Le bleu, le vert, l'or et
+   le rouge sont pris par les roles — restent le violet et le turquoise, les
+   deux seules teintes assez loin des quatre autres. Les procs se separent des
+   regles au passage : ils partageaient la meme couleur, faute de regle a eux. */
+.grp.rules{--gc:var(--violet)}
+.grp.rules.proc{--gc:#3fbfae}
 .gnote{font-size:12px;font-style:italic;color:var(--dim);margin:-4px 0 11px;line-height:1.45;padding-left:16px;border-left:2px solid var(--hair)}
 /* portrait de mob sur un groupe (ex: Double Farm) : thumb + label en en-tête, lignes en dessous */
 .grp.hasimg .ghead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
