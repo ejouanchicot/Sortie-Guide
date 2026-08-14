@@ -25,6 +25,7 @@
 
   var MARQUE = 'ffxi-strat-studio';   // l'id du bloc de sauvegarde
   var M = global.MINIFIE || null;
+  var S = global.SORTIE;              // le socle : seul à savoir où vit une icône
   // Le fichier partagé n'est pas relu, il est exécuté : commentaires et
   // indentation n'y servent à personne. Le contenu, lui, ne bouge pas.
   function compacte(t, quoi){ return M ? M[quoi](t) : t; }
@@ -113,6 +114,22 @@
     });
     return out;
   }
+  /* Les icônes posées sur la carte comptent parmi les images, mais elles ne
+     se laissent pas trouver comme les autres : les cartes retiennent le CODE
+     du dessin (« PLD »), pas son chemin. Il faut donc les demander au socle.
+     Sans ça, un job ou un repère arrivait chez le groupe en carré de couleur —
+     son masque cherchait une image restée sur le site, et le fichier qu'on
+     s'échange n'a aucun dossier autour de lui. */
+  function codesIcones(cartes){
+    var vus = {}, out = [];
+    Object.keys(cartes || {}).forEach(function(nom){
+      ((cartes[nom] || {}).icones || []).forEach(function(i){
+        var c = i && i.ico;
+        if(c && !vus[c] && S.icoSrc(c)){ vus[c] = 1; out.push(c); }
+      });
+    });
+    return out;
+  }
   function remplaceTout(txt, table){
     // du plus long au plus court : « img/map.webp » ne doit pas être
     // remplacé à l'intérieur de « img/map-basement.webp »
@@ -156,6 +173,15 @@
       try{ images[chemins[k]] = await L.donnees(chemins[k]); }
       catch(e){ /* une vignette manquante ne doit pas faire tomber l'export */ }
     }
+    // Les icônes ne se remplacent pas dans le texte comme les autres images :
+    // la carte retient le CODE du dessin et son chemin naît à l'exécution.
+    // On les remet donc au socle, sous leur code.
+    var codes = codesIcones(strat.cartes), icones = {};
+    for(var q = 0; q < codes.length; q++){
+      dit('Icônes… ' + (q + 1) + '/' + codes.length);
+      try{ icones[codes[q]] = await L.donnees(S.icoSrc(codes[q])); }
+      catch(e){ /* une icône manquante ne doit pas faire tomber l'export */ }
+    }
 
     dit('Assemblage…');
     var doc = html
@@ -176,8 +202,14 @@
       .replace(/<a class="bmark"[^>]*>([\s\S]*?)<\/a>/,
                '<span class="bmark">$1</span>');
 
+    /* Les icônes se posent JUSTE APRÈS le socle : c'est lui qui les garde, et
+       le moteur du guide, qui vient ensuite, doit déjà les y trouver. */
+    var embarque = Object.keys(icones).length
+      ? '<script>SORTIE.icoEmbarque(' + sur(JSON.stringify(icones)) + ')</script>' : '';
     var scripts = '<script>' + sur(data) + '</script>'
-      + code.map(function(c){ return '<script>' + sur(compacte(c, 'js')) + '</script>'; }).join('');
+      + code.map(function(c, i){
+          return '<script>' + sur(compacte(c, 'js')) + '</script>' + (i === 0 ? embarque : '');
+        }).join('');
     doc = doc.replace(/<script src="js\/[^"]*"><\/script>\s*/g, '');
     doc = doc.replace('</body>', scripts + '</body>');
     doc = remplaceTout(doc, images);

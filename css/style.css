@@ -382,22 +382,31 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 @keyframes lblflash{0%,100%{border-color:var(--pc);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 5px var(--pc)}50%{border-color:var(--pc2);box-shadow:0 2px 5px rgba(0,0,0,.5),0 0 11px var(--pc2)}}
 .poi.pack{width:calc(var(--poi-pack,9.5%) * var(--mobscale,1));aspect-ratio:1}
 /* midboss (NM mineur) : roame aléatoirement → petit, dérive douce, cercle pointillé */
-/* Une ICONE posee sur la carte : un job, un repere, une zone a eviter.
-   L'image est neutre — c'est l'anneau qui porte la couleur, donc un seul jeu
-   d'images sert pour les 22 jobs et les 17 marqueurs. Elle ne pulse pas : ce
-   n'est pas un mob, c'est une consigne, et elle ne doit pas voler l'oeil aux
-   boss et aux packs. */
+/* Une ICONE posee sur la carte : un job, un repere, une zone a eviter. C'est un
+   AUTOCOLLANT — le dessin a la couleur de son role, cerne de blanc, pose avec
+   une ombre. Elle ne pulse pas : ce n'est pas un mob, c'est une consigne, et
+   elle ne doit pas voler l'oeil aux boss et aux packs.
+   `container-type` sert le contour et l'ombre plus bas : il leur permet de se
+   mesurer en part du jeton (cqw) et donc de suivre sa taille. */
 /* --t : la taille propre de CETTE icone. Un danger qui couvre une salle et un
    repere de position ne se lisent pas a la meme echelle. */
-.poi.ico{width:calc(var(--poi-ico,14%) * var(--mobscale,1) * var(--t,1));aspect-ratio:1;z-index:1}
-.poi.ico .icodisc{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;
-  background:radial-gradient(circle at 38% 28%,#16233c,#0b1220);
-  box-shadow:0 0 0 2px var(--pc),0 0 10px -2px var(--pc),0 2px 6px -2px rgba(0,0,0,.7)}
+.poi.ico{width:calc(var(--poi-ico,14%) * var(--mobscale,1) * var(--t,1));aspect-ratio:1;z-index:1;
+  container-type:size}
+/* Le contour se pose ICI et pas sur la silhouette : un filtre s'applique avant
+   le masque, un contour dessine sur l'element masque serait donc retaille par
+   ce masque — et disparaitrait. L'ombre, elle, decolle l'autocollant du fond.
+   --bordf : le contour que CETTE icone porte, noir ou blanc au choix du lead.
+   Le repli sert si le style en ligne manque — mieux vaut un contour noir qu'un
+   marqueur nu. */
+.poi.ico .icocolle{position:absolute;inset:0;display:block;
+  filter:var(--bordf,url(#icobord-noir)) drop-shadow(0 2.5cqw 4cqw rgba(0,0,0,.45))}
 /* La silhouette vient du fichier, la couleur vient d'ici. Un SVG charge en
    <img> est un document isole : son currentColor ne voit pas la page, et
-   sortait en noir sur la pastille sombre. Le masque marche pour un SVG comme
-   pour le PNG blanc d'un job — c'est l'alpha qui compte. */
-.poi.ico .icoimg{width:66%;height:66%;display:block;background:#eaf3ff;
+   sortait en noir. Le masque marche pour un SVG comme pour le PNG blanc d'un
+   job — c'est l'alpha qui compte, et c'est elle que le contour dilate.
+   Le retrait de 7 % laisse au contour la place de sortir sans deborder du
+   jeton : dessin et contour tiennent ensemble dans la taille annoncee. */
+.poi.ico .icoimg{position:absolute;inset:7%;display:block;background:var(--pc);
   -webkit-mask-position:center;mask-position:center;
   -webkit-mask-size:contain;mask-size:contain;
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}

@@ -157,9 +157,26 @@ function poiLabel(o,withQ){
   var q=(!custom && withQ && o.q)?'<span class="pq">&nbsp;&nbsp;'+esc(o.q)+'</span>':'';
   return '<span class="plabel">'+txt+q+'</span>';
 }
+/* Le contour des marqueurs est un filtre SVG, et un filtre doit vivre dans la
+   page pour que le CSS puisse le nommer. Un par couleur de contour — le lead
+   choisit noir ou blanc par icone. Ils sont poses ici, une fois, au lieu d'etre
+   ecrits en dur dans index.html : c'est le socle qui les trace, et un export
+   autonome emporte donc le meme trait que le site. */
+function filtreIcones(){
+  const S=window.SORTIE;
+  if(document.getElementById(S.icoFiltreId(S.ICO_CONTOUR_DEF))) return;
+  const filtres=Object.keys(S.ICO_CONTOURS)
+    .map(b=>S.icoFiltre(S.icoFiltreId(b), null, S.ICO_CONTOURS[b])).join('');
+  const d=document.createElement('div');
+  d.innerHTML='<svg width="0" height="0" aria-hidden="true" focusable="false"'
+    +' style="position:absolute">'+filtres+'</svg>';
+  document.body.appendChild(d.firstChild);
+}
+
 function placePOIs(f){
   if(!f.map) return;
   const ovmap=document.querySelector('.ovmap'); if(!ovmap) return;
+  if((f.icones||[]).length) filtreIcones();
   const N=f.bosses.length;
   const wrap=document.createElement('div'); wrap.className='ovpoi'; let h='';
   // Les icones (jobs, reperes, danger…) passent AVANT les mobs : ce sont des
@@ -167,17 +184,19 @@ function placePOIs(f){
   (f.icones||[]).forEach(i=>{
     const src=window.SORTIE.icoSrc(i.ico); if(!src) return;
     // Masque CSS et pas <img> : un SVG chargé en image est un document isolé,
-    // son `currentColor` ne voit pas la page et sortirait en noir sur la
-    // pastille sombre. Le masque prend la SILHOUETTE du fichier — que ce soit
-    // un SVG ou le PNG blanc d'un job — et c'est la page qui la colore.
+    // son `currentColor` ne voit pas la page et sortirait en noir. Le masque
+    // prend la SILHOUETTE du fichier — que ce soit un SVG ou le PNG blanc d'un
+    // job — et c'est la page qui la colore, à la couleur du rôle.
     const nom=window.SORTIE.icoNom(i.ico);
-    h+='<div class="poi ico lp-'+(i.lp||'bottom')+'" style="left:'+i.x+'%;top:'+i.y+'%;--pc:'+(i.c||'#8a94a6')+';--t:'+window.SORTIE.icoT(i)+'">'
+    h+='<div class="poi ico lp-'+(i.lp||'bottom')+'" style="left:'+i.x+'%;top:'+i.y+'%;--pc:'+(i.c||'#8a94a6')+';--t:'+window.SORTIE.icoT(i)
+      // --bordf : lequel des deux contours cette icone porte
+      +';--bordf:url(#'+window.SORTIE.icoFiltreId(window.SORTIE.icoBord(i))+')">'
       // Le masque se pose ICI et pas dans une variable CSS : une url() portée
       // par une variable se résout depuis la FEUILLE qui s'en sert — on
       // demandait donc « css/xi-studio-icons/… », qui n'existe pas, et la
       // silhouette disparaissait sans un mot. En style en ligne, elle se
       // résout depuis la page, où le chemin est juste.
-      +'<span class="icodisc"><i class="icoimg" role="img" aria-label="'+esc(nom)+'"'
+      +'<span class="icocolle"><i class="icoimg" role="img" aria-label="'+esc(nom)+'"'
       +' style="-webkit-mask-image:url('+src+');mask-image:url('+src+')"></i></span>'
       +poiLabel({label:i.label, hl:i.hl, name:nom},false)+'</div>';
   });

@@ -3,15 +3,17 @@
    ------------------------------------------------------------
    Le kit d'icones (22 jobs + 13 marqueurs) n'etait qu'un dossier
    sur le disque. Il devient un type de marqueur a part entiere :
-   une palette pour le poser, une pastille cerclee de couleur pour
-   le dessiner, une ligne dans data.js pour le garder, et le meme
-   jeton dans le guide.
+   une palette pour le poser, un AUTOCOLLANT pour le dessiner, une
+   ligne dans data.js pour le garder, et le meme jeton dans le guide.
 
    Ce qui compte ici :
-   · l'image est NEUTRE — c'est l'anneau qui porte la couleur, donc
-     un seul jeu sert pour les 35 icones ;
-   · a la pose, l'anneau prend le role du job, lu dans ROLE — la
+   · l'image est NEUTRE — la couleur vient du jeton, donc un seul jeu
+     sert pour les 35 icones ;
+   · a la pose, le dessin prend le role du job, lu dans ROLE — la
      carte et la strat parlent la meme couleur pour le meme job ;
+   · le contour se mesure en PART du jeton et non en pixels : sinon
+     le meme marqueur sort epais sur un telephone et fin sur un grand
+     ecran, et la carte change de tete selon qui la lit ;
    · l'atelier et le guide dessinent le MEME jeton ;
    · le poids reste tenable : l'outil doit s'ouvrir hors ligne.
    ============================================================ */
@@ -43,6 +45,12 @@ const socle = await p.evaluate(() => ({
   cMNK: SORTIE.icoCouleur('MNK', ROLE),
   cDanger: SORTIE.icoCouleur('DANGER', ROLE),
   cGroupe: SORTIE.icoCouleur('GROUP', ROLE),
+  cStun: SORTIE.icoCouleur('STUN', ROLE),
+  cSkull: SORTIE.icoCouleur('SKULL', ROLE),
+  cInconnu: SORTIE.icoCouleur('NIMPORTEQUOI', ROLE),
+  // chaque marqueur a SA couleur, et deux marqueurs qui disent des choses
+  // differentes ne doivent pas se ressembler
+  toutes: SORTIE.ICO_MARQUEURS.map(n => SORTIE.icoCouleur(n, ROLE)),
   RH: SORTIE.ROLE_HEX
 }));
 dit('les 22 jobs', socle.jobs === 22, String(socle.jobs));
@@ -52,13 +60,32 @@ dit('un marqueur aussi', socle.srcMarq === 'xi-studio-icons/markers/DANGER.png',
 dit('un nom inconnu ne pointe rien', socle.srcInconnu === '', JSON.stringify(socle.srcInconnu));
 dit('un marqueur a un nom lisible', socle.nomMarq === 'Coffre', socle.nomMarq);
 
-console.log('\n— l\'anneau prend le role du job, lu dans ROLE —');
+console.log('\n— le dessin prend le role du job, lu dans ROLE —');
 dit('PLD → tank', socle.cPLD === socle.RH.tank, socle.cPLD);
 dit('COR → buffs', socle.cCOR === socle.RH.buff, socle.cCOR);
 dit('RDM → soin', socle.cRDM === socle.RH.heal, socle.cRDM);
 dit('MNK → degats', socle.cMNK === socle.RH.dd, socle.cMNK);
-dit('un marqueur de danger part en rouge', socle.cDanger === socle.RH.dd, socle.cDanger);
-dit('un marqueur neutre reste neutre', socle.cGroupe === socle.RH.all, socle.cGroupe);
+/* Un marqueur ne joue AUCUN role : il dit une consigne, et il a sa couleur
+   propre. Les faire passer par les cinq couleurs de role donnait des reperes
+   gris et un stun couleur « buff », que personne ne reconnaissait. */
+console.log('\n— et un marqueur, la sienne —');
+dit('le danger part en rouge', socle.cDanger === '#f2564d', socle.cDanger);
+dit('l\'eclair du stun est jaune', socle.cStun === '#ffd93b', socle.cStun);
+dit('le groupe est blanc', socle.cGroupe === '#ffffff', socle.cGroupe);
+dit('la tete de mort aussi', socle.cSkull === '#ffffff', socle.cSkull);
+dit('les 13 en ont une', socle.toutes.every(c => /^#[0-9a-f]{6}$/i.test(c)),
+    socle.toutes.join(' '));
+/* Quelques couleurs se repetent, et c'est voulu : le danger et l'attaque
+   parlent tous deux du combat, le groupe / le kite / la tete de mort ne
+   designent aucun role. Ce qui compte, c'est qu'aucune ne soit le gris neutre
+   d'avant, et que la carte reste lisible. */
+dit('aucun marqueur ne reste gris',
+    socle.toutes.every(c => c.toLowerCase() !== socle.RH.all.toLowerCase()),
+    socle.toutes.join(' '));
+dit('et la carte garde assez de teintes',
+    new Set(socle.toutes).size >= 8,
+    new Set(socle.toutes).size + ' teintes pour ' + socle.toutes.length + ' marqueurs');
+dit('un nom inconnu retombe sur le neutre', socle.cInconnu === socle.RH.all, socle.cInconnu);
 
 /* ---------------- les fichiers ---------------- */
 console.log('\n— les 35 fichiers repondent, et restent legers —');
@@ -99,21 +126,38 @@ const dessin = await p.evaluate(() => {
   const st = Konva.stages[0];
   const g = Array.from(st.find('.pin')).find(n => n._meta && n._meta.kind === 'ico');
   if (!g) return null;
-  const disc = g._disc, im = g._ico;
-  return {anneau: disc && disc.stroke(),
-          aUneImage: !!im, largeurImage: im ? Math.round(im.width()) : 0,
-          diametre: disc ? Math.round(disc.radius() * 2) : 0,
-          aUnLabel: !!g._lbl};
+  const im = g._ico;
+  if (!im) return {aUneImage:false};
+  // l'autocollant est compose sur une toile : c'est la preuve qu'il porte deja
+  // son contour, au lieu d'etre la silhouette brute posee dans un disque
+  const src = im.image();
+  const c = document.createElement('canvas'), n = src.width;
+  c.width = n; c.height = n;
+  const gg = c.getContext('2d'); gg.drawImage(src, 0, 0);
+  // on compte ce qu'on trouve : il faut du BLEU (le dessin, un PLD tank) et le
+  // NOIR du contour. L'un sans l'autre, ce n'est pas un autocollant.
+  const d = gg.getImageData(0, 0, n, n).data;
+  let role = 0, contour = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < 200) continue;
+    if (d[i] < 40 && d[i + 1] < 40 && d[i + 2] < 40) contour++;
+    else if (d[i + 2] > d[i] + 40) role++;
+  }
+  return {aUneImage: true, surToile: src instanceof HTMLCanvasElement,
+          largeur: Math.round(im.width()), jeton: Math.round(g._iw),
+          ombre: im.shadowOpacity() > 0 && im.shadowBlur() > 0, role, contour};
 });
-dit('l\'atelier la dessine', !!dessin, JSON.stringify(dessin));
-dit('avec l\'anneau a la couleur du role',
-    !!dessin && String(dessin.anneau).toLowerCase() === socle.RH.tank.toLowerCase(),
-    dessin && dessin.anneau);
-dit('et la silhouette par-dessus', !!dessin && dessin.aUneImage && dessin.largeurImage > 0,
-    dessin && (dessin.largeurImage + 'px dans une pastille de ' + dessin.diametre + 'px'));
-dit('la silhouette tient dans la pastille',
-    !!dessin && dessin.largeurImage < dessin.diametre,
-    dessin && (dessin.largeurImage + ' < ' + dessin.diametre));
+dit('l\'atelier la dessine', !!dessin && dessin.aUneImage, JSON.stringify(dessin));
+dit('en composant un autocollant, pas en posant l\'image brute',
+    !!dessin && dessin.surToile, dessin && String(dessin.surToile));
+dit('qui occupe tout le jeton, contour compris',
+    !!dessin && dessin.largeur === dessin.jeton,
+    dessin && (dessin.largeur + ' contre ' + dessin.jeton));
+dit('et se pose avec son ombre', !!dessin && dessin.ombre, dessin && String(dessin.ombre));
+dit('le dessin porte la couleur du role', !!dessin && dessin.role > 500,
+    dessin && (dessin.role + ' pixels a la couleur du role'));
+dit('et un contour l\'entoure', !!dessin && dessin.contour > 500,
+    dessin && (dessin.contour + ' pixels de contour'));
 
 console.log('\n— elle a son calque, et son compte —');
 const calque = await p.evaluate(() => {
@@ -131,7 +175,17 @@ const palette = await p.evaluate(() => {
   if (bJob) bJob.click();
   const noms = [...document.querySelectorAll('#ar_grid .palbtn')].map(x => x.textContent.trim());
   const apercu = document.querySelector('#ar_grid .palbtn .icoprev');
-  return {cats, noms, masque: apercu ? getComputedStyle(apercu).webkitMaskImage || getComputedStyle(apercu).maskImage : ''};
+  // ce que la barre montre doit etre ce qui se posera : couleur ET contour
+  const btn = n => [...document.querySelectorAll('#ar_grid .palbtn')]
+    .find(x => x.dataset.name === n);
+  const vue = n => {
+    const b = btn(n), c = b && b.querySelector('.icocolle'), i = b && b.querySelector('.icoprev');
+    return c && i ? {pc: getComputedStyle(i).backgroundColor,
+                     bord: getComputedStyle(c).filter} : null;
+  };
+  return {cats, noms,
+          masque: apercu ? getComputedStyle(apercu).webkitMaskImage || getComputedStyle(apercu).maskImage : '',
+          stun: vue('STUN'), danger: vue('DANGER')};
 });
 dit('deux categories de plus : Jobs et Marqueurs',
     palette.cats.indexOf('job') >= 0 && palette.cats.indexOf('marq') >= 0,
@@ -141,6 +195,14 @@ dit('les 13 marqueurs y sont, sous leur nom francais',
     palette.noms.length + ' · ' + JSON.stringify(palette.noms.slice(0, 4)));
 dit('leur apercu passe par un masque, donc il se colore',
     /GROUP\.png|DANGER\.png|markers/.test(palette.masque || ''), palette.masque);
+/* La barre montre le marqueur TEL QU'IL SERA POSE. Choisir sur une silhouette
+   blanche revenait a choisir a l'aveugle, puis a decouvrir la vraie couleur
+   une fois le marqueur sur la carte. */
+dit('la barre montre la couleur qu\'aura le marqueur',
+    /255,\s*217,\s*59/.test(palette.stun?.pc || '') && /242,\s*86,\s*77/.test(palette.danger?.pc || ''),
+    JSON.stringify([palette.stun?.pc, palette.danger?.pc]));
+dit('et son contour avec',
+    /icobord-noir/.test(palette.stun?.bord || ''), palette.stun?.bord);
 
 /* ---------------- ce qui s'enregistre ---------------- */
 console.log('\n— ce que data.js retient —');
@@ -166,20 +228,33 @@ const vu = await pg.evaluate(() => {
   const el = document.querySelector('.poi.ico');
   if (!el) return null;
   const img = el.querySelector('.icoimg'), st = img && getComputedStyle(img);
-  return {anneau: getComputedStyle(el).getPropertyValue('--pc').trim(),
+  const colle = el.querySelector('.icocolle');
+  const bord = document.getElementById(SORTIE.icoFiltreId(SORTIE.ICO_CONTOUR_DEF));
+  const morph = bord && bord.querySelector('feMorphology');
+  return {couleur: getComputedStyle(el).getPropertyValue('--pc').trim(),
           gauche: el.style.left, haut: el.style.top,
           masque: st ? (st.maskImage || st.webkitMaskImage) : '',
           fond: st ? st.backgroundColor : '',
+          filtre: colle ? getComputedStyle(colle).filter : '',
+          // le contour vit dans la page, et son rayon se compte en part du jeton
+          aLeFiltre: !!bord, enPart: bord ? bord.getAttribute('primitiveUnits') : '',
+          rayon: morph ? morph.getAttribute('radius') : '',
           label: (el.querySelector('.plabel') || {}).textContent};
 });
 dit('le guide la dessine', !!vu, JSON.stringify(vu));
 dit('a la place ou on l\'a posee', !!vu && vu.gauche === '44.4%' && vu.haut === '33.3%',
     vu && (vu.gauche + ' / ' + vu.haut));
-dit('avec le meme anneau que l\'atelier', !!vu && vu.anneau === '#4c9df0', vu && vu.anneau);
+dit('avec la meme couleur que l\'atelier', !!vu && vu.couleur === '#4c9df0', vu && vu.couleur);
 dit('la silhouette passe par un masque, pas par une image',
     !!vu && /PLD\.png/.test(vu.masque || ''), vu && vu.masque);
-dit('donc c\'est la page qui la colore',
-    !!vu && /234,\s*243,\s*255|255,\s*255,\s*255/.test(vu.fond || ''), vu && vu.fond);
+dit('donc c\'est la page qui la colore, a la couleur du role',
+    !!vu && /76,\s*157,\s*240/.test(vu.fond || ''), vu && vu.fond);
+dit('le contour est pose dans la page', !!vu && vu.aLeFiltre, vu && String(vu.aLeFiltre));
+dit('et s\'y mesure en part du jeton, pas en pixels',
+    !!vu && vu.enPart === 'objectBoundingBox' && parseFloat(vu.rayon) < 1,
+    vu && (vu.enPart + ' · rayon ' + vu.rayon));
+dit('l\'autocollant le porte, avec son ombre',
+    !!vu && /icobord/.test(vu.filtre || '') && /drop-shadow/.test(vu.filtre || ''), vu && vu.filtre);
 dit('et son label se lit', !!vu && /ici le PLD tank/.test(vu.label || ''), vu && vu.label);
 
 /* ---------------- la taille ----------------
@@ -188,14 +263,20 @@ dit('et son label se lit', !!vu && /ici le PLD tank/.test(vu.label || ''), vu &&
    lit. Elle est maintenant tenue par le socle, comme celle des boss. */
 console.log('\n— la taille, tenue par le socle —');
 const T = await p.evaluate(() => ({
-  ico: SORTIE.POI_SIZE.ico, mid: SORTIE.POI_SIZE.mid, part: SORTIE.ICO_PART,
+  ico: SORTIE.POI_SIZE.ico, mid: SORTIE.POI_SIZE.mid,
+  part: SORTIE.ICO_PART, bord: SORTIE.ICO_BORD,
   defaut: SORTIE.icoT({}), pose: SORTIE.icoT({t:1.8}), zero: SORTIE.icoT({t:0}),
   bornes: SORTIE.ICO_T
 }));
 dit('le socle porte une taille pour les icones', typeof T.ico === 'number', String(T.ico));
 dit('elle vaut le double de celle d\'un mid-boss', Math.abs(T.ico - T.mid * 2) < 1e-9,
     T.ico + ' contre ' + T.mid);
-dit('la silhouette occupe les deux tiers du disque', T.part > .6 && T.part < .75, String(T.part));
+/* Au-dela d'un septieme, le contour cesse d'entourer les emblemes de job et se
+   met a boucher leurs ajours : une hache de WAR devient une tache blanche. */
+dit('le contour reste sous le seuil ou il boucherait les emblemes',
+    T.bord > 0 && T.bord <= 0.08, String(T.bord));
+dit('et le dessin garde le reste du jeton', Math.abs(T.part - (1 - 2 * T.bord)) < 1e-9,
+    T.part + ' de dessin, ' + T.bord + ' de contour de chaque cote');
 dit('sans reglage, le facteur vaut 1', T.defaut === 1, String(T.defaut));
 dit('une valeur absurde retombe sur 1', T.zero === 1, String(T.zero));
 dit('le curseur va de la moitie au triple', T.bornes.min === 0.5 && T.bornes.max === 3,
@@ -210,15 +291,19 @@ const mesures = await p.evaluate(async () => {
   await new Promise(r => setTimeout(r, 1700));
   const st = Konva.stages[0];
   const g = Array.from(st.find('.pin')).filter(n => n._meta && n._meta.kind === 'ico');
-  return g.map(n => ({d: Math.round(n._disc.radius() * 2), img: Math.round(n._ico.width())}));
+  return g.map(n => ({d: Math.round(n._iw), img: Math.round(n._ico.width()),
+                      flou: Math.round(n._ico.shadowBlur() * 10) / 10}));
 });
 dit('l\'atelier dessine deux icones', mesures.length === 2, JSON.stringify(mesures));
 dit('celle a ×2 fait le double de l\'autre',
     mesures.length === 2 && Math.abs(mesures[1].d - mesures[0].d * 2) <= 2,
     JSON.stringify(mesures));
-dit('sa silhouette suit le disque',
+dit('son autocollant suit le jeton',
     mesures.length === 2 && Math.abs(mesures[1].img - mesures[0].img * 2) <= 2,
     JSON.stringify(mesures));
+dit('et son ombre grandit avec lui',
+    mesures.length === 2 && Math.abs(mesures[1].flou - mesures[0].flou * 2) <= 0.5,
+    JSON.stringify(mesures.map(m => m.flou)));
 
 const guideT = await pg.evaluate(() => {
   const f = FLOORS[0];
@@ -232,13 +317,105 @@ dit('le guide aussi', guideT.length === 2, JSON.stringify(guideT));
 dit('et sa ×2 fait bien le double',
     guideT.length === 2 && Math.abs(guideT[1] - guideT[0] * 2) <= 2, JSON.stringify(guideT));
 
-console.log('\n— ce que la taille laisse dans data.js —');
+/* ---------------- le contour, noir ou blanc ----------------
+   Le fond de Sortie est beige clair : le noir y detache mieux, c'est donc lui
+   par defaut. Mais une salle sombre ou un fond importe changent la donne, et
+   c'est le lead qui voit sa carte. */
+console.log('\n— le contour se choisit, par icone —');
+const B = await p.evaluate(async () => {
+  const nuances = Object.keys(SORTIE.ICO_CONTOURS);
+  const f = FLOORS[0];
+  f.icones = [{ico:'DANGER', x:30, y:70, c:'#f2564d'},
+              {ico:'DANGER', x:60, y:70, c:'#f2564d', b:'blanc'}];
+  window.__MS.recharge();
+  await new Promise(r => setTimeout(r, 1700));
+  // ce que l'atelier a reellement peint autour du dessin
+  const st = Konva.stages[0];
+  const bords = Array.from(st.find('.pin'))
+    .filter(n => n._meta && n._meta.kind === 'ico')
+    .map(n => {
+      const src = n._ico.image(), c = document.createElement('canvas');
+      c.width = c.height = src.width;
+      const gg = c.getContext('2d'); gg.drawImage(src, 0, 0);
+      const d = gg.getImageData(0, 0, src.width, src.height).data;
+      let clair = 0, sombre = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 200) continue;
+        if (d[i] > 230 && d[i + 1] > 230 && d[i + 2] > 230) clair++;
+        else if (d[i] < 40 && d[i + 1] < 40 && d[i + 2] < 40) sombre++;
+      }
+      return {clair, sombre};
+    });
+  return {nuances, defaut: SORTIE.ICO_CONTOUR_DEF,
+          sansReglage: SORTIE.icoBord({}), regle: SORTIE.icoBord({b:'blanc'}),
+          absurde: SORTIE.icoBord({b:'turquoise'}), bords};
+});
+dit('deux contours, pas plus', B.nuances.length === 2 && B.nuances.indexOf('noir') >= 0
+    && B.nuances.indexOf('blanc') >= 0, JSON.stringify(B.nuances));
+dit('sans reglage, le contour est noir', B.sansReglage === 'noir' && B.defaut === 'noir',
+    B.sansReglage);
+dit('on peut le passer en blanc', B.regle === 'blanc', B.regle);
+dit('une valeur inconnue retombe sur le defaut', B.absurde === 'noir', B.absurde);
+dit('l\'atelier peint bien du noir autour de la premiere',
+    B.bords.length === 2 && B.bords[0].sombre > 500 && B.bords[0].clair < 200,
+    JSON.stringify(B.bords[0]));
+dit('et du blanc autour de la seconde',
+    B.bords.length === 2 && B.bords[1].clair > 500 && B.bords[1].sombre < 200,
+    JSON.stringify(B.bords[1]));
+
+const guideB = await pg.evaluate(() => {
+  const f = FLOORS[0];
+  f.icones = [{ico:'DANGER', x:30, y:70, c:'#f2564d'},
+              {ico:'DANGER', x:60, y:70, c:'#f2564d', b:'blanc'}];
+  renderFloor(f);
+  const filtres = [...document.querySelectorAll('filter[id^="icobord-"]')]
+    .map(x => x.id + ':' + x.querySelector('feFlood').getAttribute('flood-color'));
+  const portes = [...document.querySelectorAll('.poi.ico')]
+    .map(e => getComputedStyle(e).getPropertyValue('--bordf').trim());
+  return {filtres, portes};
+});
+dit('le guide pose les deux contours', guideB.filtres.length === 2,
+    JSON.stringify(guideB.filtres));
+dit('et chaque icone prend le sien',
+    /icobord-noir/.test(guideB.portes[0] || '') && /icobord-blanc/.test(guideB.portes[1] || ''),
+    JSON.stringify(guideB.portes));
+
+console.log('\n— ce que la taille et le contour laissent dans data.js —');
 const ecritT = await p.evaluate(() => SORTIE.iconesConst('I',
-  [{ico:'PLD', c:'#4c9df0', x:1, y:2}, {ico:'DANGER', c:'#f2564d', x:3, y:4, t:1.75}]));
+  [{ico:'PLD', c:'#4c9df0', x:1, y:2}, {ico:'DANGER', c:'#f2564d', x:3, y:4, t:1.75, b:'blanc'}]));
 dit('une taille ordinaire ne s\'ecrit pas', !/\{ico:'PLD'[^}]*t:/.test(ecritT),
+    (ecritT.match(/\{ico:'PLD'[^}]*\}/) || [''])[0]);
+dit('un contour noir non plus, c\'est le defaut', !/\{ico:'PLD'[^}]*b:/.test(ecritT),
     (ecritT.match(/\{ico:'PLD'[^}]*\}/) || [''])[0]);
 dit('une taille reglee, si', /\{ico:'DANGER'[^}]*t:1\.75/.test(ecritT),
     (ecritT.match(/\{ico:'DANGER'[^}]*\}/) || [''])[0]);
+dit('un contour blanc aussi', /\{ico:'DANGER'[^}]*b:'blanc'/.test(ecritT),
+    (ecritT.match(/\{ico:'DANGER'[^}]*\}/) || [''])[0]);
+
+/* ---------------- le fichier qu'on s'echange ----------------
+   Un export autonome n'a aucun dossier autour de lui. Le dessin d'un job y
+   arrivait donc en carre de couleur : son masque cherchait une image restee
+   sur le site. Et il ne se remplace pas comme les autres images — la carte
+   retient le CODE du dessin, son chemin ne nait qu'a l'execution. */
+console.log('\n— et dans le fichier qu\'on colle sur Discord —');
+const expo = await p.evaluate(async () => {
+  const nom = Object.keys(CARTES)[0];
+  CARTES[nom].icones = [{ico:'PLD', x:30, y:30, c:'#4c9df0'},
+                        {ico:'DANGER', x:60, y:30, c:'#f2564d'}];
+  const s = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'essai icones',
+    window.__MS.reglages());
+  const doc = await window.EXPORTHTML.fabrique(s, {base:'../'});
+  return {
+    embarque: /SORTIE\.icoEmbarque\(/.test(doc),
+    combien: (doc.match(/"(?:PLD|DANGER)":"data:image\//g) || []).length,
+    // plus aucun chemin vers le kit : il n'existe pas chez celui qui recoit
+    resteUnChemin: /xi-studio-icons\/(?:jobs|markers)\/[A-Z]+\.png/.test(doc)
+  };
+});
+dit('les icones partent avec le fichier', expo.embarque, String(expo.embarque));
+dit('les deux qui servent, et elles seules', expo.combien === 2, String(expo.combien));
+dit('aucune ne va plus chercher le site', !expo.resteUnChemin, String(expo.resteUnChemin));
 
 dit('rien ne casse', bruit.length === 0 && bruitG.length === 0,
     bruit.concat(bruitG).slice(0, 3).join('\n       '));

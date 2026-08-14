@@ -40,8 +40,26 @@
      Cette taille vit ICI et pas dans chaque moteur : l'atelier dessinait a
      5,5 % et le guide a 7 %, donc la carte changeait de tete entre les deux. */
   var POI_SIZE = {boss:0.135, mid:0.07, pack:0.095, ico:0.14};
-  // part du disque occupee par la silhouette
-  var ICO_PART = 0.66;
+  /* Un marqueur est un AUTOCOLLANT : le dessin porte la couleur de son role,
+     un contour blanc l'en detache, une ombre le pose sur la carte. La pastille
+     sombre d'avant enfermait chaque consigne dans le meme jeton noir — on
+     voyait dix disques, pas dix consignes.
+     ICO_BORD est la part du jeton que prend le contour, de chaque cote ; le
+     reste revient au dessin. Au-dela d'un septieme environ, le contour cesse
+     d'entourer les emblemes de job et se met a boucher leurs ajours : une hache
+     de WAR devient une tache blanche. */
+  var ICO_BORD = 0.07;
+  var ICO_PART = 1 - 2 * ICO_BORD;   // ce qui reste au dessin
+  /* Noir ou blanc, au choix du lead et par icone. Le fond de Sortie est beige
+     clair : le noir y detache mieux, c'est donc lui par defaut. Mais une salle
+     sombre, une zone rouge, un fond de carte importe changent la donne — et
+     c'est celui qui ecrit la strat qui voit sa carte, pas nous. */
+  var ICO_CONTOURS = {noir:'#0b0f16', blanc:'#ffffff'};
+  var ICO_CONTOUR_DEF = 'noir';
+  function icoBord(o){ var b = o && o.b; return ICO_CONTOURS[b] ? b : ICO_CONTOUR_DEF; }
+  function icoBordHex(o){ return ICO_CONTOURS[icoBord(o)]; }
+  // l'ombre, en part du jeton elle aussi : elle doit grandir avec lui
+  var ICO_OMBRE = {dy:0.025, flou:0.04, alpha:0.55};
   // Chaque icone porte SA taille, un facteur autour de 1 : un « danger » qui
   // couvre une salle et un repere de position n'ont pas a faire la meme taille.
   var ICO_T = {min:0.5, max:3, pas:0.05};
@@ -142,7 +160,14 @@
                  ATTACK:'Attaquer', KITE:'Kite', CHEST:'Coffre', START:'Départ',
                  SKULL:'Mort · wipe', FOCUS:'Focus'};
   var ICO_DOSSIER = 'xi-studio-icons/';
+  /* Un fichier qu'on s'echange sur Discord n'a aucun dossier autour de lui :
+     l'export y recopie les dessins dont la strat se sert et les depose ici.
+     icoSrc les y trouve avant d'aller chercher un fichier qui n'existe plus.
+     Sans ca, un job ou un repere arrivait chez le groupe en carre de couleur. */
+  var ICO_EMBARQUE = {};
+  function icoEmbarque(table){ ICO_EMBARQUE = table || {}; }
   function icoSrc(ico){
+    if(ICO_EMBARQUE[ico]) return ICO_EMBARQUE[ico];
     if(ICO_JOBS.indexOf(ico) >= 0) return ICO_DOSSIER + 'jobs/' + ico + '.png';
     if(ICO_MARQUEURS.indexOf(ico) >= 0) return ICO_DOSSIER + 'markers/' + ico + '.png';
     return '';
@@ -150,17 +175,63 @@
   function icoNom(ico){ return ICO_NOM[ico] || ico; }
   // Les couleurs de rôle du guide, en hex : Konva ne lit pas les variables CSS.
   var ROLE_HEX = {tank:'#4c9df0', heal:'#3fca6a', dd:'#f2564d', buff:'#e9c23e', all:'#8a94a6'};
-  // le rôle qu'un marqueur générique évoque — le reste reste neutre
-  var ICO_ROLE = {DANGER:'dd', ATTACK:'dd', HEAL:'heal', START:'heal',
-                  BUFF:'buff', CHEST:'buff', FOCUS:'buff'};
+  /* La couleur de depart d'un marqueur. Un job prend celle de son role — c'est
+     ROLE qui decide, et la carte parle alors la meme couleur que la strat.
+     Un marqueur, lui, ne joue aucun role : il dit une consigne, et il a sa
+     couleur propre. Un eclair de stun est jaune, un coffre est dore, une tete
+     de mort est blanche — c'est ce qu'on lit sur une carte, pas une affaire de
+     tank ou de DD. Les faire passer par les cinq couleurs de role donnait des
+     reperes gris et un stun couleur « buff », que personne ne reconnaissait.
+     Rien n'est fige : chaque icone garde sa couleur libre dans sa carte de
+     reglages. Ce ne sont que des departs. */
+  var ICO_HEX = {
+    GROUP:'#ffffff',   // tout le monde, sans distinguer les jobs
+    STACK:'#4c9df0',   // se rassembler
+    SPREAD:'#b07cff',  // s'ecarter — l'oppose du bleu qui rassemble
+    DANGER:'#f2564d',  // ce qui tue
+    STUN:'#ffd93b',    // l'eclair
+    HEAL:'#3fca6a',    // le soin
+    BUFF:'#5fd0d0',    // le soutien
+    ATTACK:'#f2564d',  // frapper ici
+    KITE:'#ffffff',    // emmener au loin
+    CHEST:'#e9c23e',   // le tresor
+    START:'#7ed957',   // l'entree
+    SKULL:'#ffffff',   // la mort
+    FOCUS:'#ff6b9d'    // la priorite
+  };
   function icoCouleur(ico, ROLE){
     if(ICO_JOBS.indexOf(ico) >= 0) return ROLE_HEX[roleDuJob(ROLE || {}, ico)] || ROLE_HEX.all;
-    return ROLE_HEX[ICO_ROLE[ico] || 'all'];
+    return ICO_HEX[ico] || ROLE_HEX.all;
   }
+  /* Le contour de l'autocollant, en XML de filtre SVG. C'est une DILATATION de
+     la silhouette : le trait epouse le dessin au lieu de l'encadrer, et il
+     traverse les ajours d'un emblème de job sans les fermer.
+     Ce meme filtre sert des deux cotes — le guide le pose dans la page,
+     l'atelier l'embarque dans l'image qu'il compose pour Konva — pour que la
+     carte qu'on ecrit et celle que le groupe lit aient le meme trait.
+     `cote` : la mesure du dessin quand on compose a taille fixe (l'atelier).
+     Sans lui, le rayon se compte en PART de l'element (le guide, dont le jeton
+     retrecit sur un telephone) — sinon le meme marqueur porte un gros contour
+     sur petit ecran et un cheveu sur grand. */
+  function icoFiltre(id, cote, hex){
+    var abs = (cote != null);
+    return '<filter id="' + id + '" x="-40%" y="-40%" width="180%" height="180%"'
+      + (abs ? '' : ' primitiveUnits="objectBoundingBox"') + '>'
+      + '<feMorphology operator="dilate" in="SourceAlpha" result="gros" radius="'
+      + (abs ? ICO_BORD * cote : ICO_BORD) + '"/>'
+      + '<feFlood flood-color="' + (hex || ICO_CONTOURS[ICO_CONTOUR_DEF]) + '"/>'
+      + '<feComposite in2="gros" operator="in" result="bord"/>'
+      + '<feMerge><feMergeNode in="bord"/><feMergeNode in="SourceGraphic"/></feMerge>'
+      + '</filter>';
+  }
+  // l'identifiant du filtre d'un contour, le meme des deux cotes
+  function icoFiltreId(bord){ return 'icobord-' + bord; }
   function iconesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(i){
-    // la taille ne s'ecrit que si on l'a changee : une icone ordinaire reste courte
+    // taille et contour ne s'ecrivent que si on les a changes : une icone
+    // ordinaire reste une ligne courte
     var t=(icoT(i)!==1)?", t:"+(Math.round(icoT(i)*100)/100):"";
-    s+=" {ico:'"+escJs(i.ico)+"', c:'"+escJs(i.c||'')+"', x:"+r1(i.x)+",y:"+r1(i.y)+t+pinMeta(i)+"},\n";});return s+'];';}
+    var b=(icoBord(i)!==ICO_CONTOUR_DEF)?", b:'"+icoBord(i)+"'":"";
+    s+=" {ico:'"+escJs(i.ico)+"', c:'"+escJs(i.c||'')+"', x:"+r1(i.x)+",y:"+r1(i.y)+t+b+pinMeta(i)+"},\n";});return s+'];';}
   // routesConst lit rt.points (chaîne à jour) + les champs optionnels name/c1/a/fs
   function routesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(rt){var ex='';
     if(rt.name)ex+=", name:'"+escJs(rt.name)+"'";
@@ -515,8 +586,12 @@
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
     pinMeta:pinMeta, bossesConst:bossesConst, packsConst:packsConst, midsConst:midsConst, routesConst:routesConst,
     ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,
-    ICO_PART:ICO_PART, ICO_T:ICO_T, icoT:icoT,
-    ROLE_HEX:ROLE_HEX, iconesConst:iconesConst,
+    icoEmbarque:icoEmbarque,
+    ICO_PART:ICO_PART, ICO_BORD:ICO_BORD, ICO_OMBRE:ICO_OMBRE,
+    ICO_CONTOURS:ICO_CONTOURS, ICO_CONTOUR_DEF:ICO_CONTOUR_DEF,
+    icoBord:icoBord, icoBordHex:icoBordHex,
+    icoFiltre:icoFiltre, icoFiltreId:icoFiltreId, ICO_T:ICO_T, icoT:icoT,
+    ROLE_HEX:ROLE_HEX, ICO_HEX:ICO_HEX, iconesConst:iconesConst,
     SHAPE_DEF:SHAPE_DEF, shapeAlpha:shapeAlpha, shapeStroke:shapeStroke, shapesConst:shapesConst,
     TEXT_FONT:TEXT_FONT, textFont:textFont, textAdv:textAdv, textAlign:textAlign, textBold:textBold, textItalic:textItalic, textOutline:textOutline, textDeco:textDeco,
     parseInline:parseInline, parseRich:parseRich, runsToHtml:runsToHtml, stripRuns:stripRuns,

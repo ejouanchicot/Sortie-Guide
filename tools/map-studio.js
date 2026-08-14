@@ -214,33 +214,90 @@
     setToolMode();fit();buildLayers();loadingEl.style.display='none';
   }
   /* ---------- les ICÔNES : un job, ou un marqueur générique ----------
-     Une pastille sombre, un anneau de couleur, une silhouette neutre par-dessus.
-     Un seul jeu d'images sert pour les 22 jobs et les 17 marqueurs : c'est
-     l'anneau qui dit de quoi on parle, pas le fichier. */
+     Un AUTOCOLLANT : le dessin a la couleur de son rôle, cerné de blanc, posé
+     sur la carte avec une ombre. Un seul jeu d'images sert pour les 22 jobs et
+     les 13 marqueurs — la couleur vient du jeton, pas du fichier. */
   const ICO_SIZE=S.poiSize('ico');      // la meme valeur que le guide, tenue par le socle
   const ICOCACHE={};
-  // Les 35 icônes sont des silhouettes blanches sur transparent : Konva les
-  // dessine telles quelles, c'est l'anneau qui porte la couleur. On les garde
+  // Les 35 icônes sont des silhouettes blanches sur transparent. On les garde
   // en mémoire — la même icône sert souvent plusieurs fois sur une carte.
   function icoImg(ico){
     const src=S.icoSrc(ico);if(!src)return Promise.resolve(null);
     if(!ICOCACHE[ico])ICOCACHE[ico]=loadImg(BASE+src);
     return ICOCACHE[ico];
   }
+
+  /* L'autocollant lui-même, composé une fois par (icône, couleur) puis gardé.
+     Le guide obtient son contour d'un filtre SVG ; Konva dessine sur une toile
+     et n'en a pas. On le retrouve en reposant la silhouette tout autour d'elle-
+     même, sur assez de directions pour que le bord soit rond et non hérissé —
+     à huit, un emblème de job sort en fourrure.
+     On compose sur une TOILE et non dans une image fabriquée : relire les
+     pixels d'une image locale est interdit quand l'atelier est ouvert depuis un
+     fichier, et il doit s'ouvrir hors ligne. */
+  const COLLE={}, COLLE_REF=256, COLLE_DIRS=36;
+  function icoColle(ico,col,bord){
+    const cle=ico+'|'+col+'|'+bord;
+    if(!COLLE[cle])COLLE[cle]=icoImg(ico).then(im=>im?composeColle(im,col,bord):null);
+    return COLLE[cle];
+  }
+  function composeColle(im,col,bord){
+    const R=COLLE_REF, r=R*S.ICO_BORD, place=R*S.ICO_PART;
+    // le dessin, à l'échelle qui le fait tenir dans la part qui lui revient :
+    // le reste du jeton appartient au contour
+    const k=place/Math.max(im.width,im.height), w=im.width*k, h=im.height*k;
+    const x=(R-w)/2, y=(R-h)/2;
+    const c=document.createElement('canvas');c.width=R;c.height=R;
+    const g=c.getContext('2d');
+    for(let i=0;i<COLLE_DIRS;i++){
+      const a=i/COLLE_DIRS*2*Math.PI;
+      g.drawImage(im, x+Math.cos(a)*r, y+Math.sin(a)*r, w, h);
+    }
+    // tout ce qui a été posé devient le contour, d'un bloc
+    g.globalCompositeOperation='source-in';
+    g.fillStyle=bord;g.fillRect(0,0,R,R);
+    g.globalCompositeOperation='source-over';
+    // puis le dessin par-dessus, à la couleur du rôle
+    const c2=document.createElement('canvas');c2.width=R;c2.height=R;
+    const g2=c2.getContext('2d');
+    g2.drawImage(im,x,y,w,h);
+    g2.globalCompositeOperation='source-in';
+    g2.fillStyle=col;g2.fillRect(0,0,R,R);
+    g.drawImage(c2,0,0);
+    return c;
+  }
+  /* La carte se dessine sur une toile, mais la PALETTE est du HTML : elle
+     montre l'autocollant tel qu'il se posera, et son contour lui vient donc
+     d'un filtre SVG, comme dans le guide. Le socle les trace tous les deux, si
+     bien que la barre, la carte et le guide s'accordent sans se recopier. */
+  function poseFiltres(){
+    if(document.getElementById(S.icoFiltreId(S.ICO_CONTOUR_DEF)))return;
+    const filtres=Object.keys(S.ICO_CONTOURS)
+      .map(b=>S.icoFiltre(S.icoFiltreId(b),null,S.ICO_CONTOURS[b])).join('');
+    const d=document.createElement('div');
+    d.innerHTML='<svg width="0" height="0" aria-hidden="true" focusable="false"'
+      +' style="position:absolute">'+filtres+'</svg>';
+    document.body.appendChild(d.firstChild);
+  }
+  poseFiltres();
+  // L'ombre qui pose l'autocollant sur la carte : le fond de Sortie est beige
+  // clair, un contour blanc seul s'y noierait. Elle suit la taille du jeton.
+  function ombreColle(node,d){
+    const O=S.ICO_OMBRE;
+    node.shadowColor('#000');node.shadowBlur(d*O.flou);
+    node.shadowOffsetY(d*O.dy);node.shadowOpacity(O.alpha);
+  }
   function icoDiam(o){return MAP*ICO_SIZE*mobScale*S.icoT(o);}
   async function addIcone(o){
     const cible=gPins,col=o.c||'#8a94a6',d=icoDiam(o);
     if(o.name==null)o.name=S.icoNom(o.ico);   // ce que le label affiche par défaut
     const g=new Konva.Group({x:C(o.x),y:C(o.y),name:'pin'});g._meta={kind:'ico',o};g._base=ICO_SIZE;
-    const disc=new Konva.Circle({radius:d/2,
-      fillRadialGradientStartPoint:{x:-d*.12,y:-d*.16},fillRadialGradientStartRadius:0,
-      fillRadialGradientEndPoint:{x:0,y:0},fillRadialGradientEndRadius:d/2,
-      fillRadialGradientColorStops:[0,'#16233c',1,'#0b1220'],
-      stroke:col,strokeWidth:2,shadowColor:col,shadowBlur:9,shadowOpacity:.55});
-    g.add(disc);g._disc=disc;
-    const im=await icoImg(o.ico);
-    if(im){const s=d*S.ICO_PART/Math.max(im.width,im.height),iw=im.width*s,ih=im.height*s;
-      const ki=new Konva.Image({image:im,width:iw,height:ih,offsetX:iw/2,offsetY:ih/2,listening:false});
+    // L'autocollant est déjà composé, contour compris : il occupe TOUT le
+    // jeton, là où la silhouette d'avant se logeait dans un disque.
+    const im=await icoColle(o.ico,col,S.icoBordHex(o));
+    if(im){
+      const ki=new Konva.Image({image:im,width:d,height:d,offsetX:d/2,offsetY:d/2,listening:false});
+      ombreColle(ki,d);
       g.add(ki);g._ico=ki;}
     const hit=Math.max(d,34);
     g.add(new Konva.Rect({width:hit,height:hit,offsetX:hit/2,offsetY:hit/2,fill:'transparent'}));
@@ -252,25 +309,27 @@
     g.on('dragend',commit);
     cible.add(g);
   }
-  // Redonne a une icone son diametre : le disque, la silhouette et la place du
+  // Redonne a une icone son diametre : l'autocollant, son ombre et la place du
   // label. Sert au curseur de taille comme a l'echelle globale des vignettes.
   function retailleIco(o,g){
     g=g||pinNode(o); if(!g)return;
     const d=icoDiam(o);
-    if(g._disc)g._disc.radius(d/2);
-    if(g._ico){const im=g._ico.image(),k=d*S.ICO_PART/Math.max(im.width,im.height);
-      const w=im.width*k,h=im.height*k;
-      g._ico.width(w);g._ico.height(h);g._ico.offsetX(w/2);g._ico.offsetY(h/2);}
+    if(g._ico){g._ico.width(d);g._ico.height(d);g._ico.offsetX(d/2);g._ico.offsetY(d/2);
+      ombreColle(g._ico,d);}
     const hit=g.findOne('Rect'); if(hit){const c=Math.max(d,34);
       hit.width(c);hit.height(c);hit.offsetX(c/2);hit.offsetY(c/2);}
     g._iw=d;g._ih=d;placeLabel(g);
     if(selNode===g)drawRing(g);
     draw();}
-  // la couleur est libre (un hex), pas le vocabulaire `el` des boss et des packs :
-  // les douze éléments n'ont pas de jaune, et un job buff en a besoin
+  /* la couleur est libre (un hex), pas le vocabulaire `el` des boss et des packs :
+     les douze éléments n'ont pas de jaune, et un job buff en a besoin.
+     Elle teint le DESSIN lui-même, tout comme le choix du contour le change :
+     dans les deux cas il faut recomposer l'autocollant — le temps que ça prend,
+     c'est un cache qui le paie, pas le lead. */
   function recolorIco(o){const g=pinNode(o);if(!g)return;const col=o.c||'#8a94a6';
-    if(g._disc){g._disc.stroke(col);g._disc.shadowColor(col);}
     if(g._lbl&&g._lbl._bg)g._lbl._bg.stroke(col);
+    if(g._ico)icoColle(o.ico,col,S.icoBordHex(o)).then(im=>{
+      if(im&&g._ico){g._ico.image(im);draw();}});
     draw();}
 
   function startMarker(s){const g=new Konva.Group({x:C(s.x),y:C(s.y),listening:false,name:'start'});
@@ -524,6 +583,9 @@
      sinon le champ serait recréé à chaque lettre et perdrait le focus. */
   let armSearch='';
   const MOBOF=()=>(typeof MOB!=='undefined')?MOB:{};
+  // ROLE dit de quelle couleur part un job : il appartient a CETTE strat, et se
+  // regle dans l'atelier Strategie — un NIN peut tanker ici et DPS ailleurs.
+  const ROLEOF=()=>(typeof ROLE!=='undefined')?ROLE:{};
   const MOBPIN_SVG='<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21c5-5.5 7-8.5 7-11a7 7 0 10-14 0c0 2.5 2 5.5 7 11z"/></svg>';
   function ensureArmEl(){let w=document.getElementById('armbar');if(!w){w=document.createElement('div');w.id='armbar';stageWrap.appendChild(w);}return w;}
   function closeArmBar(){const w=document.getElementById('armbar');if(w){w.classList.remove('on');w.innerHTML='';}}
@@ -674,7 +736,11 @@
       // le masque en style en ligne : une url() dans une variable CSS se
       // resoudrait depuis la feuille, donc « tools/xi-studio-icons/… »
       const u=BASE+S.icoSrc(n);
-      const vue=estIco()?'<i class="icoprev" style="-webkit-mask-image:url('+u+');mask-image:url('+u+')"></i>'
+      // l'apercu montre le marqueur TEL QU'IL SERA POSE : sa couleur de depart
+      // et son contour, pas une silhouette blanche qu'on ne reconnait qu'apres
+      const vue=estIco()?'<span class="icocolle" style="--pc:'+S.icoCouleur(n,ROLEOF())
+                        +';--bordf:url(#'+S.icoFiltreId(S.ICO_CONTOUR_DEF)+')">'
+                        +'<i class="icoprev" style="-webkit-mask-image:url('+u+');mask-image:url('+u+')"></i></span>'
                         :'<img src="'+BASE+MOBimg[n]+'" alt="'+esc(n)+'">';
       return '<button type="button" draggable="true" class="palbtn'+on+'" data-name="'+esc(n)+'">'+vue+
              '<span>'+esc(estIco()?S.icoNom(n):n)+'</span></button>';}).join('');
@@ -690,7 +756,7 @@
         // setData est obligatoire pour que le navigateur autorise le glisser
         try{e.dataTransfer.setData('text/plain',b.dataset.name);
             e.dataTransfer.effectAllowed='copy';}catch(_){}
-        const v=b.querySelector('img,.icoprev');
+        const v=b.querySelector('img,.icocolle');
         if(v&&e.dataTransfer.setDragImage)try{e.dataTransfer.setDragImage(v,20,20);}catch(_){}
         b.classList.add('tire');});
       b.addEventListener('dragend',()=>{tirePal=null;b.classList.remove('tire');});});
@@ -710,9 +776,9 @@
   // pose + ouvre la carte de réglages du marqueur posé, SANS désarmer ni changer d'outil
   async function placePin(kind,name,x,y){const f=FL[curIdx];x=r1(S.clamp(x));y=r1(S.clamp(y));let o;
     // une icone n'est pas une creature : ni element, ni quantite, ni phase —
-    // juste une silhouette et la couleur de son anneau
+    // juste un dessin et sa couleur
     if(kind==='job'||kind==='marq'){
-      o={ico:name,x,y,c:S.icoCouleur(name,(typeof ROLE!=='undefined')?ROLE:{}),hl:1};
+      o={ico:name,x,y,c:S.icoCouleur(name,ROLEOF()),hl:1};
       (f.icones=f.icones||[]).push(o);
       await addIcone(o);
       poseFinie(o,S.icoNom(name));
@@ -745,7 +811,7 @@
       if(im){const nat=Math.max(im.image().width,im.image().height),s=(MAP*base*mobScale)/nat,w=im.image().width*s,h=im.image().height*s;
         im.width(w);im.height(h);im.offsetX(w/2);im.offsetY(h/2);n._iw=w;n._ih=h;placeLabel(n);}
       const rc=n.findOne('Circle'); if(kind==='mid'&&rc)rc.radius(MAP*base*mobScale*.75);
-      if(kind==='ico')retailleIco(n._meta.o,n);   // pas d'image a l'echelle naturelle : tout suit le disque
+      if(kind==='ico')retailleIco(n._meta.o,n);   // pas d'image a l'echelle naturelle : tout suit le jeton
     });
     if(selNode)drawRing(selNode); draw();
     commitSoon();   // l'affichage des valeurs est à paintGlobals (deux curseurs à tenir synchronisés)
@@ -984,7 +1050,7 @@
       openShapePanel(o);return;}
     if(m.kind==='text'){renderTextInspector(o);return;}
     if(m.kind==='ico'){setInspTitle('Icône · '+S.icoNom(o.ico),o.c||'var(--cyan)');
-      body.innerHTML='<div class="hintbox"><b>Clique</b> l’icône sur la carte : sa carte de réglages s’ouvre à côté (couleur de l’anneau, position du label, masquer). <b>Glisse</b> l’icône pour la déplacer, « <b>Éditer le label</b> » pour le texte, la corbeille pour la supprimer.</div>';
+      body.innerHTML='<div class="hintbox"><b>Clique</b> l’icône sur la carte : sa carte de réglages s’ouvre à côté (couleur du dessin, contour noir ou blanc, taille, position du label). <b>Glisse</b> l’icône pour la déplacer, « <b>Éditer le label</b> » pour le texte, la corbeille pour la supprimer.</div>';
       openIcoPanel(o);return;}
     // boss / pack / mid : réglages sur la carte (carte flottante), inspecteur = simple astuce cohérente avec le texte
     const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[m.kind];
@@ -1204,8 +1270,13 @@
     const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y,y2:bb.y+bb.height};};
     const roles=[['tank','Tank'],['heal','Soin'],['dd','Dégâts'],['buff','Buffs'],['all','Neutre']];
     let h='<div class="mptitle" style="--dot:'+esc(o.c||'#8a94a6')+'">Icône · '+esc(nom)+'</div>';
-    h+='<div class="mprow"><span class="mplbl">Anneau</span><div class="mpsw" id="mp_ic"></div>'+
+    h+='<div class="mprow"><span class="mplbl">Couleur</span><div class="mpsw" id="mp_ic"></div>'+
        '<input class="mpcol" id="mp_icc" type="color" value="'+esc(o.c||'#8a94a6')+'" title="Une autre couleur"></div>';
+    // Le contour : noir sur un fond clair, blanc sur une salle sombre. C'est le
+    // lead qui voit sa carte, pas nous — on lui laisse les deux.
+    h+='<div class="mprow"><span class="mplbl">Contour</span><div class="mpseg wide" id="mp_b">'+
+       [['noir','Noir'],['blanc','Blanc']].map(([k,t])=>'<button data-b="'+k+'" title="Contour '+t.toLowerCase()+'"'+
+         (S.icoBord(o)===k?' class="on"':'')+'>'+t+'</button>').join('')+'</div></div>';
     h+='<div class="mprow"><span class="mplbl">Taille</span>'+
        '<input class="mprange" id="mp_t" type="range" min="'+S.ICO_T.min+'" max="'+S.ICO_T.max+'" step="'+S.ICO_T.pas+'" value="'+S.icoT(o)+'">'+
        '<span class="mpval" id="mp_tv">×'+S.icoT(o).toFixed(2)+'</span></div>';
@@ -1224,6 +1295,11 @@
           [...sw.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');});sw.appendChild(b);});
       document.getElementById('mp_icc').addEventListener('input',e=>{pose(e.target.value);
         [...sw.children].forEach(c=>c.classList.remove('on'));});
+      document.querySelectorAll('#mp_b button[data-b]').forEach(b=>b.addEventListener('click',()=>{
+        // le defaut ne s'ecrit pas dans data.js
+        o.b=(b.dataset.b===S.ICO_CONTOUR_DEF)?undefined:b.dataset.b;
+        document.querySelectorAll('#mp_b button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+        recolorIco(o);commitSoon();}));
       const tr=document.getElementById('mp_t'),tv=document.getElementById('mp_tv');
       if(tr)tr.addEventListener('input',()=>{const v=parseFloat(tr.value);
         o.t=(v===1)?undefined:v;            // la valeur par defaut ne s'ecrit pas

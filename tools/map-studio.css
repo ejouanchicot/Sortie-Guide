@@ -206,15 +206,20 @@ input[type=checkbox]{accent-color:var(--cyan);width:16px;height:16px}
 .palbtn:hover{background:rgba(150,180,225,.09);color:#fff;border-color:color-mix(in srgb,var(--cyan) 45%,transparent);transform:translateY(-2px);box-shadow:0 8px 18px -8px rgba(0,0,0,.6)}
 .palbtn.on{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 16%,transparent);color:#fff;box-shadow:var(--glow-cy)}
 .palbtn img{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-/* Apercu d'une ICONE dans la palette : la silhouette vient du fichier, la
-   couleur vient d'ici. Un SVG charge en <img> est un document isole — son
-   currentColor ne voit pas la page, et il sortirait en noir sur ce fond. */
-.palbtn .icoprev{width:40px;height:40px;display:block;background:#eaf3ff;
+/* Apercu d'une ICONE dans la palette. On y montre l'AUTOCOLLANT tel qu'il se
+   posera — couleur du dessin et contour compris : choisir sur une silhouette
+   blanche revenait a choisir a l'aveugle, puis a decouvrir la vraie couleur
+   une fois le marqueur pose.
+   La silhouette vient du fichier, la couleur vient d'ici. Un SVG charge en
+   <img> est un document isole — son currentColor ne voit pas la page, et il
+   sortirait en noir sur ce fond. */
+.palbtn .icocolle{width:40px;height:40px;display:block;position:relative;
+  container-type:size;
+  filter:var(--bordf,url(#icobord-noir)) drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.palbtn .icoprev{position:absolute;inset:7%;display:block;background:var(--pc,#eaf3ff);
   -webkit-mask-position:center;mask-position:center;
   -webkit-mask-size:contain;mask-size:contain;
-  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-.palbtn.on .icoprev{background:#fff}
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 /* Le marqueur qu'on est en train de glisser : il s'efface de la barre, on le
    voit deja sous le curseur. Sans ca, on doute d'avoir vraiment pris quelque
    chose. */
