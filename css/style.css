@@ -266,6 +266,10 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .grp + .grp{border-top:1px solid var(--hair)}
 .glabel{font-family:var(--display);font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--gc,var(--dim));margin:0 0 10px;line-height:1.4}
 .glabel::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gc,var(--dim));box-shadow:0 0 8px -1px var(--gc,var(--dim));margin-right:8px;vertical-align:middle}
+/* Un titre vide n'est pas un titre. Le rendu n'en pose plus, mais la pastille
+   se voyait seule au-dessus du badge des qu'un ancien rendu restait en cache —
+   un point bleu sans rien a cote, impossible a comprendre. */
+.glabel:empty{display:none}
 .grp.tank{--gc:var(--r-tank)} .grp.buff{--gc:var(--r-buff)} .grp.dd{--gc:var(--r-dd)}
 .grp.heal{--gc:var(--r-heal)} .grp.rules{--gc:#e0964f} .grp.mb{--gc:var(--e-fire)}
 .gnote{font-size:12px;font-style:italic;color:var(--dim);margin:-4px 0 11px;line-height:1.45;padding-left:16px;border-left:2px solid var(--hair)}
