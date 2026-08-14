@@ -273,10 +273,17 @@
         g.label = t; if(img) g.img = img; if(cls !== null) g.cls = cls;
         return;
       }
+      // Une boîte ouverte ne se referme QU'À la ligne vide. Un titre écrit à la
+      // suite d'une boîte qui a déjà son contenu tenait pour une rubrique de
+      // plus, et sortait du cadre — on écrivait une ligne sous ses lignes, elle
+      // atterrissait dehors. Il faut alors retaper le mot-clé pour la ramener
+      // dedans, et l'ordre de frappe changeait le résultat. Ce titre est
+      // désormais une sous-rubrique DE la boîte : elle reste ouverte.
       g = {label:t, cls:(cls===null ? themeDevine(t) : cls), lines:[]};
       if(img) g.img = img;
+      if(enBoite) g.niv = pile + 1;   // dedans, sans creuser d'un cran de plus
       groups.push(g);
-      enBoite = false; pile = 0;
+      if(!enBoite) pile = 0;
     });
     c.groups = groups;
     return c;

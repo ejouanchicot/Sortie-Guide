@@ -212,6 +212,55 @@ dit('le saut de ligne referme les DEUX', gigogne.buffDehors === true);
 dit('et le texte revient au caractere pres', gigogne.reecrit === gigogne.source,
     JSON.stringify(gigogne.reecrit));
 
+/* ---------------- ecrire une ligne de plus SOUS une boite ----------------
+   On ecrit une boite, on y met ses lignes, et plus tard on ajoute une
+   consigne dessous. Elle sortait du cadre : seule une ligne portant un
+   job y restait. Il fallait retaper le mot-cle pour la ramener dedans —
+   l'ordre de frappe changeait donc le resultat, et l'atelier glissait au
+   passage une ligne vide qui figeait la coupure dans le fichier.
+   Une boite ne se referme QU'A la ligne vide. */
+console.log('\n— une ligne ajoutee sous une boite y reste —');
+const suite = await p.evaluate(() => {
+  const rend = src => {
+    const bloc = STRATCORE.textToBloc(src);
+    const h = document.createElement('div');
+    h.style.cssText = 'position:fixed;left:0;top:0;width:860px;z-index:9999';
+    h.innerHTML = STRATR.cardHtml({kind:'pack', klabel:'FARM', name:'Essai', tag:'',
+                                   noHeadImg:true, groups:bloc.groups}, {n:1}, FLOORS[0], {});
+    document.body.appendChild(h);
+    const dd = h.querySelector('.grp.dd');
+    const dedans = txt => { const e = [...h.querySelectorAll('*')].filter(
+      x => x.textContent.indexOf(txt) >= 0 && !x.querySelector('*'))[0];
+      return !!(dd && e && dd.contains(e)
+                && e.getBoundingClientRect().bottom <= dd.getBoundingClientRect().bottom + 1); };
+    const out = {niveaux: bloc.groups.map(g => g.niv || 0), dedans,
+                 retour: STRATCORE.blocToText(bloc), src};
+    // on garde le noeud le temps de mesurer, l'appelant lit `dedans` avant
+    const r = {niveaux: out.niveaux, retour: out.retour, stable: out.retour === src,
+               consigne: dedans('Focus le dernier'), apres: dedans('Rudra Storm')};
+    h.remove(); return r;
+  };
+  const un = rend(['DDBOX', 'MNK : Victory Smite ×2', 'Focus le dernier',
+                   'THF : Rudra Storm'].join('\n'));
+  const deux = rend(['DDBOX', 'MNK : Victory Smite ×2', 'Focus le dernier',
+                     'Puis les adds'].join('\n'));
+  const vide = STRATCORE.textToBloc(
+    ['DDBOX', 'MNK : Victory Smite ×2', '', 'Buff · farm', 'COR : Chaos Roll'].join('\n'));
+  return {un, deux, refermee: {niveaux: vide.groups.map(g => g.niv || 0),
+                               boite: !!vide.groups[1].boite}};
+});
+dit('la consigne sans job reste DANS le cadre', suite.un.consigne === true);
+dit('et les lignes ecrites sous elle aussi', suite.un.apres === true);
+dit('elle s\'y range en sous-rubrique', JSON.stringify(suite.un.niveaux) === '[0,1]',
+    JSON.stringify(suite.un.niveaux));
+dit('deux consignes de suite sont soeurs, pas emboitees',
+    JSON.stringify(suite.deux.niveaux) === '[0,1,1]', JSON.stringify(suite.deux.niveaux));
+dit('le texte ne gagne plus de ligne vide au passage', suite.un.stable === true,
+    JSON.stringify(suite.un.retour));
+dit('et la ligne vide, elle, referme toujours',
+    JSON.stringify(suite.refermee.niveaux) === '[0,0]' && suite.refermee.boite === false,
+    JSON.stringify(suite.refermee));
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();
