@@ -183,7 +183,9 @@
   function blocToText(c){
     var out = [];
     (c.groups||[]).forEach(function(g, i){
-      if(i) out.push('');
+      // La ligne vide est ce qui REFERME les boîtes : on ne l'écrit donc pas
+      // devant une rubrique imbriquée, sinon la relecture la déboîterait.
+      if(i && !(g.niv||0)) out.push('');
       var titre = g.label || '';
       // Une BOÎTE se réécrit avec son mot-clé, puis son titre en dessous s'il
       // en a un. Sans ça elle repartait en « ␣␣[tank] » — qui se relit bien,
@@ -223,10 +225,14 @@
     // Une BOÎTE ouverte englobe ce qui suit — son titre compris — et se referme
     // au premier saut de ligne. Ailleurs, une ligne vide reste ce qu'elle a
     // toujours été : une respiration sans effet sur la lecture.
-    var enBoite = false;
+    // `pile` = les boîtes ouvertes, de la plus large à la plus étroite. Une
+    // BOÎTE écrite sans avoir saute de ligne se pose DANS celle d'avant : le
+    // magic burst appartient au bloc de dégâts qui le prépare, il ne vient pas
+    // après. Un saut de ligne les referme toutes d'un coup.
+    var enBoite = false, pile = 0;
     String(txt==null?'':txt).split('\n').forEach(function(brut){
       var ligne = brut.replace(/\s+$/,'');
-      if(!ligne.trim()){ if(enBoite){ enBoite = false; g = null; } return; }
+      if(!ligne.trim()){ if(enBoite){ enBoite = false; pile = 0; g = null; } return; }
       // ligne INDENTEE : action de plus pour le job du dessus (une puce de la meme ligne)
       if(/^\s/.test(ligne) && g && g.lines.length){
         var prec = g.lines[g.lines.length-1];
@@ -249,7 +255,9 @@
       // une BOÎTE : elle ouvre un cadre coloré (voir plus haut)
       var mbx = BOITES[ligne.trim().toUpperCase()];
       if(mbx !== undefined){
-        g = {label:'', cls:mbx, boite:1, lines:[]}; groups.push(g); enBoite = true; return; }
+        g = {label:'', cls:mbx, boite:1, lines:[]};
+        if(enBoite) g.niv = ++pile;      // une boîte dans une boîte s'y emboîte
+        groups.push(g); enBoite = true; return; }
       // sinon : titre de rubrique
       var t = ligne.trim(), cls = null, img = null;
       t = t.replace(RE_CROCHET, function(_, v){
@@ -268,7 +276,7 @@
       g = {label:t, cls:(cls===null ? themeDevine(t) : cls), lines:[]};
       if(img) g.img = img;
       groups.push(g);
-      enBoite = false;
+      enBoite = false; pile = 0;
     });
     c.groups = groups;
     return c;
@@ -294,6 +302,7 @@
     var s = ind+'{label:'+q(g.label);
     if(g.cls!=null) s += ',cls:'+q(g.cls);   // même vide : on ne modifie pas le fichier d'Eric sans raison
     if(g.boite) s += ',boite:1';             // encadrée, même quand elle a un titre
+    if(g.niv) s += ',niv:'+g.niv;            // emboîtée dans la rubrique d'avant
     if(g.img) s += ',img:'+q(g.img);
     if(g.note) s += ',note:'+q(g.note);
     return s + ',lines:' + liste(g.lines, ind, lnConst) + '}';

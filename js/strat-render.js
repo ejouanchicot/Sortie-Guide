@@ -118,8 +118,24 @@
   //   de la carte au lieu de les recopier.
   function cardHtml(c, p, f, bossByN){
     var packs = (f && f.packs) || [];
-    var groups = "";
-    (c.groups||[]).forEach(function(g){
+    /* Les rubriques arrivent a plat, chacune avec sa profondeur (`niv`). Une
+       BOÎTE ecrite dans une autre s'y emboîte vraiment : le magic burst tient
+       DANS le bloc de degats qui le prepare, il ne vient pas apres. On remonte
+       donc l'arbre avant de dessiner. */
+    function enArbre(liste){
+      var racine = [], pile = [];
+      (liste||[]).forEach(function(g){
+        var n = Math.min(g.niv || 0, pile.length);   // pas de saut de niveau
+        pile.length = n;
+        var noeud = {g:g, enfants:[]};
+        (n ? pile[n-1].enfants : racine).push(noeud);
+        pile.push(noeud);
+      });
+      return racine;
+    }
+    var groups = enArbre(c.groups).map(rendGrp).join('');
+    function rendGrp(noeud){
+      var g = noeud.g;
       var gthumb = '';
       if(g.img && H.MOB[g.img]){
         var gpk = packs.find(function(x){ return x.name === g.img; });
@@ -140,9 +156,11 @@
       // Encadrée soit parce qu'un mot-clé l'a demandé (et elle peut alors
       // porter un titre), soit parce qu'elle est colorée et muette.
       var boite = (g.boite || (!g.label && !g.img && (g.cls||''))) ? ' boite' : '';
-      groups += '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+boite+'">'+headHtml
-        +(g.note?'<div class="gnote">'+esc(H.tr(g.note))+'</div>':'')+groupBody(g)+'</div>';
-    });
+      return '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+boite
+        +(noeud.enfants.length?' aimbrique':'')+'">'+headHtml
+        +(g.note?'<div class="gnote">'+esc(H.tr(g.note))+'</div>':'')+groupBody(g)
+        +noeud.enfants.map(rendGrp).join('')+'</div>';
+    }
     var mks = [], acc = 'var(--r-buff)';
     if(c.kind === "boss"){ var bb = bossByN && bossByN[p.n]; if(bb){ mks = [bb.name]; acc = H.ELC[bb.el]; } }
     else {

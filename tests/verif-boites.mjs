@@ -169,6 +169,49 @@ dit('ce qui suit n\'est donc pas encadre', titree.suivanteEncadree === false);
 dit('et le texte revient au caractere pres', titree.reecrit === titree.source,
     JSON.stringify(titree.reecrit));
 
+/* ---------------- une boite dans une boite ----------------
+   Le magic burst appartient au bloc de degats qui le prepare : il tient
+   DEDANS, il ne vient pas apres. Une BOITE ecrite sans avoir saute de
+   ligne s'emboite donc dans celle d'avant. */
+console.log('\n— une boite ecrite dans une autre s\'y emboite —');
+const gigogne = await p.evaluate(() => {
+  const src = ['DDBOX',
+               'Fomor ×3 · SC Step 4  [img:Fomor]',
+               'MNK@PLD : Shijin Spiral → Tornado Kick (SC Step 4) ×3',
+               'MBBOX',
+               'RDM : MB Fire sur le SC',
+               '',
+               'Buff · farm',
+               'COR : Chaos Roll'].join('\n');
+  const bloc = STRATCORE.textToBloc(src);
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:0;top:0;width:900px;z-index:9999';
+  h.innerHTML = STRATR.cardHtml({kind:'pack', klabel:'FARM', name:'Essai', tag:'',
+                                 noHeadImg:true, groups:bloc.groups}, {n:1}, FLOORS[0], {});
+  document.body.appendChild(h);
+  const dd = h.querySelector('.grp.dd'), mb = h.querySelector('.grp.mb'),
+        bf = h.querySelector('.grp.buff');
+  const out = {niveaux: bloc.groups.map(g => g.niv || 0),
+               mbDedans: !!(dd && mb && dd.contains(mb)),
+               buffDehors: !!(dd && bf && !dd.contains(bf)),
+               mbEncadre: mb ? getComputedStyle(mb).borderRadius !== '0px' : false,
+               teinteMb: mb ? getComputedStyle(mb).getPropertyValue('--gc').trim() : null,
+               teinteDd: dd ? getComputedStyle(dd).getPropertyValue('--gc').trim() : null,
+               reecrit: STRATCORE.blocToText(bloc), source: src};
+  h.remove(); return out;
+});
+dit('la seconde boite est marquee comme emboitee',
+    JSON.stringify(gigogne.niveaux) === '[0,1,0]', JSON.stringify(gigogne.niveaux));
+dit('et elle est vraiment DANS la premiere', gigogne.mbDedans === true);
+dit('elle garde son propre cadre', gigogne.mbEncadre === true);
+dit('sa couleur tranche sur celle qui la porte',
+    gigogne.teinteMb !== gigogne.teinteDd,
+    gigogne.teinteDd + ' contre ' + gigogne.teinteMb);
+dit('le saut de ligne referme les DEUX', gigogne.buffDehors === true);
+// Sans ligne vide avant une boite emboitee : c'est elle qui refermerait.
+dit('et le texte revient au caractere pres', gigogne.reecrit === gigogne.source,
+    JSON.stringify(gigogne.reecrit));
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();
