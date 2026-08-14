@@ -345,6 +345,14 @@ button.ss-job.hors:hover{opacity:1}
   background:color-mix(in srgb,var(--accent) 14%,transparent);
   border:1px solid color-mix(in srgb,var(--accent) 32%,transparent);border-radius:99px;padding:2px 8px}
 
+/* Un bloc qui n'a pas pu s'afficher le dit A SA PLACE. Sans ca, une panne dans
+   la preparation emportait toute la strat de l'etape en silence : page blanche,
+   et rien pour savoir lequel des deux avait lache. */
+.ss-panne{font-size:12px;line-height:1.5;color:#f4c982;
+  background:color-mix(in srgb,#f2564d 10%,transparent);
+  border:1px solid color-mix(in srgb,#f2564d 34%,transparent);
+  border-radius:var(--r-md,12px);padding:11px 13px;margin:0 0 12px}
+
 /* ─── panneau « Composition du groupe » ─── */
 #ssCompoPan{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:22px;
   background:rgba(4,7,12,.6);backdrop-filter:blur(6px)}

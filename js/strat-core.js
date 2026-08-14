@@ -147,13 +147,26 @@
   function estJob(t){ return JOBS_CONNUS.indexOf(t) >= 0; }
   // « PLD, COR : texte » · « PLD — texte » · « PLD  texte »
   var RE_NAT = /^([A-Za-z]{2,4}(?:\s*[,\/+]\s*[A-Za-z]{2,4})*)(!?)(?:\s*@\s*([A-Za-z]+))?\s*(?::|—|–|\s-\s|\s\s)\s*(.+)$/;
+  /* Le job d'abord, l'action ensuite : c'est l'ordre dans lequel on écrit une
+     ligne. Entre les deux, le temps de taper « PLD » ou de cliquer son bouton,
+     la ligne n'est encore QUE le job — et elle partait alors en titre de
+     rubrique, c'est-à-dire un disque de couleur avec le mot à côté. On écrivait
+     un job pour avoir son badge, on obtenait une puce.
+     Une ligne faite de jobs et de rien d'autre est donc une action dont le
+     texte reste à écrire. Le badge est là tout de suite, et il ne bouge plus
+     quand la phrase arrive. Le « : » de fin est accepté : c'est ce que pose le
+     bouton de la barre.
+     Un titre de rubrique reste possible partout ailleurs — mais plus avec un
+     code de job pour seul mot : pour colorer une rubrique, on écrit TANKBOX. */
+  var RE_NAT_SEUL = /^([A-Za-z]{2,4}(?:\s*[,\/+]\s*[A-Za-z]{2,4})*)(!?)(?:\s*@\s*([A-Za-z]+))?\s*[:—–]?$/;
 
   function ligneNaturelle(l){
-    var m = l.match(RE_NAT);
+    var m = l.match(RE_NAT), seul = false;
+    if(!m){ m = l.match(RE_NAT_SEUL); seul = !!m; }
     if(!m) return null;
     var jobs = m[1].split(/[,\/+]/).map(function(x){ return x.trim().toUpperCase(); });
     if(!jobs.length || !jobs.every(estJob)) return null;
-    return {jobs:jobs, warn:!!m[2], comp:m[3]?m[3].toUpperCase():null, reste:m[4].trim()};
+    return {jobs:jobs, warn:!!m[2], comp:m[3]?m[3].toUpperCase():null, reste: seul ? '' : m[4].trim()};
   }
   // Une rubrique titrée d'un job prend la couleur de ce job. On lit la table
   // ROLE de data.js plutôt qu'une liste écrite ici : ajouter un job à FFXI
@@ -195,6 +208,10 @@
         if(titre || g.img) out.push(titre + (g.img ? '  [img:' + g.img + ']' : ''));
       }
       else if(!titre && !g.img && BOITE_INV[g.cls]){ out.push(BOITE_INV[g.cls]); }
+      // Sans titre, sans image et sans couleur, il n'y a rien à écrire : les
+      // lignes se suffisent. C'est la forme d'une préparation d'avant les
+      // rubriques — sans ce test, son texte s'ouvrait sur une ligne vide.
+      else if(!titre && !g.img && !(g.cls||'')){ /* rien à écrire */ }
       else {
       var extra = [];
       // thème écrit seulement si la devinette se tromperait
@@ -208,7 +225,9 @@
         var actions = Array.isArray(l.t) ? l.t : [l.t];
         var creux = new Array(tete.length + 1).join(' ');
         actions.forEach(function(a, k){
-          out.push((k === 0 ? tete : creux) + a + (k === 0 && l.cond ? '  ?' + l.cond : ''));
+          // une action encore vide laisse « PLD : » et rien derrière : pas d'espace
+          // en trop en bout de ligne, sinon le texte ne se relit plus à l'identique
+          out.push(((k === 0 ? tete : creux) + a + (k === 0 && l.cond ? '  ?' + l.cond : '')).replace(/\s+$/,''));
         });
       });
     });
@@ -350,16 +369,19 @@
       + (arr||[]).map(function(p){ return phaseConst(p, ''); }).join(',\n')
       + (arr && arr.length ? '\n' : '') + '];';
   }
-  // BUFFS : un seul bloc, nom du jeu -> ses lignes. Le nom est du texte écrit
+  // BUFFS : un seul bloc, nom du jeu -> ses RUBRIQUES. Le nom est du texte écrit
   // par l'auteur, affiché tel quel en tête du bloc dans le guide.
+  // Une préparation s'écrit comme n'importe quel autre bloc, donc elle
+  // s'enregistre comme lui : les mêmes rubriques, les mêmes boîtes.
   function buffsConst(nom, dico){
     var cles = Object.keys(dico || {});
     if(!cles.length) return 'const '+nom+'={\n};';
     return 'const '+nom+'={\n'
       + cles.map(function(k){
+          var gs = S.groupesBuffs(dico[k]);
           return ' '+q(k)+':[\n'
-            + (dico[k]||[]).map(function(l){ return lnConst(l, '  '); }).join(',\n')
-            + ((dico[k]||[]).length ? '\n' : '') + ' ]'; }).join(',\n')
+            + gs.map(function(g){ return grpConst(g, '  '); }).join(',\n')
+            + (gs.length ? '\n' : '') + ' ]'; }).join(',\n')
       + '\n};';
   }
   // TR : une entrée par ligne, ordre d'insertion conservé (les ajouts vont à la fin)
@@ -394,7 +416,12 @@
       // le nom du jeu de buffs est le titre affiché : il se traduit aussi
       if(p.buffs && !vusBuffs[p.buffs]){
         vusBuffs[p.buffs] = 1; add(p.buffs);
-        ((buffs||{})[p.buffs] || []).forEach(ligne);
+        // une préparation a des rubriques comme le reste : titres et remarques
+        // se traduisent aussi
+        S.groupesBuffs((buffs||{})[p.buffs]).forEach(function(g){
+          add(g.label); add(g.note);
+          (g.lines||[]).forEach(ligne);
+        });
       }
       (p.cards||[]).forEach(function(c){
         add(c.name); add(c.tag);

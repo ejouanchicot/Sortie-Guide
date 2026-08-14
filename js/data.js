@@ -87,26 +87,37 @@ const LBLMARGIN=0;
 // affiche en titre du bloc : on l'écrit, il n'est pas imposé par le moteur.
 // Une étape s'y rattache par ce nom (« buffs:"Buffs de trajet" »), donc corriger
 // un jeu le corrige dans toutes les étapes qui s'en servent.
+// Une préparation s'écrit comme n'importe quel autre bloc de la strat : les
+// mêmes rubriques, les mêmes BOÎTES qu'une ligne vide referme, les mêmes badges.
+// Elle n'était qu'une suite de lignes ; celles d'avant se lisent toujours.
 // Réglable dans Strat Studio — ne pas éditer à la main, l'outil réécrit le bloc.
 const BUFFS={
  "Buffs de départ":[
-  ln(["ALL"],"Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
-  ln(["ALL"],"Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
-  ln(["COR"],"Bolter's + Tactician's"),
-  ln(["BRD"],"Mazurka"),
-  ln(["DNC"],"Chocobo Jig")
+  {label:"",cls:"",lines:[
+    ln(["ALL"],"Au Start : on attend Mazurka (BRD) et/ou Bolter's (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
+    ln(["ALL"],"Au Start : on attend Mazurka (BRD), Bolter's (COR) et/ou Chocobo Jig (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
+    ln(["COR"],"Bolter's + Tactician's"),
+    ln(["BRD"],"Mazurka"),
+    ln(["DNC"],"Chocobo Jig")
+  ]}
  ],
  "Buffs de trajet":[
-  ln(["COR"],"Bolter/Tactician"),
-  ln(["ALL"],"Chocobo Jig",{warn:1,comp:"DNC"})
+  {label:"",cls:"",lines:[
+    ln(["COR"],"Bolter/Tactician"),
+    ln(["ALL"],"Chocobo Jig",{warn:1,comp:"DNC"})
+  ]}
  ],
  "Buffs avant le dernier boss":[
-  ln(["COR"],"Bolter's + Tactician's"),
-  ln(["DNC"],"Chocobo Jig")
+  {label:"",cls:"",lines:[
+    ln(["COR"],"Bolter's + Tactician's"),
+    ln(["DNC"],"Chocobo Jig")
+  ]}
  ],
  "Buffs de trajet · sous-sol":[
-  ln(["ALL"],"Sneak + Invisible"),
-  ln(["COR"],"Bolter's + Tactician's")
+  {label:"",cls:"",lines:[
+    ln(["ALL"],"Sneak + Invisible"),
+    ln(["COR"],"Bolter's + Tactician's")
+  ]}
  ]
 };
 
@@ -118,7 +129,6 @@ const PHASES=[
       ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"]),
       ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
     ]},
-    {label:"PLD",cls:"tank",niv:1,lines:[]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Indi-Acumen","Geo-Malaise"]),
@@ -190,7 +200,7 @@ const PHASES=[
     ]}
   ]},
   {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
-    {label:"PLD",cls:"tank",lines:[
+    {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"tank sur place"),
       ln(["PLD"],"Holy Circle + Sepulcher")
     ]},
@@ -199,7 +209,7 @@ const PHASES=[
       ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"],{cond:"sans RDM : Honor + Minuet ×2 + Victory"})
     ]},
-    {label:"RDM",cls:"heal",lines:[
+    {label:"",cls:"heal",boite:1,lines:[
       ln(["RDM"],["Dia III","Distract III · plus dur à land (Skomora est Darkness)"])
     ]},
     {label:"DD",cls:"dd",lines:[

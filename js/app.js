@@ -375,13 +375,10 @@ function applyFilter(){
     if(c.classList.contains("boss")){ c.classList.remove("emptyhide"); return; }
     c.classList.toggle("emptyhide", ![...c.querySelectorAll(".line")].some(l=>!lineHidden(l)));
   });
-  document.querySelectorAll(".buffs .bl").forEach(el=>{
-    const roles=(el.dataset.r||"").split(" ");
-    el.classList.toggle("comphide", compHidden(el));
-    el.classList.toggle("solohide", solo && roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0);
-  });
+  // la préparation est un bloc comme les autres : ses lignes sont déjà passées
+  // dans la boucle du dessus, il ne reste qu'à masquer le bloc s'il ne montre plus rien
   document.querySelectorAll(".buffs").forEach(bf=>{
-    bf.classList.toggle("emptyhide", ![...bf.querySelectorAll(".bl")].some(l=>!lineHidden(l)));
+    bf.classList.toggle("emptyhide", ![...bf.querySelectorAll(".line")].some(l=>!lineHidden(l)));
   });
   if(typeof placeNodes==='function') requestAnimationFrame(placeNodes);
 }

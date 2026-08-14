@@ -124,12 +124,19 @@
     var out = [{kind:'etape', n:p.n, titre:T(o, p.boss || p.title || 'Étape'),
                 sous:sous, entrees:[]}];
 
-    var jeu = p.buffs && jeux && jeux[p.buffs];
-    if(jeu){
-      var bl = jeu.filter(function(l){ return garde(l, o); });
-      if(bl.length) out.push({kind:'bloc', titre:T(o, p.buffs),
-        entrees: bl.map(function(l){ return action(l, o); })});
-    }
+    // La préparation a des rubriques comme n'importe quel bloc. Son NOM titre
+    // le premier morceau ; les rubriques qu'on y a écrites titrent les suivants.
+    var jeu = p.buffs && jeux && jeux[p.buffs], prem = true;
+    S.groupesBuffs(jeu).forEach(function(g){
+      var bl = (g.lines || []).filter(function(l){ return garde(l, o); });
+      if(!bl.length) return;
+      out.push({kind:'bloc',
+        titre: prem ? T(o, p.buffs) + (g.label ? ' · ' + T(o, g.label) : '') : T(o, g.label),
+        note: g.note ? T(o, g.note) : '',
+        entrees: bl.map(function(l){ return action(l, o); }),
+        proc: /\bproc\b/.test(g.cls || '')});
+      prem = false;
+    });
     (p.cards || []).forEach(function(c){ out = out.concat(sectionsCarte(c, o)); });
     return out;
   }

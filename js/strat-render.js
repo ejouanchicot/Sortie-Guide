@@ -97,12 +97,14 @@
     return (g.lines||[]).map(function(l){ return lineHtml(l, g); }).join("");
   }
 
-  // ---- une carte (farm ou boss) ----
-  //   La vignette est trouvée en cherchant les clés de MOB dans le NOM de la carte,
-  //   et la couleur d'accent vient du pack correspondant : la strat hérite des couleurs
-  //   de la carte au lieu de les recopier.
-  function cardHtml(c, p, f, bossByN){
-    var packs = (f && f.packs) || [];
+  /* ---- les rubriques d'un bloc ----
+     Un seul dessin pour TOUS les blocs — une carte de farm, un boss, une
+     préparation. Une BOÎTE se referme sur une ligne vide et un job écrit vaut
+     badge : c'est la même règle partout, parce que c'est le même code.
+     La préparation avait le sien, et ses lignes n'y connaissaient ni boîte ni
+     rubrique — on écrivait TANKBOX dedans, il ne se passait rien. */
+  function groupsHtml(liste, packs){
+    packs = packs || [];
     /* Les rubriques arrivent a plat, chacune avec sa profondeur (`niv`). Une
        BOÎTE ecrite dans une autre s'y emboîte vraiment : le magic burst tient
        DANS le bloc de degats qui le prepare, il ne vient pas apres. On remonte
@@ -118,7 +120,6 @@
       });
       return racine;
     }
-    var groups = enArbre(c.groups).map(rendGrp).join('');
     function rendGrp(noeud){
       var g = noeud.g;
       var gthumb = '';
@@ -146,6 +147,16 @@
         +(g.note?'<div class="gnote">'+esc(H.tr(g.note))+'</div>':'')+groupBody(g)
         +noeud.enfants.map(rendGrp).join('')+'</div>';
     }
+    return enArbre(liste).map(rendGrp).join('');
+  }
+
+  // ---- une carte (farm ou boss) ----
+  //   La vignette est trouvée en cherchant les clés de MOB dans le NOM de la carte,
+  //   et la couleur d'accent vient du pack correspondant : la strat hérite des couleurs
+  //   de la carte au lieu de les recopier.
+  function cardHtml(c, p, f, bossByN){
+    var packs = (f && f.packs) || [];
+    var groups = groupsHtml(c.groups, packs);
     var mks = [], acc = 'var(--r-buff)';
     if(c.kind === "boss"){ var bb = bossByN && bossByN[p.n]; if(bb){ mks = [bb.name]; acc = H.ELC[bb.el]; } }
     else {
@@ -171,22 +182,16 @@
   // en dur ici (« Trajet · buffs de déplacement »), ce qui ne voulait rien dire
   // hors d'un run où l'on se déplace entre les boss.
   function buffsHtml(nom, buffs){
-    if(!buffs || !buffs.length) return '';
+    var groupes = global.SORTIE.groupesBuffs(buffs);
+    if(!groupes.length) return '';
     return '<div class="buffs"><span class="bhead">'+esc(H.tr(nom || ''))+'</span>'
-      + buffs.map(function(b){
-          var roles = b.r || ['ALL'];
-          return '<span class="bl'+(b.warn?' warn':'')+'" data-r="'+roles.join(' ')+'"'+(b.comp?' data-comp="'+b.comp+'"':'')+'>'
-            + roleChip(roles[0]) + '<span>'
-            + (Array.isArray(b.t) ? '<ul class="acts">'+b.t.map(function(it){ return '<li>'+colorize(H.tr(it))+'</li>'; }).join('')+'</ul>'
-                                  : colorize(H.tr(b.t)))
-            + '</span></span>';
-        }).join('') + '</div>';
+      + groupsHtml(groupes) + '</div>';
   }
 
   global.STRATR = {
     config: function(o){ for(var k in o) if(o[k] != null) H[k] = o[k]; },
     jcol: jcol, colorize: colorize, roleChip: roleChip, entete: entete,
-    lineHtml: lineHtml, groupBody: groupBody,
+    lineHtml: lineHtml, groupBody: groupBody, groupsHtml: groupsHtml,
     cardHtml: cardHtml, buffsHtml: buffsHtml
   };
 })(typeof window!=='undefined'?window:this);

@@ -268,8 +268,23 @@
     $('f_buffsRen').addEventListener('click', function(){ renommeBuff(ph.buffs); });
     $('ssAddFarm').addEventListener('click', function(){ ajouteBloc(ph,'pack'); });
     $('ssAddBoss').addEventListener('click', function(){ ajouteBloc(ph,'boss'); });
-    dessineBuffs(ph);
-    dessineBlocs(ph);
+    /* La strat d'abord, la préparation ensuite, et chacune dans son coin.
+       Elles se dessinaient à la suite : la préparation ratait, et TOUTE la
+       strat de l'étape disparaissait avec elle — une page blanche, sans rien
+       pour dire d'où ça venait. Un bloc qui tombe ne doit emporter que
+       lui-même, et le dire à l'endroit où il aurait dû s'afficher. */
+    aPart('#ssBlocs', function(){ dessineBlocs(ph); });
+    aPart('#ssBuffs', function(){ dessineBuffs(ph); });
+  }
+  // dessine, et si ça casse, le dit là où ça casse au lieu d'arrêter le reste
+  function aPart(sel, dessine){
+    try { dessine(); }
+    catch(e){
+      var host = document.querySelector(sel);
+      if(host) host.innerHTML = '<div class="ss-panne">Ce bloc ne s’affiche pas — '
+        + esc(String(e && e.message || e)) + '<br>Recharge la page ; si ça revient, dis-le.</div>';
+      if(window.console) console.error(sel, e);
+    }
   }
   function ajouteBloc(ph, nature){
     ph.cards = ph.cards || [];
@@ -305,6 +320,7 @@
     ta.addEventListener('input', relit);
     ['click','keyup','focus'].forEach(function(ev){ ta.addEventListener(ev, function(){ lecture(ta, lu); }); });
     lecture(ta, lu);
+    ta.addEventListener('keydown', entreeSousLesPuces);
     el.querySelector('.ss-tb').addEventListener('click', function(e){
       var b = e.target.closest('button'); if(!b) return;
       if(b.dataset.plus){ choisirAutreJob(b, ta); return; }
@@ -333,17 +349,21 @@
       +   '<button type="button" class="ss-bdel" id="ssBuffDel" title="Supprimer cette préparation">✕</button>'
       + '</div>'
       + barreOutils()
-      + '<textarea class="ss-btxt" spellcheck="false" placeholder="COR : Bolter\'s + Tactician\'s&#10;BRD : Mazurka"></textarea>'
+      + '<textarea class="ss-btxt" spellcheck="false" placeholder="BUFFBOX&#10;COR : Bolter\'s + Tactician\'s&#10;BRD : Mazurka"></textarea>'
       + '<div class="ss-read"></div></div>';
     var el = host.querySelector('.ss-bloc'),
         ta = el.querySelector('.ss-btxt'), lu = el.querySelector('.ss-read');
-    ta.value = SC.linesToText(JEUX[nom]);
+    // La préparation s'écrit comme tout le reste : mêmes boîtes, mêmes badges,
+    // même barre d'outils. Elle avait sa propre syntaxe — deux espaces au lieu
+    // du « : », pas de rubrique, pas de boîte — et il fallait donc se souvenir
+    // de laquelle on était en train d'écrire.
+    ta.value = SC.blocToText({groups: S.groupesBuffs(JEUX[nom])});
     branche(el, ta, lu, function(){
       // on remplace le CONTENU du tableau, pas le tableau : d'autres étapes
       // pointent sur le même nom, elles doivent voir la correction
-      var neuf = SC.parseLines(ta.value);
+      var neuf = SC.textToBloc(ta.value, {}).groups;
       JEUX[nom].length = 0;
-      neuf.forEach(function(l){ JEUX[nom].push(l); });
+      neuf.forEach(function(g){ JEUX[nom].push(g); });
       touche(); rendre();
     });
     $('ssBuffDel').addEventListener('click', function(){ supprimeBuff(nom); });
@@ -404,10 +424,26 @@
     var f = v.indexOf('\n', i); if(f < 0) f = v.length;
     return {d:d, f:f, txt:v.slice(d,f)};
   }
+  /* On clique un job de la barre, la ligne se corrige SOUS LE CURSEUR — et le
+     texte partait tout en bas. Réécrire `value` renvoie le curseur en fin de
+     texte et fait défiler avec lui ; remettre le curseur ensuite ne ramène pas
+     la vue. Sur une strat de trente lignes, on perdait des yeux la ligne qu'on
+     était en train d'écrire à chaque clic.
+     La vue ne bouge pas : on la repose là où elle était, après avoir remis le
+     curseur. `preventScroll` empêche en plus la colonne de sauter pour ramener
+     la zone à l'écran — elle y est déjà, c'est nous qui venons de cliquer. */
+  function replace(ta, ecrit, pos){
+    var haut = ta.scrollTop, gauche = ta.scrollLeft;
+    ecrit();
+    try { ta.focus({preventScroll:true}); } catch(_){ ta.focus(); }
+    ta.setSelectionRange(pos, pos);
+    ta.scrollTop = haut; ta.scrollLeft = gauche;
+  }
   function poseLigne(ta, b, neuve, curseur){
-    ta.value = ta.value.slice(0,b.d) + neuve + ta.value.slice(b.f);
     var pos = b.d + (curseur==null ? neuve.length : curseur);
-    ta.focus(); ta.setSelectionRange(pos,pos);
+    replace(ta, function(){
+      ta.value = ta.value.slice(0,b.d) + neuve + ta.value.slice(b.f);
+    }, pos);
   }
   var RE_TETE = /^([A-Za-z]{2,4}(?:\s*[,\/+]\s*[A-Za-z]{2,4})*)(!?)(@[A-Za-z]+)?(\s*(?::|—|–)?\s*)/;
   function insereDebut(ta, txt){
@@ -436,12 +472,51 @@
     var b = bornesLigne(ta);
     poseLigne(ta, b, b.txt.replace(/\s+$/,'') + txt);
   }
+  /* Entrée en bout d'une ligne d'action : la ligne suivante se pose SOUS les
+     actions en retrait du job, jamais entre lui et elles.
+
+         PLD : prend les Acuex → les amène au camp Fomor
+               tank tout (Acuex + Fomor)
+
+     On finissait la ligne du PLD, on tapait Entrée, on écrivait « ALL : … » —
+     et « tank tout » changeait de job en silence : il se rangeait sous le ALL
+     qu'on venait d'écrire, qui repartait donc en liste à puces, pendant que le
+     PLD perdait la sienne. Rien à l'écran ne disait pourquoi.
+
+     Une action en retrait appartient au job du dessus ; on écrit donc à la
+     suite de sa liste, pas dedans. Pour ajouter une action au même job, il
+     reste « ＋ action », ou Entrée depuis la ligne en retrait elle-même. */
+  function entreeSousLesPuces(e){
+    if(e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+    var ta = e.currentTarget, v = ta.value, b = bornesLigne(ta);
+    if(ta.selectionStart !== ta.selectionEnd || ta.selectionStart !== b.f) return;  // pas en bout de ligne
+    if(!SC.ligneNaturelle(b.txt.trim())) return;          // seule une action porte des puces
+    var f = b.f;
+    while(v.charAt(f) === '\n'){
+      var fin = v.indexOf('\n', f+1); if(fin < 0) fin = v.length;
+      var suite = v.slice(f+1, fin);
+      // un job écrit devant, même en retrait, fait ligne à part : on s'arrête là
+      if(!/^\s/.test(suite) || SC.ligneNaturelle(suite.trim())) break;
+      f = fin;
+    }
+    if(f === b.f) return;                                 // pas de puce sous cette ligne : Entrée ordinaire
+    e.preventDefault();
+    ta.setSelectionRange(f, f);
+    // insertText plutôt qu'une réécriture de `value` : Ctrl+Z continue de marcher
+    var pose = false;
+    try { pose = document.execCommand('insertText', false, '\n'); } catch(_){}
+    if(!pose){
+      replace(ta, function(){ ta.value = v.slice(0,f) + '\n' + v.slice(f); }, f+1);
+      ta.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+  }
+
   // un bloc ou une rubrique s'insère APRÈS la ligne courante, jamais au milieu d'une action
   function insereApres(ta, txt){
     var b = bornesLigne(ta);
-    ta.value = ta.value.slice(0,b.f) + txt + ta.value.slice(b.f);
-    var pos = b.f + txt.length;
-    ta.focus(); ta.setSelectionRange(pos,pos);
+    replace(ta, function(){
+      ta.value = ta.value.slice(0,b.f) + txt + ta.value.slice(b.f);
+    }, b.f + txt.length);
   }
 
   /* ---------------- bandeau : comment l'outil comprend la ligne ---------------- */
@@ -466,7 +541,9 @@
     var l = SC.textToBloc('x\n'+txt, {}).groups[0].lines[0];
     if(!l){ host.innerHTML=''; return; }
     var bouts = [(l.r||['ALL']).map(function(r){ return '<b class="ss-rj">'+esc(r)+'</b>'; }).join(' + ')];
-    bouts.push('« ' + esc(Array.isArray(l.t)? l.t.join(' · ') : l.t) + ' »');
+    var dit = Array.isArray(l.t) ? l.t.join(' · ') : l.t;
+    // le job est posé, la phrase pas encore : on le dit, plutôt que d'afficher « »
+    bouts.push(dit ? '« ' + esc(dit) + ' »' : '<span class="ss-rmuted">l’action reste à écrire</span>');
     if(l.warn) bouts.push('<span class="ss-rw">avertissement</span>');
     if(l.comp) bouts.push('réservé à la comp <b>'+esc(l.comp)+'</b>');
     if(l.cond) bouts.push('condition : <i>'+esc(l.cond)+'</i>');
@@ -495,7 +572,7 @@
   }
   // Exactement la règle du guide (app.js lineHidden), sur la même source.
   function filtreVue(host){
-    host.querySelectorAll('.line, .bl').forEach(function(el){
+    host.querySelectorAll('.line').forEach(function(el){
       var dc = el.getAttribute('data-comp') || '';
       var jobs = (el.getAttribute('data-r')||'').split(/\s+/);
       var cache = false;
@@ -511,8 +588,9 @@
       g.style.display = (l.length && ![].every.call(l, function(x){ return x.style.display==='none'; }))
         || !l.length ? '' : 'none';
     });
+    // la préparation est un bloc comme les autres : ses lignes sont déjà traitées
     var b = host.querySelector('.buffs');
-    if(b){ var bl = b.querySelectorAll('.bl');
+    if(b){ var bl = b.querySelectorAll('.line');
       b.style.display = (bl.length && [].every.call(bl, function(x){ return x.style.display==='none'; })) ? 'none' : ''; }
   }
 

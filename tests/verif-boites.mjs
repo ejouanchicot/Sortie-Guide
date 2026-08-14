@@ -14,6 +14,10 @@
    taise, qu'il ne mange pas les vrais titres, et qu'il se
    reecrive tel quel — sinon il repartirait en « [tank] », qui se
    relit bien mais ne se retape pas de memoire.
+
+   Depuis, ecrire « PLD » tout seul ne titre plus rien : c'est une
+   ligne d'action dont le texte reste a venir (voir verif-job-seul).
+   Pour colorer une rubrique, il n'y a donc plus que la BOITE.
    ============================================================ */
 import {puppeteer, STUDIO, rapport} from './navigateur.mjs';
 
@@ -73,9 +77,11 @@ dit('et se relit pareil', tour.stable);
 
 /* ---------------- ce que ca donne a l'ecran ---------------- */
 console.log('\n— a l\'ecran —');
+/* Le titre en toutes lettres est desormais la SEULE facon de titrer une
+   rubrique : « PLD » tout seul est une ligne d'action, plus un titre. */
 const vu = await p.evaluate(() => {
   const bloc = STRATCORE.textToBloc(
-    'PLD\nPLD : tank sur place\n\nTANKBOX\nPLD : tank sur place');
+    'Tank du camp\nPLD : tank sur place\n\nTANKBOX\nPLD : tank sur place');
   const hote = document.createElement('div');
   hote.style.cssText = 'position:fixed;left:0;top:0;width:820px;z-index:9999';
   hote.innerHTML = STRATR.cardHtml({kind:'boss', name:'Essai', tag:'', groups:bloc.groups},
@@ -92,7 +98,8 @@ const vu = await p.evaluate(() => {
   return {ancienne: g[0], boite: g[1]};
 });
 dit('la boite n\'ecrit aucun titre', vu.boite.titre === null, String(vu.boite.titre));
-dit('l\'ancienne facon en ecrivait un', vu.ancienne.titre === 'PLD', String(vu.ancienne.titre));
+dit('une rubrique titree, elle, ecrit son titre', vu.ancienne.titre === 'Tank du camp',
+    String(vu.ancienne.titre));
 dit('mais les deux ont EXACTEMENT le meme fond', vu.boite.fond === vu.ancienne.fond,
     vu.ancienne.fond + ' / ' + vu.boite.fond);
 dit('le badge du job, lui, reste', vu.boite.badges.indexOf('PLD') >= 0,

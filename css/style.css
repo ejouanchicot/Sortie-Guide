@@ -219,9 +219,14 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 /* ---------- BUFFS TRAJET ---------- */
 .buffs{display:flex;flex-direction:column;gap:12px;background:color-mix(in srgb,var(--r-buff) 9%,var(--panel2));border:1px solid color-mix(in srgb,var(--r-buff) 26%,var(--line));border-radius:var(--r-md);padding:13px 15px;margin:0 0 16px;font-size:12.8px}
 .buffs .bhead{font-family:var(--display);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--r-buff);font-weight:700;width:100%}
-.buffs .bl{display:flex;align-items:flex-start;gap:9px}
-.buffs .bl.warn{color:#f4c982;font-weight:600}
-.buffs .bl + .bl{padding-top:12px;border-top:1px solid var(--hair)}
+/* La preparation est un bloc comme les autres : ses rubriques sont des .grp et
+   ses lignes des .line, avec les memes boites et les memes badges. Elle avait
+   son propre balisage (.bl), donc sa propre regle — ecrire TANKBOX dedans ne
+   donnait rien. Il ne reste ici qu'a rattraper l'espacement : le cadre du bloc
+   fait deja la marge, la premiere rubrique n'en remet pas une par-dessus. */
+.buffs .grp:first-of-type{padding-top:0}
+.buffs .grp:last-of-type{padding-bottom:0}
+.buffs .grp.boite:first-of-type{padding-top:13px}
 
 /* ==========================================================================
    CARTES (farm / boss) — nouveau langage
@@ -330,7 +335,7 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .line.stack .txt{padding-left:2px}
 .grp .line + .line{border-top:1px solid var(--hair)}
 .line .roles{display:flex;gap:4px;flex:none}
-.line .role,.buffs .bl .role{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:7px;
+.line .role{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:7px;
   background:var(--jc);color:#0b0e12;min-width:46px;text-align:center;margin-top:0;border:none;line-height:1.3}
 .line .txt{flex:1;min-width:0;color:var(--txt2)}
 .line .cond{color:var(--dim);font-style:italic;font-size:11px;white-space:nowrap}
@@ -349,7 +354,7 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .line.warn .txt{color:#f2c98a}
 
 /* filtre par rôle */
-.line.solohide,.bl.solohide,.line.comphide,.bl.comphide{display:none}
+.line.solohide,.line.comphide{display:none}
 .grp.emptyhide,.card.emptyhide,.buffs.emptyhide{display:none}
 body.jobsel .line{opacity:.24}
 body.jobsel .line.match,body.jobsel .line[data-r~="ALL"]{opacity:1}

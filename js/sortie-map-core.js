@@ -418,7 +418,26 @@
       + '\n];';
   }
 
+  /* ---------------- un bloc de préparation, comme tous les autres blocs ----
+     La préparation s'écrit avec la même grammaire que le reste de la strat :
+     des BOÎTES qu'une ligne vide referme, et un badge par job. Elle a donc
+     la même forme — une liste de rubriques.
+
+     Elle n'a pas toujours été comme ça : elle n'était qu'une suite de lignes,
+     sans rubrique ni boîte. Les strats déjà écrites, celles rangées dans la
+     bibliothèque et celles exportées en fichier, ont encore cette forme-là.
+     On les lit sans rien leur demander : une suite de lignes devient une
+     rubrique unique, sans titre ni couleur. C'est exactement ce qu'elles
+     affichaient déjà. */
+  function groupesBuffs(jeu){
+    if(!jeu || !jeu.length) return [];
+    // une rubrique porte `lines`, une ligne porte `r` : c'est ce qui les sépare
+    if(jeu[0] && jeu[0].lines !== undefined) return jeu;
+    return [{label:'', cls:'', lines:jeu}];
+  }
+
   global.SORTIE = {
+    groupesBuffs:groupesBuffs,
     resoudreCartes:resoudreCartes, deposeCartes:deposeCartes,
     carteConst:carteConst, cartesConst:cartesConst,
     chapitresConst:chapitresConst, corpsTableau:corpsTableau,
