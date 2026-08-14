@@ -174,19 +174,18 @@ const PHASES=[
 ]},
 {n:2,boss:"Skomora",map:"",title:"Ghost → Skomora",route:"Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).",buffs:"Buffs de trajet",cards:[
   {kind:"pack",name:"Pack · Ghost ×3",tag:"weak Fire · SC → MB Fire",groups:[
-    {label:"Buff",cls:"buff",lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Acumen","Malaise"]),
       ln(["BRD"],["Honor March","Victory March"])
     ]},
-    {label:"DD · SC",cls:"dd",lines:[
+    {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"Victory Smite ×2"),
-      ln(["DNC"],"Ruthless Stroke ×2 = Fusion")
+      ln(["DNC"],"Ruthless Stroke ×2 = Fusion"),
+      ln(["ALL"],"Kill après le MB")
     ]},
-    {label:"MB Fire",cls:"mb",lines:[
-      ln(["RDM","GEO"],"MB Fire sur le SC"),
-      ln(["COR","BRD","PLD"],"Kill après MB",{comp:"PLD"}),
-      ln(["COR","BRD","DNC"],"Kill après MB",{comp:"DNC"})
+    {label:"MB Fire",cls:"mb",boite:1,niv:1,lines:[
+      ln(["RDM","GEO"],"MB Fire sur le SC")
     ]}
   ]},
   {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
@@ -211,41 +210,41 @@ const PHASES=[
 ]},
 {n:3,boss:"Leshonn",map:"",title:"Umbril → Leshonn",route:"Mur de droite, plein NORD → coin haut-droite (Umbril ×5, puis Leshonn).",buffs:"Buffs de trajet",cards:[
   {kind:"pack",name:"Pack · Umbril ×5",tag:"≥1 WS par mob · tous tués = lock ses TP moves",groups:[
-    {label:"Buff · farm",cls:"buff",lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["BRD"],["Honor March","Victory March"])
     ]},
-    {label:"DD · tout le monde tape",cls:"dd",lines:[
+    {label:"",cls:"dd",boite:1,lines:[
       ln(["ALL"],"≥1 WS par mob",{comp:"PLD"}),
       ln(["ALL"],"≥1 WS par mob",{comp:"DNC"})
     ]}
   ]},
   {kind:"boss",name:"Boss · Leshonn",tag:"Thunder ↔ Wind · ~870k",groups:[
-    {label:"PLD",cls:"tank",lines:[
+    {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"kite le boss")
     ]},
-    {label:"Buffs",cls:"buff",lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Geo-Gravity","Indi-Frailty"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"])
     ]},
-    {label:"RDM",cls:"heal",lines:[
+    {label:"",cls:"heal",boite:1,lines:[
       ln(["RDM"],["Saboteur → Gravity II","Distract III"]),
       ln(["RDM"],"Zap copie un debuff → pas de Paralyze")
     ]},
-    {label:"Règles",cls:"rules",lines:[
+    {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"JAMAIS son élément actif (SC/nuke) → il HEAL",{warn:1}),
       ln(["ALL"],"proc opposé = retire ses stacks DT/dmg (+5%)"),
       ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
       ln(["ALL"],"pas d'empilement (Counter 500+/hit)")
     ]},
-    {label:"Mains THUNDER → proc Earth",cls:"",lines:[
+    {label:"Mains THUNDER → proc Earth",cls:"rules",boite:1,lines:[
       ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
       ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"spam Savage Blade"),
       ln(["RDM","GEO"],"MB Earth sur le SC")
     ]},
-    {label:"Mains WIND → proc Ice",cls:"",lines:[
+    {label:"Mains WIND → proc Ice",cls:"rules",boite:1,lines:[
       ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
       ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"Savage Blade"),
@@ -256,23 +255,23 @@ const PHASES=[
 ]},
 {n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:"Buffs avant le dernier boss",cards:[
   {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
-    {label:"PLD",cls:"tank",lines:[
+    {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"tank sur place")
     ]},
-    {label:"Buffs",cls:"buff",lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"])
     ]},
-    {label:"RDM",cls:"heal",lines:[
+    {label:"",cls:"heal",boite:1,lines:[
       ln(["RDM"],["Dia III","Distract III"])
     ]},
-    {label:"DD",cls:"dd",lines:[
+    {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"WS libres, évite Howling Fist > Savage (+ Chakra)"),
       ln(["DNC"],"Ruthless Stroke (jamais Darkness)"),
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"])
     ]},
-    {label:"Règles",cls:"rules",lines:[
+    {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"absorbe Water → boost ses TP moves"),
       ln(["ALL"],"SEUL danger : Howling Fist > Savage Blade = Distortion → à éviter",{warn:1}),
       ln(["MNK"],"Chakra retire le Taint (poison AoE)"),
@@ -291,12 +290,7 @@ const PHASES=[
    ============================================================ */
 const PHASES_B=[
 {n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
-    {label:"Botulus",cls:"",lines:[
-      ln(["ALL"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
-    ]}
-  ]},
-  {kind:"boss",name:"Boss · Dhartok",tag:"à définir",groups:[]}
+  {kind:"boss",name:"Dhartok",tag:"",groups:[]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
@@ -304,7 +298,7 @@ const PHASES_B=[
       ln(["ALL"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
   ]},
-  {kind:"boss",name:"Boss · Triboulex",tag:"à définir",groups:[]}
+  {kind:"boss",name:"Triboulex",tag:"à définir",groups:[]}
 ]},
 {n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"boss",name:"Boss · Aïta",tag:"à définir",groups:[]}
