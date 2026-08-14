@@ -274,8 +274,9 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .grp.heal{--gc:var(--r-heal)}
 /* Le magic burst portait EXACTEMENT le rouge des degats — et comme il se pose
    maintenant DANS le bloc de degats qui le prepare, rouge sur rouge ne se
-   voyait plus. Violet neon : la magie ne se confond avec aucun role. */
-.grp.mb{--gc:#c65cff}
+   voyait plus. Cyan neon : c'est ce qui tranche le plus sur du rouge, et la
+   magie ne se confond avec aucun role. */
+.grp.mb{--gc:#22d3ee}
 /* Les regles ne sont ni un role ni un element : c'est le cadre, pas une action.
    Elles etaient en ambre, a un cheveu de l'or des buffs. Le gris ardoise est la
    seule teinte franchement a part des six couleurs vives — et c'est deja celle
