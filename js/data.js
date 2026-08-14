@@ -184,9 +184,10 @@ const PHASES=[
       ln(["DNC"],"Ruthless Stroke ×2 = Fusion")
     ]},
     {label:"MB Fire",cls:"mb",lines:[
-      ln(["RDM","GEO"],"MB Fire sur le SC")
-    ]},
-    {label:"COR,!@PLD,!@DNC,BRD : Kill après MB",cls:"mb",lines:[]}
+      ln(["RDM","GEO"],"MB Fire sur le SC"),
+      ln(["COR","BRD","PLD"],"Kill après MB",{comp:"PLD"}),
+      ln(["COR","BRD","DNC"],"Kill après MB",{comp:"DNC"})
+    ]}
   ]},
   {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
     {label:"PLD",cls:"tank",lines:[
