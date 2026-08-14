@@ -191,6 +191,16 @@ body{overflow:hidden;background:var(--bg)}
 .ss-cle b{color:var(--txt);font-weight:650}
 .ss-cle.r-warn{--c:var(--r-dd)} .ss-cle.r-cond{--c:var(--r-heal)}
 .ss-cle.r-comp{--c:var(--violet)} .ss-cle.r-sub{--c:var(--r-buff)}
+.ss-cle.r-tank{--c:var(--r-tank)} .ss-cle.r-vide{--c:var(--r-tank)}
+.ss-cle.r-titre{--c:var(--dim)} .ss-cle.r-img{--c:#3fbfae}
+/* Chaque mot-cle de BOITE porte SA couleur — celle qu'il pose vraiment dans le
+   guide. Cites en gris, ou tous du bleu de la ligne, ils n'apprenaient rien :
+   c'est justement la couleur qu'on vient choisir en les ecrivant. */
+.ss-cle code.b-tank{--c:var(--r-tank)}  .ss-cle code.b-heal{--c:var(--r-heal)}
+.ss-cle code.b-buff{--c:var(--r-buff)}  .ss-cle code.b-dd{--c:var(--r-dd)}
+.ss-cle code.b-mb{--c:#22d3ee}          .ss-cle code.b-rules{--c:var(--r-all)}
+.ss-cle code.b-proc{--c:#3fbfae}
+.ss-cle .ss-boites{display:inline-flex;flex-wrap:wrap;gap:5px;vertical-align:middle;margin-top:5px}
 
 .ss-hero-go{font-size:13px;line-height:1.6;color:var(--txt2);margin:0 0 14px}
 .ss-hero-go b{color:var(--txt)}
@@ -205,14 +215,87 @@ body{overflow:hidden;background:var(--bg)}
 .ss-steps b{color:var(--txt)}
 .ss-mini-note{font-size:11.5px;color:var(--dim);margin:14px 0 0;line-height:1.55}
 
-/* ─── barre d'insertion au-dessus des lignes ─── */
-.ss-tb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 7px}
-.ss-tbl{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-right:2px}
-.ss-tb button.wide{font-family:var(--sans);font-weight:700;color:var(--accent2);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
-.ss-tb button{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:7px;cursor:pointer;
+/* ─── la barre d'ecriture, au-dessus des lignes ───
+   Elle porte TOUT ce qu'une ligne de strat peut etre, en trois familles :
+   qui agit · ce que la ligne dit · le bloc qui la contient. Un bouton = un mot,
+   jamais un symbole seul : on doit pouvoir s'en servir sans avoir rien lu.
+
+   Le signe garde quand meme sa place, dans une pastille a gauche du mot — c'est
+   ce qui s'ecrit vraiment dans le texte, et on le reconnait ensuite en relisant.
+
+   L'infobulle s'ancre sur la BARRE, pas sur le bouton : toujours au meme
+   endroit, jamais coupee par le bord de la colonne, et on ne la cherche pas. */
+/* Une famille par ligne, etiquette a gauche en colonne : les trois se lisent
+   d'un coup d'oeil. Toutes melangees sur une seule ligne qui passe a la ligne
+   toute seule, les etiquettes se retrouvaient coincees au milieu d'un rang et
+   ne groupaient plus rien. */
+.ss-tb{position:relative;display:flex;flex-direction:column;gap:6px;
+  margin:0 0 8px;padding:8px 10px;border-radius:11px;
+  background:color-mix(in srgb,var(--panel3) 55%,transparent);border:1px solid var(--line)}
+.ss-tbg{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.ss-tbl{flex:none;width:56px;text-align:right;margin-right:3px;white-space:nowrap;
+  font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--dim);user-select:none}
+
+.ss-tb button{display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--sans);font-size:11.5px;font-weight:600;letter-spacing:-.1px;
+  padding:4px 9px;border-radius:8px;min-height:26px;cursor:pointer;white-space:nowrap;
   color:var(--txt2);background:var(--chip);border:1px solid var(--chipbd);transition:.13s var(--ease)}
-.ss-tb button:hover{color:#fff;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
-.ss-tbsep{width:1px;height:16px;background:var(--line2);margin:0 4px}
+.ss-tb button:hover{color:#fff;border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.ss-tb button:active{transform:translateY(1px)}
+
+/* la pastille du signe : ce que le bouton ecrit, en petit, a gauche du mot */
+.ss-i{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 3px;
+  font-family:var(--mono);font-size:10px;font-weight:800;line-height:1;border-radius:5px;
+  background:color-mix(in srgb,var(--txt2) 15%,transparent);color:var(--txt2);transition:.13s var(--ease)}
+.ss-tb button:hover .ss-i{background:color-mix(in srgb,var(--accent) 30%,transparent);color:#fff}
+.ss-i.warn{color:#f4c982;background:color-mix(in srgb,#f4c982 20%,transparent)}
+
+/* Les BOITES portent la couleur qu'elles posent, la MEME que dans le guide :
+   on choisit un cadre a la teinte, pas a la lecture de sept mots en gris. */
+button.ss-box.b-tank{--bc:var(--r-tank)}  button.ss-box.b-heal{--bc:var(--r-heal)}
+button.ss-box.b-buff{--bc:var(--r-buff)}  button.ss-box.b-dd{--bc:var(--r-dd)}
+button.ss-box.b-mb{--bc:#22d3ee}          button.ss-box.b-rules{--bc:var(--r-all)}
+button.ss-box.b-proc{--bc:#3fbfae}
+.ss-tb button.ss-box{color:var(--bc);border-color:color-mix(in srgb,var(--bc) 32%,transparent);
+  background:color-mix(in srgb,var(--bc) 9%,transparent)}
+.ss-tb button.ss-box:hover{color:#fff;border-color:var(--bc);
+  background:color-mix(in srgb,var(--bc) 26%,transparent)}
+/* le carre de couleur : c'est le cadre qu'on va poser, en miniature */
+.ss-tb button.ss-box::before{content:"";flex:none;width:10px;height:10px;border-radius:3px;
+  background:color-mix(in srgb,var(--bc) 22%,transparent);
+  border:1.5px solid var(--bc);box-shadow:0 0 7px -2px var(--bc)}
+
+/* ─── l'infobulle ───
+   Ancree sur la barre : meme place pour tous les boutons. Deux lignes — ce que
+   ca fait, puis ce que ca ECRIT, prefixe d'une fleche. */
+.ss-tb button[data-info]:hover::after,
+.ss-tb button[data-info]:focus-visible::after{
+  content:attr(data-info);
+  position:absolute;left:0;right:auto;top:calc(100% + 5px);z-index:90;
+  width:max-content;max-width:min(340px,100%);white-space:pre-line;text-align:left;
+  font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:0;line-height:1.5;
+  color:var(--txt);background:var(--panel3);border:1px solid var(--line2);
+  border-radius:9px;padding:7px 10px;box-shadow:var(--shadow);pointer-events:none}
+/* « → » et pas « ↳ » : la fleche coudee n'existe pas dans Inter, et sortait en
+   caractere de remplacement au milieu de l'infobulle. */
+.ss-tb button[data-info][data-ex]:hover::after,
+.ss-tb button[data-info][data-ex]:focus-visible::after{
+  content:attr(data-info) "\A" "→ " attr(data-ex)}
+
+/* ─── choisir la vignette d'un mob ─── */
+.ss-imgpop{position:fixed;z-index:220;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
+  max-height:min(52vh,420px);overflow:auto;
+  padding:7px;border-radius:12px;background:var(--panel2);border:1px solid var(--line2);box-shadow:var(--shadow-lg)}
+.ss-imgpop button{display:flex;align-items:center;gap:7px;width:100%;
+  font-family:var(--sans);font-size:11.5px;font-weight:600;text-align:left;
+  padding:4px 7px;border-radius:8px;cursor:pointer;
+  color:var(--txt2);background:transparent;border:1px solid transparent;transition:.13s var(--ease)}
+.ss-imgpop button:hover{color:#fff;background:color-mix(in srgb,var(--accent) 16%,transparent);
+  border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.ss-imgpop img{flex:none;width:26px;height:26px;object-fit:contain;border-radius:6px;
+  background:color-mix(in srgb,var(--bg) 60%,transparent)}
 
 /* Un bouton de job porte la couleur de son rôle, la MÊME que le badge dans le
    guide : on reconnaît un tank ou un soigneur avant de lire les trois lettres.
@@ -222,7 +305,10 @@ body{overflow:hidden;background:var(--bg)}
 button.ss-job.r-tank{--jc:var(--r-tank)} button.ss-job.r-buff{--jc:var(--r-buff)}
 button.ss-job.r-heal{--jc:var(--r-heal)} button.ss-job.r-dd{--jc:var(--r-dd)}
 button.ss-job.r-all{--jc:var(--r-all)}
-button.ss-job{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:7px;
+/* Le code du job reste en chasse fixe — c'est un code, pas un mot — mais il
+   garde la hauteur des autres boutons pour que la ligne soit droite. */
+button.ss-job{font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.3px;
+  padding:4px 9px;border-radius:8px;min-height:26px;
   cursor:pointer;transition:.13s var(--ease);
   color:var(--jc);border:1px solid color-mix(in srgb,var(--jc) 34%,transparent);
   background:color-mix(in srgb,var(--jc) 10%,transparent)}

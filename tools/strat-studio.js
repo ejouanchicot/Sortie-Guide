@@ -146,23 +146,26 @@
      d'un côté, ce que le groupe lira de l'autre, rendu par le vrai moteur du
      guide. Ce qui est affiché à droite n'est pas une image d'illustration :
      c'est le même code que la colonne 3 et que le site. */
-  var DEMO = 'Buff · farm\n'
+  // Tout ce qu'une strat sait faire, en huit lignes : une boîte, un badge, une
+  // puce, une alerte, une condition, une comp — et la ligne vide qui referme.
+  var DEMO = 'BUFFBOX\n'
     + 'COR : Chaos Roll\n'
     + '      Samurai Roll\n'
-    + 'BRD : Honor March  ?si le RDM est absent\n'
+    + 'BRD : Honor March  ?sans RDM\n'
     + '\n'
-    + 'Règle\n'
+    + 'REGLEBOX\n'
+    + 'Règles du boss\n'
     + 'ALL! : ne jamais fermer de SC Light\n'
-    + 'DNC@DNC : Ruthless Stroke';
+    + 'MNK@PLD : Victory Smite ×2';
 
+  // Le MÊME dessin que la colonne d'aperçu et que le guide — pas une imitation.
+  // Il était refait à la main ici, et il ne savait donc dessiner ni les boîtes
+  // ni les rubriques emboîtées : l'accueil montrait un rendu que le site
+  // n'aurait jamais produit.
   function demoHtml(){
     var bloc = SC.textToBloc(DEMO, {});
     return '<div class="card pack" style="--ac:var(--r-buff)"><div class="cbody">'
-      + (bloc.groups || []).map(function(g){
-          return '<div class="grp '+(g.cls||'')+'">'
-            + '<div class="glabel '+(g.cls||'')+'">'+esc(g.label)+'</div>'
-            + R.groupBody(g) + '</div>'; }).join('')
-      + '</div></div>';
+      + R.groupsHtml(bloc.groups) + '</div></div>';
   }
 
   function accueil(){
@@ -182,7 +185,8 @@
       +   '<div class="ss-plan-i"><b>Dans une étape, tu décris ce qu’on affronte.</b> '
       +     'Un <i>farm</i>, un <i>boss</i>, autant que nécessaire.</div>'
       +   '<div class="ss-plan-i"><b>Et pour chacun, des rubriques.</b> Les buffs, les règles, '
-      +     'ce que font les DD… Une rubrique contient des actions, une par ligne.</div>'
+      +     'ce que font les DD… Une rubrique contient des actions, une par ligne. '
+      +     'Un mot en <i>BOÎTE</i> l’encadre d’une couleur ; une ligne vide referme le cadre.</div>'
       + '</div>'
 
       // ---- la grammaire, montrée plutôt qu'expliquée ----
@@ -197,15 +201,30 @@
 
       // ---- les signes, et rien de plus ----
       + '<div class="ss-cles">'
-      +   '<div class="ss-cle"><code>JOB :</code><span>Le job, en tête de ligne. Une ligne <b>sans</b> job devient un titre de rubrique.</span></div>'
-      +   '<div class="ss-cle r-tank"><code>TANKBOX</code><span>Seule sur sa ligne : colore le bloc <b>sans rien écrire</b>. Le badge du job suffit. Aussi <code>HEALERBOX</code>, <code>BUFFBOX</code>, <code>DDBOX</code>, <code>MBBOX</code>, <code>REGLEBOX</code>, <code>PROCBOX</code>.</span></div>'
-      +   '<div class="ss-cle r-sub"><code>··</code><span>Décalée vers la droite : une <b>action de plus</b> pour le même job.</span></div>'
+      +   '<div class="ss-cle"><code>JOB :</code><span>Le job en tête de ligne : c’est son <b>badge</b>. '
+      +     'Le job seul suffit — le badge est là, l’action peut venir après.</span></div>'
+      // Les sept mot-clés, chacun dans SA couleur : c'est la couleur qu'on vient
+      // choisir en écrivant le mot, elle doit se voir avant de se lire.
+      +   '<div class="ss-cle r-tank"><code class="b-tank">BOÎTE</code><span>Seule sur sa ligne : elle '
+      +     '<b>encadre ce qui suit</b> de sa couleur, sans rien écrire — le badge du job suffit. '
+      +     '<span class="ss-boites">'
+      +     BOITES_BARRE.map(function(b){
+              return '<code class="b-'+b.cls+'" title="'+esc(b.couleur)+'">'+esc(b.mot)+'</code>'; }).join('')
+      +     '</span></span></div>'
+      +   '<div class="ss-cle r-vide"><code>⏎</code><span>Une <b>ligne vide referme la boîte</b>. C’est le seul '
+      +     'endroit où elle s’arrête — sans elle, la boîte suivante s’emboîte dedans.</span></div>'
+      +   '<div class="ss-cle r-titre"><code>Aa</code><span>Une ligne sans job ni mot-clé est un <b>titre de rubrique</b>. '
+      +     'Entre parenthèses, c’est une <b>remarque</b> en italique.</span></div>'
+      +   '<div class="ss-cle r-sub"><code>··</code><span>Décalée vers la droite : une <b>action de plus</b> pour le même job, en puce.</span></div>'
       +   '<div class="ss-cle r-warn"><code>!</code><span>Après le job : c’est une <b>alerte</b>, ce qui fait wipe si on l’oublie.</span></div>'
-      +   '<div class="ss-cle r-cond"><code>?</code><span>En fin de ligne : ça ne vaut que dans ce <b>cas précis</b>.</span></div>'
+      +   '<div class="ss-cle r-cond"><code>?</code><span>En fin de ligne, après <b>deux espaces</b> : ça ne vaut que dans ce cas précis.</span></div>'
       +   '<div class="ss-cle r-comp"><code>@</code><span>Après le job : réservé à une <b>composition</b> donnée.</span></div>'
+      +   '<div class="ss-cle r-img"><code>[img:]</code><span>En bout d’un titre de rubrique : la <b>vignette</b> du mob à côté.</span></div>'
       + '</div>'
-      + '<p class="ss-mini-note">Tu n’as pas à les retenir : des boutons les posent pour toi '
-      + 'au-dessus de chaque zone de saisie.</p>'
+      + '<p class="ss-mini-note">Tu n’as rien à retenir : au-dessus de chaque zone de saisie, la barre '
+      + 'les pose pour toi, rangés en trois familles — <b>qui</b> agit, ce que dit <b>la ligne</b>, '
+      + 'et <b>le bloc</b> qui l’entoure. Chaque bouton dit au survol ce qu’il écrit. '
+      + 'La préparation en tête d’étape s’écrit exactement pareil.</p>'
 
       + '<p class="ss-hero-go">'
       + (n ? 'Ouvre une étape à gauche pour continuer. '
@@ -291,22 +310,80 @@
     ph.cards.push({kind:nature, name:(nature==='boss'?'Boss · ':'Pack · '), tag:'', groups:[]});
     touche(); dessineBlocs(ph); rendre(); buildTree();
   }
-  // La même barre pour tout ce qui se saisit en lignes : les blocs de la strat
-  // ET le bloc de préparation. Une seule barre à apprendre.
+  /* ---------------- la barre d'écriture ----------------
+     Tout ce qu'une ligne de strat peut être, en un endroit. On écrivait
+     « TANKBOX » de mémoire ou pas du tout : la barre ne proposait que les jobs
+     et quatre marqueurs, alors que la grammaire connaît sept couleurs de
+     boîte, les titres de rubrique, les remarques et les vignettes. Ce qui
+     n'était sur aucun bouton n'existait pas pour qui n'a pas lu le code.
+
+     Trois familles, dans l'ordre où on écrit : QUI agit, ce que la LIGNE dit,
+     et le BLOC qui la contient. Chaque bouton porte un mot — pas un symbole
+     seul — et dit au survol ce qu'il fait et ce qu'il écrit.
+
+     La même barre pour les blocs de strat ET la préparation : une seule à
+     apprendre, puisque c'est la même grammaire. */
+  var BOITES_BARRE = [
+    {mot:'TANKBOX',   nom:'Tank',        cls:'tank',  couleur:'bleu tank'},
+    {mot:'HEALERBOX', nom:'Soin',        cls:'heal',  couleur:'vert soin'},
+    {mot:'BUFFBOX',   nom:'Buffs',       cls:'buff',  couleur:'jaune buffs'},
+    {mot:'DDBOX',     nom:'Dégâts',      cls:'dd',    couleur:'rouge dégâts'},
+    {mot:'MBBOX',     nom:'Magic burst', cls:'mb',    couleur:'cyan magic burst'},
+    {mot:'REGLEBOX',  nom:'Règles',      cls:'rules', couleur:'gris règles'},
+    {mot:'PROCBOX',   nom:'Procs',       cls:'proc',  couleur:'turquoise procs'}
+  ];
+  // info = l'infobulle au survol · ex = ce que le bouton écrit, montré dedans
+  function bouton(attrs, texte, info, ex){
+    return '<button type="button" ' + attrs
+      + ' data-info="' + esc(info) + '"' + (ex ? ' data-ex="' + esc(ex) + '"' : '')
+      + '>' + texte + '</button>';
+  }
+  // une famille = une ligne, avec son étiquette dans la colonne de gauche
+  function famille(nom, contenu){
+    return '<div class="ss-tbg"><span class="ss-tbl">' + nom + '</span>' + contenu + '</div>';
+  }
   function barreOutils(){
+    var R = (typeof ROLE!=='undefined') ? ROLE : {};
     return '<div class="ss-tb">'
-      + '<span class="ss-tbl">job</span>'
-      + barreJobs().map(function(j){
-          var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
-          return '<button type="button" class="ss-job r-'+S.roleDuJob(typeof ROLE!=='undefined'?ROLE:{}, j)
-            + (dansCompo ? '' : ' hors')+'" data-job="'+esc(j)+'"'
-            + (dansCompo ? '' : ' title="Pas dans la compo, mais cité ailleurs dans la strat"')+'>'+esc(j)+'</button>'; }).join('')
-      + '<button type="button" class="ss-job ss-jplus" data-plus="1" title="Citer un job qui n’est pas dans la compo — une alternative, par exemple">＋ job</button>'
-      + '<span class="ss-tbsep"></span>'
-      + '<button type="button" data-mk="warn" title="Mettre la ligne en alerte — ce qui fait wipe">⚠ alerte</button>'
-      + '<button type="button" data-mk="cond" title="N’appliquer la ligne que dans un cas précis">? condition</button>'
-      + '<button type="button" data-mk="comp" title="N’afficher la ligne que pour une composition">@ comp</button>'
-      + '<button type="button" data-mk="sub" title="Une action de plus pour le même job">＋ action</button>'
+
+      + famille('qui',
+          barreJobs().map(function(j){
+            var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
+            return bouton('class="ss-job r-' + S.roleDuJob(R, j) + (dansCompo ? '' : ' hors')
+                + '" data-job="' + esc(j) + '"', esc(j),
+              j === 'ALL' ? 'Toute la party — la ligne vaut pour tout le monde' :
+              (dansCompo ? 'La ligne est pour le ' + j
+                         : 'Le ' + j + ' n’est pas dans la compo, mais il est cité ailleurs'),
+              j + ' : ');
+          }).join('')
+        + bouton('class="ss-mk ss-jplus" data-plus="1"', '<i class="ss-i">＋</i>Autre job',
+            'Citer un job absent de la compo — un remplaçant, par exemple'))
+
+      + famille('la ligne',
+          bouton('class="ss-mk" data-mk="warn"', '<i class="ss-i warn">⚠</i>Alerte',
+            'Ce qui fait wipe — la ligne passe en ambre', 'PLD! : ne pas fermer de SC Light')
+        + bouton('class="ss-mk" data-mk="cond"', '<i class="ss-i">?</i>Condition',
+            'N’appliquer la ligne que dans un cas précis', 'BRD : Honor March  ?sans RDM')
+        + bouton('class="ss-mk" data-mk="comp"', '<i class="ss-i">@</i>Comp',
+            'N’afficher la ligne que pour une composition', 'MNK@PLD : Victory Smite ×2')
+        + bouton('class="ss-mk" data-mk="sub"', '<i class="ss-i">＋</i>Action',
+            'Une action de plus pour le même job — elle se met en puce sous la ligne',
+            'en retrait sous la ligne : Samurai Roll'))
+
+      + famille('le bloc',
+          BOITES_BARRE.map(function(b){
+            return bouton('class="ss-box b-' + b.cls + '" data-boite="' + esc(b.mot) + '"', esc(b.nom),
+              'Encadre ce qui suit en ' + b.couleur + ' — une ligne vide referme la boîte', b.mot);
+          }).join('')
+        + bouton('class="ss-mk" data-mk="titre"', '<i class="ss-i">¶</i>Titre',
+            'Un titre de rubrique — toute ligne sans job devant en est un', 'Fomor ×3 · SC Step 4')
+        + bouton('class="ss-mk" data-mk="note"', '<i class="ss-i">()</i>Remarque',
+            'Une précision en italique, sous le titre de la rubrique', '(on attend le proc)')
+        + bouton('class="ss-mk" data-img="1"', '<i class="ss-i">▣</i>Vignette',
+            'L’image d’un mob, à côté du titre de la rubrique', '[img:Fomor]')
+        + bouton('class="ss-mk" data-mk="ferme"', '<i class="ss-i">⏎</i>Refermer',
+            'Une ligne vide : la boîte s’arrête ici'))
+
       + '</div>';
   }
   // Branche une zone de saisie sur la même barre d'outils que les blocs.
@@ -324,11 +401,16 @@
     el.querySelector('.ss-tb').addEventListener('click', function(e){
       var b = e.target.closest('button'); if(!b) return;
       if(b.dataset.plus){ choisirAutreJob(b, ta); return; }
+      if(b.dataset.img){ choisirImage(b, ta); return; }
       if(b.dataset.job) insereDebut(ta, b.dataset.job+' : ');
+      else if(b.dataset.boite) insereBoite(ta, b.dataset.boite);
       else if(b.dataset.mk==='warn') marqueWarn(ta);
       else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
       else if(b.dataset.mk==='comp') insereApresRoles(ta, '@DNC');
       else if(b.dataset.mk==='sub') insereFin(ta, '\n      ');
+      else if(b.dataset.mk==='titre') insereLigne(ta, 'Titre de la rubrique', true);
+      else if(b.dataset.mk==='note') insereLigne(ta, '(remarque)', true);
+      else if(b.dataset.mk==='ferme') insereApres(ta, '\n');
       ta.dispatchEvent(new Event('input', {bubbles:true}));
     });
   }
@@ -432,11 +514,11 @@
      La vue ne bouge pas : on la repose là où elle était, après avoir remis le
      curseur. `preventScroll` empêche en plus la colonne de sauter pour ramener
      la zone à l'écran — elle y est déjà, c'est nous qui venons de cliquer. */
-  function replace(ta, ecrit, pos){
+  function replace(ta, ecrit, pos, fin){
     var haut = ta.scrollTop, gauche = ta.scrollLeft;
     ecrit();
     try { ta.focus({preventScroll:true}); } catch(_){ ta.focus(); }
-    ta.setSelectionRange(pos, pos);
+    ta.setSelectionRange(pos, fin == null ? pos : fin);
     ta.scrollTop = haut; ta.scrollLeft = gauche;
   }
   function poseLigne(ta, b, neuve, curseur){
@@ -517,6 +599,36 @@
     replace(ta, function(){
       ta.value = ta.value.slice(0,b.f) + txt + ta.value.slice(b.f);
     }, b.f + txt.length);
+  }
+  /* Une BOÎTE occupe sa propre ligne, et la ligne vide au-dessus referme celle
+     d'avant — sans elle, la nouvelle s'emboîterait dedans, ce qui n'est presque
+     jamais ce qu'on veut. Sur un bloc encore vide, pas de ligne vide en tête :
+     le texte commencerait par un trou. */
+  function insereBoite(ta, mot){
+    var b = bornesLigne(ta);
+    var avant = ta.value.slice(0, b.f).replace(/\s+$/,''),
+        reste = ta.value.slice(b.f);
+    /* Le mot-clé occupe sa ligne À LUI, et le curseur descend juste en dessous :
+       une boîte, c'est « le mot, puis ce qu'on met dedans ». En restant collé au
+       mot, la frappe suivante le cassait — on obtenait « TANKBOXPLD : … », qui
+       n'est plus ni une boîte ni un titre.
+       Si une ligne suit déjà, elle devient le contenu ; sinon on l'ouvre. */
+    var ouvre = /^\n/.test(reste) ? '' : '\n';
+    var ajout = (avant ? '\n\n' : '') + mot + ouvre;
+    replace(ta, function(){ ta.value = avant + ajout + reste; },
+            avant.length + ajout.length + (ouvre ? 0 : 1));
+  }
+  /* Un titre de rubrique, une remarque : on pose le mot d'exemple ET on le
+     SÉLECTIONNE. La frappe suivante le remplace — on n'efface pas d'abord ce
+     que l'outil vient d'écrire. */
+  function insereLigne(ta, exemple, choisi){
+    var b = bornesLigne(ta);
+    var avant = ta.value.slice(0, b.f), vide = !avant.replace(/\s+$/,'');
+    var ajout = (vide ? '' : '\n') + exemple;
+    var debut = (vide ? 0 : avant.length) + ajout.length - exemple.length;
+    replace(ta, function(){
+      ta.value = (vide ? '' : avant) + ajout + ta.value.slice(b.f);
+    }, debut, choisi ? debut + exemple.length : null);
   }
 
   /* ---------------- bandeau : comment l'outil comprend la ligne ---------------- */
@@ -750,6 +862,38 @@
   }
   document.addEventListener('mousedown', function(e){
     if(popJob && !popJob.contains(e.target) && !e.target.closest('[data-plus]')) fermePopJob();
+  });
+
+  /* ---------------- « Vignette » : l'image d'un mob ----------------
+     Le nom doit tomber juste — « [img:Fomor] » marche, « [img:fomor] » ne
+     montre rien et rien ne le dit. On choisit donc dans la liste de ceux qui
+     ont vraiment une image, avec l'image à côté du nom. */
+  var popImg = null;
+  function fermePopImg(){ if(popImg){ popImg.remove(); popImg = null; } }
+  function choisirImage(bouton, ta){
+    if(popImg){ fermePopImg(); return; }
+    var mobs = Object.keys((typeof MOB!=='undefined') ? MOB : {});
+    popImg = document.createElement('div');
+    popImg.className = 'ss-imgpop';
+    popImg.innerHTML = mobs.length
+      ? mobs.map(function(m){
+          return '<button type="button" data-mob="'+esc(m)+'">'
+            + '<img src="../'+esc(MOB[m])+'" alt="" loading="lazy"><span>'+esc(m)+'</span></button>'; }).join('')
+      : '<span class="ss-jpop-vide">Aucun mob n’a encore d’image.</span>';
+    var r = bouton.getBoundingClientRect();
+    popImg.style.left = Math.round(Math.max(8, Math.min(r.left, innerWidth - 320))) + 'px';
+    popImg.style.top  = Math.round(r.bottom + 5) + 'px';
+    document.body.appendChild(popImg);
+    popImg.addEventListener('click', function(e){
+      var b = e.target.closest('button[data-mob]'); if(!b) return;
+      // la vignette se pose sur le TITRE de la rubrique, en bout de ligne
+      insereFin(ta, '  [img:' + b.dataset.mob + ']');
+      ta.dispatchEvent(new Event('input', {bubbles:true}));
+      fermePopImg();
+    });
+  }
+  document.addEventListener('mousedown', function(e){
+    if(popImg && !popImg.contains(e.target) && !e.target.closest('[data-img]')) fermePopImg();
   });
 
   /* ---------------- composition du groupe ---------------- */
