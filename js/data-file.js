@@ -156,7 +156,13 @@
     var p = await connue('projet');
     if(!p) return null;
     try{
-      var d = await p.getDirectoryHandle(nom);
+      /* Un chemin peut avoir plusieurs crans (« img/cartes ») : getDirectoryHandle
+         n'accepte qu'UN nom a la fois et refuse le separateur. On descend donc
+         cran par cran — sans ca, deposer ou effacer un fond de carte echouait
+         des que le dossier a ete range. */
+      var d = p;
+      var crans = String(nom).split('/').filter(Boolean);
+      for(var i = 0; i < crans.length; i++) d = await d.getDirectoryHandle(crans[i]);
       vives[cle] = d;
       try{ await ecrit(cle, d); }catch(e){}
       return d;

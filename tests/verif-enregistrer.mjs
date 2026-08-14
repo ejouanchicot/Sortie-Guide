@@ -62,8 +62,14 @@ async function page(opts) {
       const permis = {queryPermission:async()=>'granted', requestPermission:async()=>'granted'};
       const js  = Object.assign({kind:'directory', name:'js'}, permis,
         {getFileHandle: async n => fichier(n, window.__src[n] || '')});
-      const img = Object.assign({kind:'directory', name:'img'}, permis,
+      // img/ porte maintenant ses sous-dossiers : les fonds de carte vivent
+      // dans img/cartes/, et c'est celui-la que l'outil demande.
+      const cartes = Object.assign({kind:'directory', name:'cartes'}, permis,
         {getFileHandle: async n => fichier(n, '')});
+      const img = Object.assign({kind:'directory', name:'img'}, permis,
+        {getFileHandle: async n => fichier(n, ''),
+         getDirectoryHandle: async n => { if(n==='cartes') return cartes;
+                                          throw new Error('absent'); }});
       return Object.assign({kind:'directory', name:'Sortie-Guide'}, permis, {
         getDirectoryHandle: async n => { if(n==='js') return js;
                                          if(n==='img') return img;
@@ -168,8 +174,8 @@ const img = await p.evaluate(async () => {
   const d = await IMPORTIMAGE.dossierPret();
   return {trouve: !!d, nom: d && d.name};
 });
-dit('le dossier img est deja accessible', img.trouve === true, JSON.stringify(img));
-dit('il vient bien du projet', img.nom === 'img', String(img.nom));
+dit('le dossier des fonds est deja accessible', img.trouve === true, JSON.stringify(img));
+dit('il vient bien du projet', img.nom === 'cartes', String(img.nom));
 dit('et personne n\'a rien redemande',
     JSON.stringify(await p.evaluate(() => window.__vus)) === '{"fichier":0,"dossier":0}',
     JSON.stringify(await p.evaluate(() => window.__vus)));

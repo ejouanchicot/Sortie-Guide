@@ -13,7 +13,7 @@
        largement, la scène en fait 1024 et personne ne zoome ×4 ;
      · convertie en WebP, comme tout le reste du dossier img/ : un
        PNG de capture pèse dix fois plus pour le même rendu ;
-     · déposée dans img/ sous un nom déduit de celui de la carte,
+     · déposée dans img/cartes/ sous un nom déduit de celui de la carte,
        et c'est ce CHEMIN que la strat retient.
 
    Le chemin, pas l'image. Une image glissée dans les données les
@@ -31,6 +31,14 @@
   "use strict";
   var DF = global.DATAFILE;
   var COTE_MAX = 1600, QUALITE = 0.9;
+
+  /* Un fond de carte va dans `img/cartes/`, plus a plat dans `img/`. La CLE du
+     souvenir change avec le dossier, et c'est volontaire : une poignee « img »
+     deja memorisee chez le lead continuerait sinon a deposer les nouveaux fonds
+     a la racine, sans que rien ne l'explique. */
+  var DOSSIER = 'img/cartes', CLE_DOSSIER = 'img-cartes';
+  // le chemin tel que la carte le retient
+  function cheminFond(nomCarte){ return DOSSIER + '/' + nomDeFichier(nomCarte); }
 
   /* ---------------- un nom de fichier lisible ----------------
      Il finit dans un dépôt git et dans une URL : ni accents, ni espaces,
@@ -91,8 +99,8 @@
     try{
       // img/ se deduit du dossier du projet quand il est deja autorise : celui
       // qui a enregistre une fois n'a plus rien a autoriser pour poser une image.
-      var dir = DF.sousDossier ? await DF.sousDossier('img', 'img')
-                               : await DF.connue('img');
+      var dir = DF.sousDossier ? await DF.sousDossier(CLE_DOSSIER, DOSSIER)
+                               : await DF.connue(CLE_DOSSIER);
       if(!dir) return null;
       return (await dir.queryPermission({mode:'readwrite'})) === 'granted' ? dir : null;
     }catch(e){ return null; }
@@ -102,11 +110,11 @@
     if(!DF || !DF.dispoDossier()) return {ou:'telechargement'};
     var dir;
     // deja connu, ou deductible du projet : aucun selecteur a ouvrir
-    try{ dir = DF.sousDossier ? await DF.sousDossier('img', 'img') : null; }catch(e){}
+    try{ dir = DF.sousDossier ? await DF.sousDossier(CLE_DOSSIER, DOSSIER) : null; }catch(e){}
     if(dir){
       try{ if(await DF.permission(dir)) return {ou:'ok', dossier:dir}; }catch(e){}
     }
-    try{ dir = await DF.dossier('img'); }
+    try{ dir = await DF.dossier(CLE_DOSSIER); }
     catch(e){
       // l'utilisateur a ferme le selecteur : ce n'est pas une panne
       if(e && (e.name === 'AbortError' || /abort/i.test(e.message || '')))
@@ -131,7 +139,7 @@
     try{ await DF.deposeFichier(dir, nomFichier, prete.blob); }
     catch(e){
       // la poignee memorisee peut ne plus valoir : dossier deplace, renomme…
-      if(DF.oublie) await DF.oublie('img');
+      if(DF.oublie) await DF.oublie(CLE_DOSSIER);
       return {ou:'refuse', pourquoi:(e && (e.name + ' — ' + e.message)) || 'inconnu'};
     }
     return {ou: deja ? 'remplace' : 'ajoute'};
@@ -150,6 +158,7 @@
 
   global.IMPORTIMAGE = {acces:acces, dossierPret:dossierPret,
                         prepare:prepare, depose:depose,
-                        telecharge:telecharge, nomDeFichier:nomDeFichier,
+                        telecharge:telecharge, nomDeFichier:nomDeFichier, cheminFond:cheminFond,
+                        DOSSIER:DOSSIER, CLE:CLE_DOSSIER,
                         ko:ko, COTE_MAX:COTE_MAX};
 })(typeof window!=='undefined'?window:this);

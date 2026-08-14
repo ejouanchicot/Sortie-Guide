@@ -109,7 +109,10 @@
   function cheminsImages(textes){
     var vus = {}, out = [];
     textes.forEach(function(t){
-      var m, re = /img\/[A-Za-z0-9._-]+\.(?:webp|png|jpe?g|svg|gif|avif)/g;
+      // le sous-dossier compte : depuis le rangement, une vignette vit dans
+      // img/mobs/ et un fond dans img/cartes/. Sans lui, le motif ne trouvait
+      // plus RIEN et l'export partait avec des images vides.
+      var m, re = /img\/(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]+\.(?:webp|png|jpe?g|svg|gif|avif)/g;
       while((m = re.exec(t))){ if(!vus[m[0]]){ vus[m[0]] = 1; out.push(m[0]); } }
     });
     return out;

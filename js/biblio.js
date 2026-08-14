@@ -105,8 +105,41 @@
 
   // `g` porte les globales ; `resoudre` rebranche les chapitres sur leurs cartes.
   // Rend les deux réglages numériques, que l'appelant doit reporter lui-même.
+  /* ---------------- les chemins d'images d'avant le rangement ----------------
+     `img/` etait un dossier a plat : 24 vignettes, 6 fonds de carte et les
+     icones de l'application, tout melange. Les vignettes vivent maintenant dans
+     `img/mobs/` et les fonds dans `img/cartes/`.
+
+     Mais une strat gardee en bibliotheque, ou un fichier recu ecrit avant le
+     rangement, retient le chemin TEL QUEL. Sans cette reprise, sa carte
+     s'ouvrait sans son fond et ses creatures sans vignette — sans un mot, parce
+     que le chargeur d'image avale l'erreur. On la fait donc a l'ENTREE, une
+     fois, et elle reste : c'est le prix d'avoir range.
+     Un chemin deja range ne correspond a rien ici et passe intact. */
+  function repriseChemin(p){
+    if(typeof p !== 'string') return p;
+    return p.replace(/^img\/(mob-[^/]+)$/, 'img/mobs/$1')
+            .replace(/^img\/(map[^/]*)$/,  'img/cartes/$1');
+  }
+  function repriseImages(c){
+    if(!c) return c;
+    if(c.mob) Object.keys(c.mob).forEach(function(k){ c.mob[k] = repriseChemin(c.mob[k]); });
+    Object.keys(c.cartes || {}).forEach(function(k){
+      var ca = c.cartes[k]; if(!ca) return;
+      if(ca.fond) ca.fond = repriseChemin(ca.fond);
+      (ca.zones || []).forEach(function(z){ if(z && z.map) z.map = repriseChemin(z.map); });
+      // une image posee comme forme garde aussi son chemin
+      (ca.shapes || []).forEach(function(sh){ if(sh && sh.src) sh.src = repriseChemin(sh.src); });
+    });
+    (c.chapitres || []).forEach(function(ch){
+      if(ch && ch.map) ch.map = repriseChemin(ch.map);
+      (ch && ch.zones || []).forEach(function(z){ if(z && z.map) z.map = repriseChemin(z.map); });
+    });
+    return c;
+  }
+
   function versGlobaux(s, g, resoudre){
-    var c = copie(s);
+    var c = repriseImages(copie(s));
     remplit(g.COMPO, c.compo);
     remplit(g.ROLE,  c.role);
     remplit(g.BUFFS, c.buffs);
@@ -188,6 +221,9 @@
     liste:liste, lis:lis, ecris:ecris, supprime:supprime,
     depuisGlobaux:depuisGlobaux, versGlobaux:versGlobaux,
     nouvelle:nouvelle, duplique:duplique, copie:copie, id:id,
-    courante:courante, noteCourante:noteCourante, persiste:persiste
+    courante:courante, noteCourante:noteCourante, persiste:persiste,
+    // la reprise des chemins d'avant le rangement de img/ — utile a qui relit
+    // une strat d'ailleurs (un export recu, par exemple)
+    repriseImages:repriseImages, repriseChemin:repriseChemin
   };
 })(typeof window!=='undefined'?window:this);

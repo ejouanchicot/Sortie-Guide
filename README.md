@@ -39,6 +39,7 @@ Mobile-first, du téléphone à l'ultra-wide.
 index.html                le guide
 tools/studio.html         l'atelier
 css/  fonts/  img/        style, polices auto-hébergées, images
+                          img/mobs/ les vignettes · img/cartes/ les fonds · le reste, l'app
 js/                       le socle, le moteur du guide, les modules partagés
 tools/                    les deux ateliers + tools/build/ (générateurs)
 tests/                    les tests de rendu · node tests/lancer.mjs

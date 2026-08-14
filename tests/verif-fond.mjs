@@ -95,7 +95,7 @@ console.log('\n— la carte retient le chemin, pas l\'image —');
 const suite = await p.evaluate(async () => {
   const f = FLOORS[0], nom = f.carte;
   const avant = CARTES[nom].fond;
-  CARTES[nom].fond = 'img/map-essai.webp';
+  CARTES[nom].fond = 'img/cartes/map-essai.webp';
   window.SORTIE.resoudreCartes(FLOORS, CARTES);
   const projete = f.map;                       // le chapitre suit-il ?
   const dansLesDonnees = JSON.stringify(CARTES[nom]);
@@ -104,7 +104,7 @@ const suite = await p.evaluate(async () => {
   return {projete, taille:dansLesDonnees.length,
           image:/data:image/.test(dansLesDonnees)};
 });
-dit('le chapitre suit le fond de sa carte', suite.projete === 'img/map-essai.webp', suite.projete);
+dit('le chapitre suit le fond de sa carte', suite.projete === 'img/cartes/map-essai.webp', suite.projete);
 dit('aucune image dans les donnees', !suite.image);
 dit('la carte reste legere', suite.taille < 40000, Math.round(suite.taille/1024) + ' Ko');
 
@@ -168,7 +168,7 @@ const cases = await p.evaluate(() => {
   const II = window.IMPORTIMAGE;
   const R = CARTES;
   const nom = Object.keys(R)[0];
-  const auto = 'img/' + II.nomDeFichier(nom);
+  const auto = II.cheminFond(nom);
 
   // 1. une image que l'outil a nommee : proposee, cochee d'avance
   const gardeFond = R[nom].fond;
@@ -185,13 +185,13 @@ const cases = await p.evaluate(() => {
   // 3. une image posee a la main : proposee, mais PAS cochee
   if(autre) R[autre].fond = gardeAutre;
   R[nom].fond = 'img/une-carte-a-moi.webp';
-  const main = R[nom].fond === ('img/' + II.nomDeFichier(nom));
+  const main = R[nom].fond === II.cheminFond(nom);
 
   R[nom].fond = gardeFond;
   return {nomAuto:auto, seule, partage, mainEstAuto:main};
 });
 dit('une image nommee par l\'outil se reconnait a son nom',
-    /^img\/map-/.test(cases.nomAuto), cases.nomAuto);
+    /^img\/cartes\/map-/.test(cases.nomAuto), cases.nomAuto);
 dit('elle n\'est pas partagee quand elle ne sert qu\'a une carte', cases.seule.partagee === 0);
 dit('partagee par deux cartes, elle est detectee comme telle', cases.partage === 1,
     cases.partage + ' autre(s) carte(s)');

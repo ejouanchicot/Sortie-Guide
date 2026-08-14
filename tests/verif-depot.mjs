@@ -78,7 +78,7 @@ const r = await p.evaluate(async () => {
   window.showDirectoryPicker = async () => {
     const e = new Error('The user aborted a request.'); e.name = 'AbortError'; throw e; };
   const vives = await II.acces();          // la poignee memorisee court-circuite
-  await window.DATAFILE.oublie('img');
+  await window.DATAFILE.oublie(window.IMPORTIMAGE.CLE);   // la poignee memorisee, quel que soit le dossier vise
   const ferme = await II.acces();
 
   return {nom, acces:acc.ou, un:un.ou, deux:deux.ou, trois:trois.ou,

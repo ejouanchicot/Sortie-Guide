@@ -94,9 +94,10 @@ copie du mécanisme, l'un pouvait corrompre ce que l'autre écrivait.
   n'a pas à connaître. Le navigateur n'accorde pas l'écriture sans un geste — la
   question ne peut pas disparaître, seulement se poser une fois et porter sur
   quelque chose qui se reconnaît. Les poignées déjà accordées restent valables.
-- `sousDossier(clé, nom)` — un dossier **dans** le projet en découle sans rien
+- `sousDossier(clé, chemin)` — un dossier **dans** le projet en découle sans rien
   redemander : le navigateur étend l'autorisation aux descendants d'une poignée
-  accordée. C'est ainsi que poser une image de fond ne réclame plus sa propre
+  accordée. Le chemin peut avoir plusieurs crans (`img/cartes`) : on descend
+  cran par cran, `getDirectoryHandle` n'acceptant qu'un nom à la fois. C'est ainsi que poser une image de fond ne réclame plus sa propre
   permission une fois qu'on a enregistré. L'inverse est impossible : depuis `img/`
   on ne remonte pas au projet.
 - `remplace(texte, blocs)` substitue **bloc par bloc** (`const NOM=[…\n];`) sans

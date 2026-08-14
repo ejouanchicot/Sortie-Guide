@@ -1464,7 +1464,9 @@
      On ne le fait donc QUE si l'utilisateur l'a coche, et jamais quand une
      autre carte s'en sert — verifie par l'appelant. */
   async function supprimeImage(chemin){
-    const nomF=String(chemin||'').replace(/^img\//,'');
+    // le NOM du fichier seul : la poignee vise deja son dossier, et removeEntry
+    // refuse un separateur. Avec « cartes/map-x.webp », l'effacement echouait.
+    const nomF=String(chemin||'').split('/').pop();
     if(!nomF||!II)return;
     let dir=await II.dossierPret();
     if(!dir){
@@ -1507,7 +1509,7 @@
     const effacable=!!fond&&!partagee.length&&!!II&&window.DATAFILE.dispoDossier();
     // cochee d'avance seulement si c'est l'outil qui a cree ce fichier : son nom
     // se deduit alors de celui de la carte. Une image posee a la main, non.
-    const nommeeParLOutil=effacable&&fond===('img/'+II.nomDeFichier(nom));
+    const nommeeParLOutil=effacable&&fond===II.cheminFond(nom);
 
     const r=await askConfirm('Supprimer <b>'+esc(nom)+'</b> ?'
       +(quoi?'<br><br>Elle porte '+quoi+' \u2014 tout part avec elle.':'')
@@ -1615,7 +1617,7 @@
       }
     }
 
-    c.fond='img/'+nomFichier;
+    c.fond=II.cheminFond(nomCarte);
     S.resoudreCartes(FL,REG);
     delete imgCache[BASE+c.fond];            // sinon on reverrait l'ancienne
     setDirty(true);await renderFloor(curIdx);fit();majSelCarte();

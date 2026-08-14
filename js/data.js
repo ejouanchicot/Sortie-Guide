@@ -52,30 +52,30 @@ function ln(r,t,opt){opt=opt||{};return {r:r,t:t,cond:opt.cond,warn:opt.warn,com
 
 // ---- images des mobs / boss ----
 const MOB={
- "Degei":"img/mob-degei.webp",
- "Skomora":"img/mob-skomora.webp",
- "Leshonn":"img/mob-leshonn.webp",
- "Ghatjot":"img/mob-ghatjot.webp",
- "Acuex":"img/mob-acuex.webp",
- "Fomor":"img/mob-fomor.webp",
- "Ghost":"img/mob-ghost.webp",
- "Umbril":"img/mob-umbril.webp",
- "Dhartok":"img/mob-dhartok.webp",
- "Gartell":"img/mob-gartell.webp",
- "Triboulex":"img/mob-triboulex.webp",
- "Aita":"img/mob-aita.webp",
- "Aminon":"img/mob-aminon.webp",
- "Botulus":"img/mob-botulus.webp",
- "Ixion":"img/mob-ixion.webp",
- "Naraka":"img/mob-naraka.webp",
- "Tulittia":"img/mob-tulittia.webp",
- "Slime":"img/mob-slime.webp",
- "Slug":"img/mob-slug.webp",
- "Flan":"img/mob-flan.webp",
- "Obdella":"img/mob-obdella.webp",
- "Porxie":"img/mob-porxie.webp",
- "Bhoot":"img/mob-bhoot.webp",
- "Deleterious":"img/mob-deleterious.webp"
+ "Degei":"img/mobs/mob-degei.webp",
+ "Skomora":"img/mobs/mob-skomora.webp",
+ "Leshonn":"img/mobs/mob-leshonn.webp",
+ "Ghatjot":"img/mobs/mob-ghatjot.webp",
+ "Acuex":"img/mobs/mob-acuex.webp",
+ "Fomor":"img/mobs/mob-fomor.webp",
+ "Ghost":"img/mobs/mob-ghost.webp",
+ "Umbril":"img/mobs/mob-umbril.webp",
+ "Dhartok":"img/mobs/mob-dhartok.webp",
+ "Gartell":"img/mobs/mob-gartell.webp",
+ "Triboulex":"img/mobs/mob-triboulex.webp",
+ "Aita":"img/mobs/mob-aita.webp",
+ "Aminon":"img/mobs/mob-aminon.webp",
+ "Botulus":"img/mobs/mob-botulus.webp",
+ "Ixion":"img/mobs/mob-ixion.webp",
+ "Naraka":"img/mobs/mob-naraka.webp",
+ "Tulittia":"img/mobs/mob-tulittia.webp",
+ "Slime":"img/mobs/mob-slime.webp",
+ "Slug":"img/mobs/mob-slug.webp",
+ "Flan":"img/mobs/mob-flan.webp",
+ "Obdella":"img/mobs/mob-obdella.webp",
+ "Porxie":"img/mobs/mob-porxie.webp",
+ "Bhoot":"img/mobs/mob-bhoot.webp",
+ "Deleterious":"img/mobs/mob-deleterious.webp"
 };
 // échelle globale des images de mobs (garde le ratio entre elles) — réglable dans Map Studio
 const MOBSCALE=0.6;
@@ -341,7 +341,7 @@ const OVINTRO_BOT_EN='<p><b>Basement · sectors E → H.</b> Four major NMs: Dha
 // fait que les rassembler sous un nom.
 const CARTES={
  "Sortie · rez-de-chaussée":{
-  fond:"img/map.webp",
+  fond:"img/cartes/map.webp",
   trace:"17.7,42.4 23.6,42.4 23.6,51.5 26.7,51.6 26.7,60.9 23.6,61.0 23.7,73.4 35.9,73.4 36.0,70.8 39.1,70.3 39.6,67.3 45.3,67.3 45.4,73.4 64.1,73.4 64.2,70.4 73.4,70.4 73.5,73.5 85.9,73.5 85.9,61.0 82.9,60.9 82.8,57.9 79.7,57.8 79.7,51.6 86.0,51.5 86.0,33.4 82.9,32.9 82.9,23.5 86.0,23.4 85.9,11.2 73.6,11.2 73.5,14.3 70.4,14.3 70.3,17.1 64.1,17.1 64.0,11.1 45.5,11.1 45.4,14.2 36.0,14.2 35.9,10.9 20.4,10.9 20.4,8.3",
   depart:{"x":17.7,"y":42.4,"l":"S"}, departNom:"Start · Device",
   bosses:[
@@ -373,7 +373,7 @@ const CARTES={
   zones:[{"sector":"A","n":4,"mid":"Obdella"},{"sector":"B","n":3,"mid":"Porxie"},{"sector":"C","n":2,"mid":"Bhoot"},{"sector":"D","n":1,"mid":"Deleterious"}]
  },
  "Sortie · sous-sol":{
-  fond:"img/map-basement.webp",
+  fond:"img/cartes/map-basement.webp",
   trace:"",
   depart:null, departNom:"",
   bosses:[
@@ -403,7 +403,7 @@ const CARTES={
   ],
   icones:[
   ],
-  zones:[{"sector":"E","map":"img/map-e.webp","n":1,"mid":"Botulus"},{"sector":"F","map":"img/map-f.webp","n":4,"mid":"Ixion"},{"sector":"G","map":"img/map-g.webp","n":2,"mid":"Naraka"},{"sector":"H","map":"img/map-h.webp","n":3,"mid":"Tulittia"}]
+  zones:[{"sector":"E","map":"img/cartes/map-e.webp","n":1,"mid":"Botulus"},{"sector":"F","map":"img/cartes/map-f.webp","n":4,"mid":"Ixion"},{"sector":"G","map":"img/cartes/map-g.webp","n":2,"mid":"Naraka"},{"sector":"H","map":"img/cartes/map-h.webp","n":3,"mid":"Tulittia"}]
  }
 };
 

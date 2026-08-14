@@ -75,6 +75,7 @@ Après une modif de `sw.js`, monter `VERSION` — sinon l'ancien cache reste.
 | `tools/map-studio.*` | atelier Carte (Konva) |
 | `tools/strat-studio.*` | atelier Stratégie |
 | `tools/vendor/konva.min.js` | Konva — la seule dépendance, **copiée** dans le dépôt, jamais un CDN |
+| `img/mobs/` · `img/cartes/` | les vignettes de mobs et les fonds de carte. Le reste de `img/` appartient à l'application (icônes, marque). Une strat écrite avant ce rangement retrouve ses images à l'ouverture — `BIBLIO.repriseChemin` |
 | `tools/cleanup-img.ps1` | retire de `img/` les PNG dont le `.webp` existe (vers la corbeille) |
 | `docs/` | architecture, backlog, marque · `docs/archive/` = notes datées |
 

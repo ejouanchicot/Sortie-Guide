@@ -104,7 +104,7 @@ const fin = await p.evaluate(() => ({
   ecrit:window.__t.ecrit, appels:window.__t.appels.length,
   fond:CARTES[FLOORS[0].carte].fond, sale:window.__MS.sale()}));
 dit('l\'image est ecrite dans le dossier', !!fin.ecrit, String(fin.ecrit));
-dit('la carte pointe sur le nouveau fichier', /^img\/map-/.test(fin.fond || ''), fin.fond);
+dit('la carte pointe sur le nouveau fichier', /^img\/cartes\/map-/.test(fin.fond || ''), fin.fond);
 dit('et la strat est marquee non enregistree', fin.sale === true, String(fin.sale));
 dit('aucun appel n\'a echoue faute de geste',
     !(await p.evaluate(() => window.__t.appels.some(a => a.geste === false))));
