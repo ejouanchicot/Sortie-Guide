@@ -272,21 +272,26 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .glabel:empty{display:none}
 .grp.tank{--gc:var(--r-tank)} .grp.buff{--gc:var(--r-buff)} .grp.dd{--gc:var(--r-dd)}
 .grp.heal{--gc:var(--r-heal)}
-/* Le magic burst portait EXACTEMENT le rouge des degats (#f2564d) — et comme il
-   se pose maintenant DANS le bloc de degats qui le prepare, une boite rouge
-   dans une boite rouge ne se voyait plus du tout. Cyan neon : c'est ce qui
-   tranche le plus sur du rouge, et la magie ne se confond avec aucun role. */
-.grp.mb{--gc:#22d3ee}
-/* Une boite dans une boite respire un peu, sinon elle colle a la derniere ligne
-   de celle qui la porte. */
-.grp.boite .grp.boite{margin-top:12px}
-/* Les regles etaient en ambre #e0964f, a un cheveu de l'or des buffs (#e9c23e) :
-   cote a cote en boites, on ne les distinguait plus. Le bleu, le vert, l'or et
-   le rouge sont pris par les roles — restent le violet et le turquoise, les
-   deux seules teintes assez loin des quatre autres. Les procs se separent des
-   regles au passage : ils partageaient la meme couleur, faute de regle a eux. */
-.grp.rules{--gc:var(--violet)}
+/* Le magic burst portait EXACTEMENT le rouge des degats — et comme il se pose
+   maintenant DANS le bloc de degats qui le prepare, rouge sur rouge ne se
+   voyait plus. Violet neon : la magie ne se confond avec aucun role. */
+.grp.mb{--gc:#c65cff}
+/* Les regles ne sont ni un role ni un element : c'est le cadre, pas une action.
+   Elles etaient en ambre, a un cheveu de l'or des buffs. Le gris ardoise est la
+   seule teinte franchement a part des six couleurs vives — et c'est deja celle
+   du badge ALL, que portent presque toutes les lignes de regles. */
+.grp.rules{--gc:var(--r-all)}
 .grp.rules.proc{--gc:#3fbfae}
+/* Une boite dans une boite respire un peu, sinon elle colle a la derniere ligne
+   de celle qui la porte.
+
+   Et surtout son fond est OPAQUE : melange a transparent, il laissait passer la
+   teinte du parent et les deux se mariaient. Un cyan dans une boite rouge
+   virait au gris sale. Melange au fond de la carte, la couleur du dessus reste
+   la sienne. */
+.grp.boite .grp.boite{margin-top:12px;
+  background:color-mix(in srgb,var(--gc,var(--line)) 9%,var(--panel2));
+  border-color:color-mix(in srgb,var(--gc,var(--line)) 30%,transparent)}
 .gnote{font-size:12px;font-style:italic;color:var(--dim);margin:-4px 0 11px;line-height:1.45;padding-left:16px;border-left:2px solid var(--hair)}
 /* portrait de mob sur un groupe (ex: Double Farm) : thumb + label en en-tête, lignes en dessous */
 .grp.hasimg .ghead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
