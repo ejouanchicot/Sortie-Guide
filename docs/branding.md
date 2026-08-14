@@ -152,5 +152,5 @@ DO NOT: no clutter, no photoreal, no 3D, no busy background, keep it clean and l
 - Idéalement finaliser en **SVG** (le mark est géométrique) pour la netteté partout. Ce qui
   sert aujourd'hui : `img/favicon.svg` et `img/favicon-64.png` pour l'onglet, `img/logo.webp`
   pour les deux en-têtes, `img/icon-180.webp` et `img/icon-*.png` pour l'app installée,
-  `og.png` (le guide) et `img/og-studio.webp` (l'atelier) pour les aperçus de partage.
+  `og.jpg` (le guide) et `img/og-studio.webp` (l'atelier) pour les aperçus de partage.
 - Palette à respecter : voir §1. Le dégradé cyan→bleu sur navy est la signature — ne pas en changer.

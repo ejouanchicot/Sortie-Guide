@@ -84,7 +84,7 @@ Pas de modules ES côté navigateur : le site s'ouvre aussi depuis un `file://`.
 ## URL publiques — ne pas renommer
 
 `index.html` · `tools/studio.html` (aussi le `start_url` de la PWA installée) ·
-`og.png` · `manifest.webmanifest` · `sw.js`. Les bouger casse les liens Discord
+`og.jpg` · `manifest.webmanifest` · `sw.js`. Les bouger casse les liens Discord
 déjà partagés et l'app installée chez les leads.
 
 ## Agents
