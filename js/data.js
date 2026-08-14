@@ -97,8 +97,8 @@ const BUFFS={
   ln(["DNC"],"Chocobo Jig")
  ],
  "Buffs de trajet":[
-  ln(["COR"],"Bolter's (Tactician's déjà posé)"),
-  ln(["DNC"],"Chocobo Jig")
+  ln(["COR"],"Bolter/Tactician"),
+  ln(["ALL"],"Chocobo Jig",{warn:1,comp:"DNC"})
  ],
  "Buffs avant le dernier boss":[
   ln(["COR"],"Bolter's + Tactician's"),
@@ -114,28 +114,29 @@ const BUFFS={
 const PHASES=[
 {n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:"Buffs de départ",cards:[
   {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
-    {label:"Setup · au camp Fomor",cls:"tank",lines:[
+    {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"]),
       ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
     ]},
-    {label:"Buff · farm",cls:"buff",lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
-      ln(["GEO"],["Acumen","Malaise"]),
+      ln(["GEO"],["Indi-Acumen","Geo-Malaise"]),
       ln(["BRD"],["Honor March","Victory March"])
     ]},
-    {label:"Fomor ×3 · SC Step 4",cls:"dd",img:"Fomor",lines:[
+    {label:"Fomor ×3 · SC Step 4",cls:"dd",boite:1,img:"Fomor",lines:[
       ln(["MNK"],"Shijin Spiral → Tornado Kick (SC Step 4) ×3",{comp:"PLD"}),
       ln(["DNC"],"Dancing Edge ×4")
     ]},
-    {label:"Acuex ×3 → SC mono-cible + MB Fire (×3 kills)",cls:"mb",img:"Acuex",lines:[
-      ln(["PLD","RDM"],"Chant du Cygne > Chant du Cygne"),
-      ln(["PLD","COR","BRD"],"Savage Blade > Last Stand  (PLD+COR ou BRD+COR)"),
-      ln(["MNK"],"Victory Smite ×2  (Light)",{comp:"DNC"}),
+    {label:"Acuex ×3 → SC + MB",cls:"dd",boite:1,img:"Acuex",lines:[
+      ln(["PLD","COR"],"Savage Blade > Last Stand (Light)"),
+      ln(["MNK"],"Victory Smite ×2  (Light)",{comp:"DNC"})
+    ]},
+    {label:"",cls:"mb",boite:1,niv:1,lines:[
       ln(["RDM","GEO"],"MB Fire sur le SC")
     ]}
   ]},
   {kind:"boss",name:"Boss · Degei",tag:"on spam pour tuer · le proc (mages) ne fait pas de dégât",groups:[
-    {label:"Règle",cls:"rules",lines:[
+    {label:"Règles",cls:"rules",boite:1,lines:[
       ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
       ln(["ALL"],"Setup : PLD fixe l'aggro · RDM pose Gravity II · GEO pose Geo-Gravity"),
@@ -143,41 +144,40 @@ const PHASES=[
       ln(["ALL"],"RDM libre → BRD + RDM procent ensemble"),
       ln(["ALL"],"1 proc suffit en général (2 max) · sous ~20 % pas la peine")
     ]},
-    {label:"Procs · contre par (fait par les mages)",cls:"rules proc",lines:[
+    {label:"Procs",cls:"rules proc",boite:1,lines:[
       ln(["ALL"],"Flaming Kick → WATER"),
       ln(["ALL"],"Flashflood → THUNDER"),
       ln(["ALL"],"Icy Grasp → FIRE"),
       ln(["ALL"],"Eroding Flesh → WIND"),
       ln(["ALL"],"Fulminous Smash → EARTH")
     ]},
-    {label:"PLD",cls:"tank",note:"kite en gérant la distance : rester à +30 yalm au max, plonger sous 30 juste pour build l'aggro / heal, puis ressortir.",lines:[
+    {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"+30 yalm = safe (pas de moves du boss)"),
-      ln(["PLD"],"sous 30 yalm : build l'aggro (JA magie : Flash, Foil)"),
-      ln(["PLD"],"heal la party à ~21 yalm")
+      ln(["PLD"],"Sous 30 yalm : build l'aggro (JA magie : Flash, Foil)"),
+      ln(["PLD"],"Heal la party à ~21 yalm")
     ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",note:"COR et BRD déjà en place depuis le farm. Seul le GEO change sur le boss.",lines:[
+    {label:"Buffs",cls:"buff",boite:1,lines:[
       ln(["GEO"],"Geo-Gravity"),
-      ln(["GEO"],"Indi-Frailty",{cond:"déjà OK si Acuex avant Fomor"}),
+      ln(["GEO"],"Indi-Frailty"),
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["BRD"],["Honor March","Victory March","Minuet V","Aria"],{cond:"set anti-slow"})
     ]},
-    {label:"RDM",cls:"heal",lines:[
+    {label:"",cls:"heal",boite:1,lines:[
       ln(["RDM"],["Saboteur → Gravity II","Dia III","Distract III"])
     ]},
-    {label:"DD · on spam",cls:"dd",lines:[
-      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
+    {label:"DD",cls:"dd",boite:1,lines:[
       ln(["MNK"],"WS libres (spam)"),
-      ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"])
+      ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"]),
+      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"])
     ]}
   ]}
 ]},
 {n:2,boss:"Skomora",map:"",title:"Ghost → Skomora",route:"Mur de droite, plein EST → coin bas-droite (Ghost ×3, puis Skomora, case N).",buffs:"Buffs de trajet",cards:[
   {kind:"pack",name:"Pack · Ghost ×3",tag:"weak Fire · SC → MB Fire",groups:[
-    {label:"Buff · farm",cls:"buff",lines:[
+    {label:"Buff",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Acumen","Malaise"]),
-      ln(["BRD"],["Honor March","Victory March"]),
-      ln(["COR"],"tape (DPS)")
+      ln(["BRD"],["Honor March","Victory March"])
     ]},
     {label:"DD · SC",cls:"dd",lines:[
       ln(["MNK"],"Victory Smite ×2"),
@@ -185,7 +185,8 @@ const PHASES=[
     ]},
     {label:"MB Fire",cls:"mb",lines:[
       ln(["RDM","GEO"],"MB Fire sur le SC")
-    ]}
+    ]},
+    {label:"COR,!@PLD,!@DNC,BRD : Kill après MB",cls:"mb",lines:[]}
   ]},
   {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
     {label:"PLD",cls:"tank",lines:[
@@ -214,15 +215,15 @@ const PHASES=[
       ln(["BRD"],["Honor March","Victory March"])
     ]},
     {label:"DD · tout le monde tape",cls:"dd",lines:[
-      ln(["ALL"],"≥1 WS par mob (obligatoire) · PLD, COR, RDM, BRD, MNK",{comp:"PLD"}),
-      ln(["ALL"],"≥1 WS par mob (obligatoire) · DNC, COR, RDM, BRD, MNK",{comp:"DNC"})
+      ln(["ALL"],"≥1 WS par mob",{comp:"PLD"}),
+      ln(["ALL"],"≥1 WS par mob",{comp:"DNC"})
     ]}
   ]},
   {kind:"boss",name:"Boss · Leshonn",tag:"Thunder ↔ Wind · ~870k",groups:[
     {label:"PLD",cls:"tank",lines:[
       ln(["PLD"],"kite le boss")
     ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
+    {label:"Buffs",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Geo-Gravity","Indi-Frailty"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"])
@@ -237,16 +238,16 @@ const PHASES=[
       ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
       ln(["ALL"],"pas d'empilement (Counter 500+/hit)")
     ]},
-    {label:"◈ Mains THUNDER → proc Earth",cls:"",lines:[
+    {label:"Mains THUNDER → proc Earth",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
       ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"spam Savage Blade"),
       ln(["RDM","GEO"],"MB Earth sur le SC")
     ]},
-    {label:"◈ Mains WIND → proc Ice",cls:"",lines:[
+    {label:"Mains WIND → proc Ice",cls:"",lines:[
       ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
       ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
-      ln(["COR"],"spam Savage Blade"),
+      ln(["COR"],"Savage Blade"),
       ln(["RDM","GEO"],"MB Ice sur le SC"),
       ln(["ALL"],"Chokehold vole les buffs = wipe → proc opposé / kill vite (Asylum si WHM)",{warn:1})
     ]}
@@ -257,7 +258,7 @@ const PHASES=[
     {label:"PLD",cls:"tank",lines:[
       ln(["PLD"],"tank sur place")
     ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
+    {label:"Buffs",cls:"buff",lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"])
@@ -266,9 +267,9 @@ const PHASES=[
       ln(["RDM"],["Dia III","Distract III"])
     ]},
     {label:"DD",cls:"dd",lines:[
-      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
       ln(["MNK"],"WS libres, évite Howling Fist > Savage (+ Chakra)"),
-      ln(["DNC"],"Ruthless Stroke (jamais Darkness)")
+      ln(["DNC"],"Ruthless Stroke (jamais Darkness)"),
+      ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"])
     ]},
     {label:"Règles",cls:"rules",lines:[
       ln(["ALL"],"absorbe Water → boost ses TP moves"),
@@ -289,7 +290,7 @@ const PHASES=[
    ============================================================ */
 const PHASES_B=[
 {n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"",noHeadImg:true,groups:[
+  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
     {label:"Botulus",cls:"",lines:[
       ln(["ALL"],"On tue Botulus sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
@@ -297,7 +298,7 @@ const PHASES_B=[
   {kind:"boss",name:"Boss · Dhartok",tag:"à définir",groups:[]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"",noHeadImg:true,groups:[
+  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
     {label:"Naraka",cls:"",lines:[
       ln(["ALL"],"On tue Naraka sur le trajet : dégâts dans le dos, et on stun chacun de ses TP moves au Flat Blade")
     ]}
