@@ -118,6 +118,7 @@ const PHASES=[
       ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"]),
       ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
     ]},
+    {label:"PLD",cls:"tank",niv:1,lines:[]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Indi-Acumen","Geo-Malaise"]),
