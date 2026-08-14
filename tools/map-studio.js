@@ -235,11 +235,23 @@
      On compose sur une TOILE et non dans une image fabriquée : relire les
      pixels d'une image locale est interdit quand l'atelier est ouvert depuis un
      fichier, et il doit s'ouvrir hors ligne. */
-  const COLLE={}, COLLE_REF=256, COLLE_DIRS=36;
+  /* Le cache est BORNE : la couleur vient d'un selecteur qui previent a chaque
+     mouvement du curseur, et chaque teinte laisse deux toiles de 256x256. Une
+     seance de reglage en produisait des dizaines, gardees pour toujours —
+     l'onglet gonflait de plusieurs mega-octets sans que rien ne le libere.
+     Au-dela de la limite, on oublie les plus anciennes : ce sont les teintes
+     qu'on a traversees en glissant, pas celles qu'on a choisies. */
+  const COLLE=new Map(), COLLE_REF=256, COLLE_DIRS=36, COLLE_MAX=48;
   function icoColle(ico,col,bord){
     const cle=ico+'|'+col+'|'+bord;
-    if(!COLLE[cle])COLLE[cle]=icoImg(ico).then(im=>im?composeColle(im,col,bord):null);
-    return COLLE[cle];
+    if(COLLE.has(cle)){
+      const v=COLLE.get(cle);COLLE.delete(cle);COLLE.set(cle,v);   // la plus recemment servie passe en queue
+      return v;
+    }
+    const p=icoImg(ico).then(im=>im?composeColle(im,col,bord):null);
+    COLLE.set(cle,p);
+    while(COLLE.size>COLLE_MAX)COLLE.delete(COLLE.keys().next().value);
+    return p;
   }
   function composeColle(im,col,bord){
     const R=COLLE_REF, r=R*S.ICO_BORD, place=R*S.ICO_PART;
@@ -273,7 +285,7 @@
   function poseFiltres(){
     if(document.getElementById(S.icoFiltreId(S.ICO_CONTOUR_DEF)))return;
     const filtres=Object.keys(S.ICO_CONTOURS)
-      .map(b=>S.icoFiltre(S.icoFiltreId(b),null,S.ICO_CONTOURS[b])).join('');
+      .map(b=>S.icoFiltre(S.icoFiltreId(b),S.ICO_CONTOURS[b])).join('');
     const d=document.createElement('div');
     d.innerHTML='<svg width="0" height="0" aria-hidden="true" focusable="false"'
       +' style="position:absolute">'+filtres+'</svg>';

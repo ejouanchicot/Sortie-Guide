@@ -19,13 +19,13 @@
   var EL_KEYS = ['fire','water','ice','thunder','wind','earth','light','dark','red','blue','green','gray'];
 
   // couleurs hex directes (fond canvas / Konva)
-  var EL_HEX = {fire:'#f2564d',water:'#4aa3e0',ice:'#5fd0d0',thunder:'#b07cff',wind:'#43c463',earth:'#c9975c',light:'#ffffff',dark:'#c85fe0',red:'#f2564d',blue:'#4aa3e0',green:'#43c463',gray:'#a6b2c2'};
+  var EL_HEX = {fire:'#f2564d',water:'#4aa3e0',ice:'#5fd0d0',thunder:'#b07cff',wind:'#43c463',earth:'#96633a',light:'#ffffff',dark:'#d94fb8',red:'#f2564d',blue:'#4aa3e0',green:'#43c463',gray:'#8b93a0'};
   // variables CSS de thème (guide + éditeur DOM — suivent clair/sombre)
-  var EL_VAR = {fire:'var(--e-fire)',water:'var(--e-water)',ice:'var(--e-ice)',thunder:'var(--e-thunder)',wind:'var(--e-wind)',earth:'var(--e-earth)',light:'var(--e-light)',dark:'var(--e-dark)',red:'var(--e-fire)',blue:'var(--e-water)',green:'var(--e-wind)',gray:'#a6b2c2'};
+  var EL_VAR = {fire:'var(--e-fire)',water:'var(--e-water)',ice:'var(--e-ice)',thunder:'var(--e-thunder)',wind:'var(--e-wind)',earth:'var(--e-earth)',light:'var(--e-light)',dark:'var(--e-dark)',red:'var(--e-fire)',blue:'var(--e-water)',green:'var(--e-wind)',gray:'#8b93a0'};
   // couleur secondaire d'accent (pulsation des pastilles boss)
   var EL_ZC2 = {red:'#ff9d3a',blue:'#7ce0ff',green:'#b6ff5a',gray:'#ffffff'};
 
-  var GRAY = '#a6b2c2';
+  var GRAY = '#8b93a0';
   function elHex(el){ return EL_HEX[el] || GRAY; }
 
   // ---- géométrie des marqueurs (modèle, pas rendu) ----
@@ -254,14 +254,14 @@
   var ICO_HEX = {
     GROUP:'#ffffff',   // tout le monde, sans distinguer les jobs
     STACK:'#4c9df0',   // se rassembler
-    SPREAD:'#b07cff',  // s'ecarter — l'oppose du bleu qui rassemble
+    SPREAD:'#7a3fc4',  // s'ecarter — l'oppose du bleu qui rassemble
     DANGER:'#f2564d',  // ce qui tue
     STUN:'#ffd93b',    // l'eclair
     HEAL:'#3fca6a',    // le soin
     BUFF:'#5fd0d0',    // le soutien
     ATTACK:'#f2564d',  // frapper ici
     KITE:'#ffffff',    // emmener au loin
-    CHEST:'#e9c23e',   // le tresor
+    CHEST:'#c98a2e',   // le tresor
     START:'#7ed957',   // l'entree
     SKULL:'#ffffff',   // la mort
     FOCUS:'#ff6b9d'    // la priorite
@@ -273,19 +273,18 @@
   /* Le contour de l'autocollant, en XML de filtre SVG. C'est une DILATATION de
      la silhouette : le trait epouse le dessin au lieu de l'encadrer, et il
      traverse les ajours d'un emblème de job sans les fermer.
-     Ce meme filtre sert des deux cotes — le guide le pose dans la page,
-     l'atelier l'embarque dans l'image qu'il compose pour Konva — pour que la
-     carte qu'on ecrit et celle que le groupe lit aient le meme trait.
-     `cote` : la mesure du dessin quand on compose a taille fixe (l'atelier).
-     Sans lui, le rayon se compte en PART de l'element (le guide, dont le jeton
-     retrecit sur un telephone) — sinon le meme marqueur porte un gros contour
-     sur petit ecran et un cheveu sur grand. */
-  function icoFiltre(id, cote, hex){
-    var abs = (cote != null);
+     Son rayon se compte en PART de l'element (primitiveUnits) et non en pixels :
+     le jeton retrecit sur un telephone, et un rayon fixe donnerait un gros
+     contour sur petit ecran et un cheveu sur grand.
+     C'est le GUIDE qui s'en sert — la palette de l'atelier aussi, puisqu'elle
+     est en HTML. La carte de l'atelier, elle, est une toile : Konva n'a pas de
+     filtre, elle recompose son contour a la main (composeColle). Deux moteurs,
+     deux dessins, un seul modele — ICO_BORD. */
+  function icoFiltre(id, hex){
     return '<filter id="' + id + '" x="-40%" y="-40%" width="180%" height="180%"'
-      + (abs ? '' : ' primitiveUnits="objectBoundingBox"') + '>'
+      + ' primitiveUnits="objectBoundingBox">'
       + '<feMorphology operator="dilate" in="SourceAlpha" result="gros" radius="'
-      + (abs ? ICO_BORD * cote : ICO_BORD) + '"/>'
+      + ICO_BORD + '"/>'
       + '<feFlood flood-color="' + (hex || ICO_CONTOURS[ICO_CONTOUR_DEF]) + '"/>'
       + '<feComposite in2="gros" operator="in" result="bord"/>'
       + '<feMerge><feMergeNode in="bord"/><feMergeNode in="SourceGraphic"/></feMerge>'

@@ -217,8 +217,9 @@
    La silhouette vient du fichier, la couleur vient d'ici. Un SVG charge en
    <img> est un document isole — son currentColor ne voit pas la page, et il
    sortirait en noir sur ce fond. */
+/* Pas de container-type ici : la vignette a une taille fixe, son ombre se pose
+   donc en pixels. Le guide, lui, doit suivre un jeton qui retrecit. */
 .ms .palbtn .icocolle{width:40px;height:40px;display:block;position:relative;
-  container-type:size;
   filter:var(--bordf,url(#icobord-noir)) drop-shadow(0 2px 4px rgba(0,0,0,.5))}
 .ms .palbtn .icoprev{position:absolute;inset:7%;display:block;background:var(--pc,#eaf3ff);
   -webkit-mask-position:center;mask-position:center;

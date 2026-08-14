@@ -192,6 +192,10 @@
       .replace(/<link rel="stylesheet" href="css\/style\.css">/,
                '<style>' + compacte(css, 'css') + '</style>')
       .replace(/<link rel="icon"[^>]*>\s*/g, '')
+      // Le hors-ligne du site n'a pas de sens ici : un fichier qu'on s'échange
+      // n'a pas de sw.js à côté de lui, et il est déjà entièrement sur le
+      // disque de celui qui l'ouvre.
+      .replace(/<script id="sw-guide">[\s\S]*?<\/script>\s*/g, '')
       // l'aperçu social pointe vers le site : un fichier qu'on s'échange
       // n'a pas d'adresse, la balise ne veut plus rien dire
       .replace(/<meta property="og:[^>]*>\s*/g, '')

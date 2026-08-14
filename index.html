@@ -82,5 +82,13 @@
 <script src="js/sortie-map-core.js"></script>
 <script src="js/strat-render.js"></script>
 <script src="js/app.js"></script>
+<!-- Le guide se met AUSSI hors ligne. Le service worker n'etait enregistre que
+     depuis l'atelier : le linkshell, qui recoit un lien et ne fait que lire, ne
+     l'installait donc jamais — reseau coupe, le guide n'affichait plus rien.
+     C'est le public le plus nombreux, et c'etait le moins couvert.
+     Le service worker ne fait que le hors-ligne, et il echoue en silence : un
+     guide ouvert depuis un fichier (file://) ne peut pas en avoir, et n'en a
+     pas besoin puisque tout est deja sur le disque. -->
+<script id="sw-guide">if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(function(){});});}</script>
 </body>
 </html>

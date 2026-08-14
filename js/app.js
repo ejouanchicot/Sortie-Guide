@@ -181,7 +181,7 @@ function filtreIcones(){
   const S=window.SORTIE;
   if(document.getElementById(S.icoFiltreId(S.ICO_CONTOUR_DEF))) return;
   const filtres=Object.keys(S.ICO_CONTOURS)
-    .map(b=>S.icoFiltre(S.icoFiltreId(b), null, S.ICO_CONTOURS[b])).join('');
+    .map(b=>S.icoFiltre(S.icoFiltreId(b), S.ICO_CONTOURS[b])).join('');
   const d=document.createElement('div');
   d.innerHTML='<svg width="0" height="0" aria-hidden="true" focusable="false"'
     +' style="position:absolute">'+filtres+'</svg>';
