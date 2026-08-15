@@ -536,7 +536,7 @@
   var CHAMPS_CARTE = [['map','fond'], ['points','trace'], ['start','depart'],
     ['startNode','departNom'], ['bosses','bosses'], ['packs','packs'], ['mids','mids'],
     ['routes','routes'], ['texts','texts'], ['shapes','shapes'], ['icones','icones'],
-    ['zones','zones']];
+    ['zones','zones'], ['roster','roster']];
   function resoudreCartes(floors, cartes){
     (floors || []).forEach(function(f){
       var c = (cartes || {})[f.carte];
@@ -588,6 +588,11 @@
       return d + p[0] + ':' + corpsTableau(p[1]('X', c[p[0]] || []), d);
     }).join(',\n');
     if(c.zones) s += ',\n' + d + 'zones:' + JSON.stringify(c.zones);
+    /* Les creatures qu'on peut poser SUR cette carte. C'est du contenu : les
+       noms des mobs de Sortie vivaient en dur dans l'atelier, qui est pourtant
+       cense ignorer ce qu'on y ecrit. Absent, la palette propose tout ce que
+       MOB connait — un roster manquant n'empeche donc jamais de travailler. */
+    if(c.roster) s += ',\n' + d + 'roster:' + JSON.stringify(c.roster);
     return s + '\n' + ind + '}';
   }
   function cartesConst(nm, registre){

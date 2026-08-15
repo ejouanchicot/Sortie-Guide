@@ -80,18 +80,26 @@
   let tirePal=null;    // ce qu'on est en train de glisser depuis la palette
   let armedShape=null;   // 'rect' | 'ell' | {src} : ce que les outils Formes / Image vont poser
   let lastPh=1;   // dernière phase choisie pour un pack — reprise à la création suivante
-  // rosters par étage : les NM (boss/midboss) diffèrent entre rez-de-chaussée et sous-sol
-  const BOSS_TOP=['Degei','Skomora','Leshonn','Ghatjot'],BOSS_BOT=['Dhartok','Triboulex','Aita','Gartell','Aminon'];
-  const MID_TOP=['Obdella','Porxie','Bhoot','Deleterious'],MID_BOT=['Botulus','Ixion','Naraka','Tulittia'];
-  const PACK_TOP=['Acuex','Fomor','Ghost','Umbril'],PACK_BOT=['Slime','Slug','Flan'];
-  const NAMED=new Set([...BOSS_TOP,...BOSS_BOT,...MID_TOP,...MID_BOT,...PACK_TOP,...PACK_BOT]);
-  // images proposées selon l'étage courant + la catégorie (boss/mid/pack tous floor-spécifiques)
-  function rosterFor(floorId,cat,MOBimg){const top=floorId==='top';
-    if(cat==='boss')return (top?BOSS_TOP:BOSS_BOT).filter(n=>MOBimg[n]);
-    if(cat==='mid')return (top?MID_TOP:MID_BOT).filter(n=>MOBimg[n]);
-    const base=(top?PACK_TOP:PACK_BOT).filter(n=>MOBimg[n]);
-    const generic=Object.keys(MOBimg).filter(n=>!NAMED.has(n)); // filet : image non classée → visible partout plutôt qu'invisible
-    return base.concat(generic);}
+  /* ---------------- ce qu'on peut poser SUR cette carte ----------------
+     Les dix-huit noms de mobs de Sortie vivaient ici, en dur, dans un atelier
+     qui est pourtant cense ignorer ce qu'on ecrit avec lui : preparer une strat
+     pour un autre donjon obligeait a editer le moteur. Ils sont maintenant dans
+     data.js, portes par la carte — c'est elle qui sait quelles creatures on y
+     rencontre, pas l'outil.
+
+     Le filet reste le meme : une image que le roster ne classe pas est proposee
+     partout plutot qu'invisible, et une carte SANS roster propose tout ce que
+     MOB connait. Une carte neuve n'a donc rien a declarer pour etre utilisable. */
+  function rosterCarte(){const c=REG[(FL[curIdx]||{}).carte];return (c&&c.roster)||null;}
+  function rosterFor(cat,MOBimg){
+    const r=rosterCarte();
+    const tous=Object.keys(MOBimg);
+    if(!r)return tous;                                  // rien de declare : tout est propose
+    const classes=new Set([].concat(r.boss||[],r.mid||[],r.pack||[]));
+    const base=(r[cat]||[]).filter(n=>MOBimg[n]);
+    if(cat!=='pack')return base;
+    // un pack non classe reste visible : c'est le filet, et il a deja servi
+    return base.concat(tous.filter(n=>!classes.has(n)));}
   const pinSize=S.poiSize;                        // tailles des marqueurs : socle partagé
 
   const imgCache={};
@@ -632,7 +640,7 @@
   function placeholderPalette(){return palCat==='job'?'chercher un job…'
     :palCat==='marq'?'chercher un repère…':'chercher une créature…';}
   function armRoster(){const names=palCat==='job'?S.ICO_JOBS:palCat==='marq'?S.ICO_MARQUEURS
-                        :rosterFor(FL[curIdx].id,palCat,MOBOF());
+                        :rosterFor(palCat,MOBOF());
     const q=armSearch.trim().toLowerCase();
     return q?names.filter(n=>(n+' '+S.icoNom(n)).toLowerCase().includes(q)):names;}
   function showPalette(){if(tool!=='pin')return;setInspTitle('Nouveau marqueur','var(--cyan)');
@@ -1740,8 +1748,14 @@
      ============================================================ */
   const EXP_MIME={png:'image/png',jpeg:'image/jpeg',webp:'image/webp'};
   let expFmt='png', expEch=2, expQual=0.92;
-  function nomFichier(ext){const f=FL[curIdx];
-    return 'sortie-'+(f&&f.id==='top'?'rez-de-chaussee':'sous-sol')+'.'+ext;}
+  /* Le nom du fichier vient de la CARTE. Il etait prefixe « sortie- » en dur,
+     et un troisieme chapitre serait sorti en « sous-sol » quoi qu'il porte. */
+  function nomFichier(ext){
+    const nom=(FL[curIdx]||{}).carte||'carte';
+    let n=String(nom);
+    if(n.normalize)n=n.normalize('NFD').replace(/[̀-ͯ]/g,'');
+    n=n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    return (n||'carte')+'.'+ext;}
   function telecharger(href,nom){const a=document.createElement('a');
     a.href=href;a.download=nom;document.body.appendChild(a);a.click();a.remove();}
   async function exportImage(){

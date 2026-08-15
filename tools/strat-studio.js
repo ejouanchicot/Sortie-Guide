@@ -1016,8 +1016,12 @@
     if(typeof COMPO !== 'undefined') out.push({nom:'COMPO', scalaire:true, txt:S.compoConst('COMPO', CP)});
     if(typeof ROLE !== 'undefined') out.push({nom:'ROLE', txt:S.roleConst('ROLE', ROLE)});
     out.push({nom:'BUFFS', txt:SC.buffsConst('BUFFS', JEUX)});
-    FL.forEach(function(f){
-      var nom = f.phasesNom || ((f.id==='top') ? 'PHASES' : 'PHASES_B');
+    /* Le chapitre dit lui-meme ou vivent ses etapes. Le repli ne devine plus
+       sur son identifiant — « top » donnait PHASES, tout le reste PHASES_B, ce
+       qui ne valait que pour Sortie et melangeait les etapes d'un troisieme
+       chapitre avec celles du sous-sol. Il se deduit maintenant du rang. */
+    FL.forEach(function(f, i){
+      var nom = f.phasesNom || (i === 0 ? 'PHASES' : 'PHASES_' + String.fromCharCode(65 + i));
       out.push({nom:nom, txt:SC.phasesConst(nom, f.phases||[])});
     });
     return out;

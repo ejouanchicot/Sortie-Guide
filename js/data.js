@@ -370,7 +370,8 @@ const CARTES={
   ],
   icones:[
   ],
-  zones:[{"sector":"A","n":4,"mid":"Obdella"},{"sector":"B","n":3,"mid":"Porxie"},{"sector":"C","n":2,"mid":"Bhoot"},{"sector":"D","n":1,"mid":"Deleterious"}]
+  zones:[{"sector":"A","n":4,"mid":"Obdella"},{"sector":"B","n":3,"mid":"Porxie"},{"sector":"C","n":2,"mid":"Bhoot"},{"sector":"D","n":1,"mid":"Deleterious"}],
+  roster:{"boss":["Degei","Skomora","Leshonn","Ghatjot"],"mid":["Obdella","Porxie","Bhoot","Deleterious"],"pack":["Acuex","Fomor","Ghost","Umbril"]}
  },
  "Sortie · sous-sol":{
   fond:"img/cartes/map-basement.webp",
@@ -403,7 +404,8 @@ const CARTES={
   ],
   icones:[
   ],
-  zones:[{"sector":"E","map":"img/cartes/map-e.webp","n":1,"mid":"Botulus"},{"sector":"F","map":"img/cartes/map-f.webp","n":4,"mid":"Ixion"},{"sector":"G","map":"img/cartes/map-g.webp","n":2,"mid":"Naraka"},{"sector":"H","map":"img/cartes/map-h.webp","n":3,"mid":"Tulittia"}]
+  zones:[{"sector":"E","map":"img/cartes/map-e.webp","n":1,"mid":"Botulus"},{"sector":"F","map":"img/cartes/map-f.webp","n":4,"mid":"Ixion"},{"sector":"G","map":"img/cartes/map-g.webp","n":2,"mid":"Naraka"},{"sector":"H","map":"img/cartes/map-h.webp","n":3,"mid":"Tulittia"}],
+  roster:{"boss":["Dhartok","Triboulex","Aita","Gartell","Aminon"],"mid":["Botulus","Ixion","Naraka","Tulittia"],"pack":["Slime","Slug","Flan"]}
  }
 };
 
