@@ -6,7 +6,7 @@
   color-scheme:dark;
   /* jetons de ces trois couleurs, jusqu'ici ecrites en dur plus bas : sans eux,
      le theme clair ne pouvait pas les rejouer. */
-  --warn:#f2c98a; --gc-mb:#22d3ee; --gc-proc:#3fbfae;
+  --warn:#f2c98a; --gc-mb:#22d3ee; --gc-proc:#3fbfae; --gc-tp:#f06fb0;
   --r-dd:#f2564d; --r-tank:#4c9df0; --r-buff:#e9c23e; --r-heal:#3fca6a; --r-all:#8a94a6;
   /* Ténèbres et Eau étaient LE MÊME pixel pour un œil deutéranope : un boss dark
      et un pack water portaient la même pastille, le même nœud de timeline. Terre
@@ -65,7 +65,7 @@
   --r-heal:#12854e; --r-tank:#1668c4; --r-dd:#c0261d; --r-all:#5c6577;
   --e-wind:#12854e; --e-water:#1f6fbf; --e-ice:#0f7a84; --e-thunder:#6a3fd0;
   --e-dark:#8f2ea6; --e-earth:#8a5a28; --e-fire:#c0261d;
-  --warn:#8a5200; --gc-mb:#0e7c92; --gc-proc:#0f7361;
+  --warn:#8a5200; --gc-mb:#0e7c92; --gc-proc:#0f7361; --gc-tp:#b02a72;
 }
 :root[data-theme="light"] .ckind.boss{color:var(--violet)}
 
@@ -301,20 +301,42 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
    se voyait seule au-dessus du badge des qu'un ancien rendu restait en cache —
    un point bleu sans rien a cote, impossible a comprendre. */
 .glabel:empty{display:none}
-.grp.tank{--gc:var(--r-tank)} .grp.buff{--gc:var(--r-buff)} .grp.dd{--gc:var(--r-dd)}
-.grp.heal{--gc:var(--r-heal)}
+.grp.tank{--gc:var(--r-tank);--tag:"TANK"} .grp.buff{--gc:var(--r-buff);--tag:"BUFF"}
+.grp.dd{--gc:var(--r-dd);--tag:"DPS"}
+.grp.heal{--gc:var(--r-heal);--tag:"SOIN"}
+/* Les debuffs sont l'inverse des buffs, et ne doivent surtout pas se lire comme
+   eux : un cadre a l'or des buffs qui dit « retire le poison » se confond avec
+   celui qui dit « pose Chaos Roll ». Violet — la teinte deja portee par les
+   alterations dans les lignes (Taint, Charm, Gravity). */
+.grp.debuff{--gc:var(--violet);--tag:"DEBUFF"}
 /* Le magic burst portait EXACTEMENT le rouge des degats — et comme il se pose
    maintenant DANS le bloc de degats qui le prepare, rouge sur rouge ne se
    voyait plus. Cyan neon : c'est ce qui tranche le plus sur du rouge, et la
    magie ne se confond avec aucun role. */
-.grp.mb{--gc:var(--gc-mb)}
+.grp.mb{--gc:var(--gc-mb);--tag:"MB"}
 /* Les regles ne sont ni un role ni un element : c'est le cadre, pas une action.
    Elles etaient en ambre, a un cheveu de l'or des buffs. Le gris ardoise est la
    seule teinte franchement a part des six couleurs vives — et c'est deja celle
    du badge ALL, que portent presque toutes les lignes de regles. */
-.grp.rules{--gc:var(--r-all)}
-.grp.rules.proc{--gc:var(--gc-proc)}
+/* Ce que le MOB fait, pas ce que le groupe fait : ses TP moves ne sont ni un
+   role ni une regle. Rose — la seule teinte qui ne soit celle d'aucun role,
+   et qui ne se confonde ni avec le violet des debuffs ni avec le turquoise
+   des procs, dont elle est souvent voisine. */
+.grp.tp{--gc:var(--gc-tp);--tag:"TP MOVES"}
+.grp.rules{--gc:var(--r-all);--tag:"RÈGLES"}
+.grp.rules.proc{--gc:var(--gc-proc);--tag:"PROCS"}
 .gnote{font-size:12px;font-style:italic;color:var(--dim);margin:-4px 0 11px;line-height:1.45;padding-left:16px;border-left:2px solid var(--hair)}
+/* Une rubrique qui n'est QUE son titre et sa remarque : le nom d'un TP move et
+   ses effets. Elle se lit d'un coup d'oeil et n'a pas besoin de l'air d'une
+   rubrique qui porte des lignes — a sept dans une boite a procs, ca faisait un
+   mur haut de deux ecrans. */
+.grp.seultitre{padding:6px 0 5px}
+.grp.seultitre .glabel{margin-bottom:3px}
+.grp.seultitre .gnote{margin:0}
+/* Deux de suite, ce n'est plus deux rubriques : c'est une LISTE. La pastille de
+   chaque titre suffit a les separer — le filet ne tombait qu'une fois sur deux
+   et donnait un decoupage qui ne voulait rien dire. */
+.grp.seultitre + .grp.seultitre{border-top:0}
 /* portrait de mob sur un groupe (ex: Double Farm) : thumb + label en en-tête, lignes en dessous */
 .grp.hasimg .ghead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .grp.hasimg .ghead .glabel{margin:0;min-width:0}
@@ -346,15 +368,22 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
    dégâts donnaient rigoureusement le meme rectangle — rien pour les separer.
    Trois lettres suffisent, et elles se lisent sans la couleur. En absolu :
    la boite garde exactement la mise en page qu'elle avait. */
-.grp:is(.tank,.heal,.buff,.dd):not(:has(.glabel:not(:empty))){position:relative}
-.grp:is(.tank,.heal,.buff,.dd):not(:has(.glabel:not(:empty)))::before{
-  position:absolute;top:3px;right:9px;
+/* Le nom du cadre est porte par une VARIABLE, pas par le selecteur : sans ca il
+   fallait repeter la condition d'affichage pour chacune des neuf couleurs, et
+   une rubrique ordinaire teintee en tank se serait vue coller un " TANK " en
+   plein milieu de son texte. La variable dit CE QUE C'EST ; les deux regles
+   ci-dessous disent OU on l'ecrit. */
+.grp.boite,
+.grp:is(.tank,.heal,.buff,.debuff,.dd,.tp,.mb,.rules):not(:has(.glabel:not(:empty)))
+  {position:relative}
+.grp.boite::before,
+.grp:is(.tank,.heal,.buff,.debuff,.dd,.tp,.mb,.rules):not(:has(.glabel:not(:empty)))::before{
+  content:var(--tag,"");position:absolute;top:3px;right:9px;
   font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.1em;
   color:var(--gc);opacity:.72;pointer-events:none}
-.grp.tank:not(:has(.glabel:not(:empty)))::before{content:"TANK"}
-.grp.heal:not(:has(.glabel:not(:empty)))::before{content:"SOIN"}
-.grp.dd:not(:has(.glabel:not(:empty)))::before{content:"DPS"}
-.grp.buff:not(:has(.glabel:not(:empty)))::before{content:"BUFF"}
+/* et le titre du cadre s'arrete avant l'etiquette, au lieu de passer dessous */
+.grp.boite > .glabel:first-child,
+.grp.boite > .ghead:first-child{padding-right:70px}
 /* Une boite DANS une boite. Deux choses, et l'ordre compte.
 
    Son fond doit etre OPAQUE. Melange a transparent, il laissait passer la

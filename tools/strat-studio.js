@@ -76,6 +76,8 @@
   function demande(msg, opts){ opts=opts||{}; return new Promise(function(res){
     var b=$('ssModal'); $('ssModalTtl').textContent=opts.titre||'Confirmer'; $('ssModalMsg').innerHTML=msg;
     $('ssModalYes').textContent=opts.ok||'Supprimer';
+    // « Annuler » ne veut rien dire quand les deux réponses sont un choix
+    $('ssModalNo').textContent=opts.annule||'Annuler';
     $('ssModalYes').className='ss-btn '+(opts.danger===false?'primary':'danger');
     b.hidden=false;
     function fin(v){ b.hidden=true; $('ssModalYes').onclick=null; $('ssModalNo').onclick=null; res(v); }
@@ -126,18 +128,32 @@
   }
   function actionEtape(a, i){
     var ps = phases();
-    if(a==='up' && i>0){ ps.splice(i-1,0,ps.splice(i,1)[0]); selP=i-1; touche(); buildTree(); return; }
-    if(a==='down' && i<ps.length-1){ ps.splice(i+1,0,ps.splice(i,1)[0]); selP=i+1; touche(); buildTree(); return; }
+    if(a==='up' && i>0){ ps.splice(i-1,0,ps.splice(i,1)[0]); selP=i-1; noteEtape(); touche(); buildTree(); return; }
+    if(a==='down' && i<ps.length-1){ ps.splice(i+1,0,ps.splice(i,1)[0]); selP=i+1; noteEtape(); touche(); buildTree(); return; }
     if(a==='del') demande('Supprimer l’étape <b>'+esc(ps[i].boss||('P'+ps[i].n))+'</b> et tout son contenu ?',
       {titre:'Supprimer l’étape'}).then(function(v){ if(!v)return;
-        ps.splice(i,1); selP=null; touche(); buildTree(); editeur(); rendre(); });
+        ps.splice(i,1); selP=null; noteEtape(); touche(); buildTree(); editeur(); rendre(); });
   }
   $('ssAddPhase').addEventListener('click', function(){
     var ps = phases(), n = ps.reduce(function(m,p){ return Math.max(m, p.n||0); }, 0) + 1;
     ps.push({n:n, boss:'Nouveau boss', title:'', route:'', cards:[]});
     etage().phases = ps; touche(); choisir(ps.length-1);
   });
-  function choisir(pi){ selP = pi; buildTree(); editeur(); rendre(); }
+  /* Ouvrir une étape, et s'en souvenir.
+
+     Enregistrer peut faire recharger la page — certains serveurs de
+     développement le font dès qu'un fichier bouge. On revenait alors à l'écran
+     d'accueil, l'étape qu'on était en train d'écrire refermée. On reprend là où
+     on en était. Un index qui ne désigne plus rien (le chapitre a changé,
+     l'étape a été supprimée) ramène simplement à l'accueil. */
+  function noteEtape(){
+    try{ localStorage.setItem('studio_etape', selP == null ? '' : String(selP)); }catch(e){}
+  }
+  function choisir(pi){
+    if(pi != null && !phases()[pi]) pi = null;
+    selP = pi; noteEtape();
+    buildTree(); editeur(); rendre();
+  }
 
   /* ---------------- colonne 2 : une étape, une page ---------------- */
   /* ---------------- l'écran d'accueil : apprendre en dix secondes ----------
@@ -216,6 +232,10 @@
       +   '<div class="ss-cle r-titre"><code>Aa</code><span>Une ligne sans job ni mot-clé est un <b>titre de rubrique</b>. '
       +     'Entre parenthèses, c’est une <b>remarque</b> en italique.</span></div>'
       +   '<div class="ss-cle r-sub"><code>··</code><span>Décalée vers la droite : une <b>action de plus</b> pour le même job, en puce.</span></div>'
+      +   '<div class="ss-cle r-titre"><code>B I</code><span>Sélectionne un mot, clique : <b>gras</b>, '
+      +     '<i>italique</i>, plus grand, plus petit, ou une <b>teinte</b> — le nom d’un TP move '
+      +     'devant sa description, ce qu’il ne faut pas rater. Le même bouton l’enlève. '
+      +     'Discord, qui ne sait pas mettre en forme, reçoit le texte seul.</span></div>'
       +   '<div class="ss-cle r-warn"><code>!</code><span>Après le job : c’est une <b>alerte</b>, ce qui fait wipe si on l’oublie.</span></div>'
       +   '<div class="ss-cle r-cond"><code>?</code><span>En fin de ligne, après <b>deux espaces</b> : ça ne vaut que dans ce cas précis.</span></div>'
       +   '<div class="ss-cle r-comp"><code>@</code><span>Après le job : réservé à une <b>composition</b> donnée.</span></div>'
@@ -323,12 +343,26 @@
 
      La même barre pour les blocs de strat ET la préparation : une seule à
      apprendre, puisque c'est la même grammaire. */
+  /* Les sept teintes de la palette. Ce sont les jetons du thème, pas des
+     couleurs figées : la même strat se lit en clair comme en sombre. Le nom
+     est ce qu'on écrit dans le texte — « [c:or]… » se relit, pas « #e9c23e ». */
+  var TEINTES = [
+    {nom:'or',     jeton:'--r-buff'},
+    {nom:'bleu',   jeton:'--r-tank'},
+    {nom:'rouge',  jeton:'--r-dd'},
+    {nom:'vert',   jeton:'--r-heal'},
+    {nom:'violet', jeton:'--violet'},
+    {nom:'gris',   jeton:'--dim'},
+    {nom:'blanc',  jeton:'--txt'}
+  ];
   var BOITES_BARRE = [
     {mot:'TANKBOX',   nom:'Tank',        cls:'tank',  couleur:'bleu tank'},
     {mot:'HEALERBOX', nom:'Soin',        cls:'heal',  couleur:'vert soin'},
     {mot:'BUFFBOX',   nom:'Buffs',       cls:'buff',  couleur:'jaune buffs'},
+    {mot:'DEBUFFBOX', nom:'Débuffs',     cls:'debuff',couleur:'violet débuffs'},
     {mot:'DDBOX',     nom:'Dégâts',      cls:'dd',    couleur:'rouge dégâts'},
     {mot:'MBBOX',     nom:'Magic burst', cls:'mb',    couleur:'cyan magic burst'},
+    {mot:'TPBOX',     nom:'TP moves',    cls:'tp',    couleur:'rose TP moves'},
     {mot:'REGLEBOX',  nom:'Règles',      cls:'rules', couleur:'gris règles'},
     {mot:'PROCBOX',   nom:'Procs',       cls:'proc',  couleur:'turquoise procs'}
   ];
@@ -338,16 +372,25 @@
       + ' data-info="' + esc(info) + '"' + (ex ? ' data-ex="' + esc(ex) + '"' : '')
       + '>' + texte + '</button>';
   }
-  // une famille = une ligne, avec son étiquette dans la colonne de gauche
-  function famille(nom, contenu){
-    return '<div class="ss-tbg"><span class="ss-tbl">' + nom + '</span>' + contenu + '</div>';
+  /* ---- deux rangées, et pas cinq ----
+     Une famille par ligne, chacune avec son étiquette : c'était lisible à trois
+     familles. À cinq, la barre prenait plus de place que le texte qu'on écrit.
+
+     Les JOBS gardent leur rangée — ils sont larges par nature, et on les lit,
+     on ne les devine pas. Tout le reste tient sur une seule ligne dense,
+     séparée en groupes : ce qui met en forme, ce qui qualifie la ligne, ce qui
+     structure le bloc. Les boutons y sont réduits à leur signe ; le survol dit
+     ce qu'ils font ET ce qu'ils écrivent, ce qui reste la vraie leçon. */
+  function groupe(nom, contenu){
+    return '<span class="ss-grp" data-grp="' + esc(nom) + '" title="' + esc(nom) + '">'
+      + contenu + '</span>';
   }
   function barreOutils(){
     var R = (typeof ROLE!=='undefined') ? ROLE : {};
     return '<div class="ss-tb">'
 
-      + famille('qui',
-          barreJobs().map(function(j){
+      + '<div class="ss-tbg"><span class="ss-tbl">qui</span>'
+        + barreJobs().map(function(j){
             var dansCompo = S.compoJobs(CP).indexOf(j) >= 0 || j === 'ALL';
             return bouton('class="ss-job r-' + S.roleDuJob(R, j) + (dansCompo ? '' : ' hors')
                 + '" data-job="' + esc(j) + '"', esc(j),
@@ -357,44 +400,100 @@
               j + ' : ');
           }).join('')
         + bouton('class="ss-mk ss-jplus" data-plus="1"', '<i class="ss-i">＋</i>Autre job',
-            'Citer un job absent de la compo — un remplaçant, par exemple'))
+            'Citer un job absent de la compo — un remplaçant, par exemple')
+      + '</div>'
 
-      + famille('la ligne',
-          bouton('class="ss-mk" data-mk="warn"', '<i class="ss-i warn">⚠</i>Alerte',
-            'Ce qui fait wipe — la ligne passe en ambre', 'PLD! : ne pas fermer de SC Light')
-        + bouton('class="ss-mk" data-mk="cond"', '<i class="ss-i">?</i>Condition',
-            'N’appliquer la ligne que dans un cas précis', 'BRD : Honor March  ?sans RDM')
-        + bouton('class="ss-mk" data-mk="comp"', '<i class="ss-i">@</i>Comp',
-            'N’afficher la ligne que pour une composition', 'MNK@PLD : Victory Smite ×2')
-        + bouton('class="ss-mk" data-mk="sub"', '<i class="ss-i">＋</i>Action',
-            'Une action de plus pour le même job — elle se met en puce sous la ligne',
-            'en retrait sous la ligne : Samurai Roll'))
+      + '<div class="ss-tbg ss-tbd">'
 
-      + famille('le bloc',
-          BOITES_BARRE.map(function(b){
-            return bouton('class="ss-box b-' + b.cls + '" data-boite="' + esc(b.mot) + '"', esc(b.nom),
-              'Encadre ce qui suit en ' + b.couleur + ' — une ligne vide referme la boîte', b.mot);
-          }).join('')
-        + bouton('class="ss-mk" data-mk="titre"', '<i class="ss-i">¶</i>Titre',
-            'Un titre de rubrique — toute ligne sans job devant en est un', 'Fomor ×3 · SC Step 4')
-        + bouton('class="ss-mk" data-mk="note"', '<i class="ss-i">()</i>Remarque',
-            'Une précision en italique, sous le titre de la rubrique', '(on attend le proc)')
-        + bouton('class="ss-mk" data-img="1"', '<i class="ss-i">▣</i>Vignette',
-            'L’image d’un mob, à côté du titre de la rubrique', '[img:Fomor]')
-        + bouton('class="ss-mk" data-mk="ferme"', '<i class="ss-i">⏎</i>Refermer',
-            'Une ligne vide : la boîte s’arrête ici'))
+        /* Gras, italique, taille : ce qu'on attend d'un éditeur de texte. On
+           sélectionne, on clique — comme la couleur, et écrit de la même façon. */
+        + groupe('mise en forme',
+            bouton('class="ss-mk ss-ic" data-fmt="b"', '<b>B</b>',
+              'Met en gras ce qui est sélectionné', '[b]à mort[/b]')
+          + bouton('class="ss-mk ss-ic" data-fmt="i"', '<i>I</i>',
+              'Met en italique ce qui est sélectionné', '[i]si le proc part[/i]')
+          + bouton('class="ss-mk ss-ic" data-taille="grand"', 'A<sup>+</sup>',
+              'Agrandit ce qui est sélectionné', '[t:grand]AMINON[/t]')
+          + bouton('class="ss-mk ss-ic" data-taille="petit"', 'A<sup>−</sup>',
+              'Rapetisse ce qui est sélectionné — pour une précision', '[t:petit]hors comp[/t]'))
 
+        + '<span class="ss-sep"></span>'
+
+        /* Détacher un mot du reste : le nom d'un TP move devant sa description,
+           ce qu'il ne faut surtout pas rater. Les sept teintes sont celles du
+           thème — la strat reste lisible en clair comme en sombre — et le
+           nuancier sert quand aucune ne convient. */
+        + groupe('couleur',
+            TEINTES.map(function(t){
+              return bouton('class="ss-coul" data-coul="' + t.nom + '"'
+                  + ' style="--tc:var(' + t.jeton + ')"', '<i class="ss-pastille"></i>',
+                'Colore la sélection en ' + t.nom, '[c:' + t.nom + ']Chymous Reek[/c]');
+            }).join('')
+          + '<label class="ss-nuancier" title="Nuancier — une teinte libre, '
+          + 'pour ce que la palette ne couvre pas">'
+          + '<input type="color" class="ss-colibre" value="#ff8f6a"><i>◈</i></label>')
+
+        + '<span class="ss-sep"></span>'
+
+        + groupe('la ligne',
+            bouton('class="ss-mk ss-ic" data-mk="warn"', '<i class="ss-i warn">⚠</i>',
+              'Alerte — ce qui fait wipe : la ligne passe en ambre', 'PLD! : ne pas fermer de SC Light')
+          + bouton('class="ss-mk ss-ic" data-mk="cond"', '<i class="ss-i">?</i>',
+              'Condition — n’appliquer la ligne que dans un cas précis', 'BRD : Honor March  ?sans RDM')
+          + bouton('class="ss-mk ss-ic" data-mk="comp"', '<i class="ss-i">@</i>',
+              'Comp — n’afficher la ligne que pour une composition', 'MNK@PLD : Victory Smite ×2')
+          + bouton('class="ss-mk ss-ic" data-mk="sub"', '<i class="ss-i">··</i>',
+              'Action de plus pour le même job — elle se met en puce sous la ligne',
+              'en retrait sous la ligne : Samurai Roll'))
+
+        + '<span class="ss-sep"></span>'
+
+        + groupe('le bloc',
+            BOITES_BARRE.map(function(b){
+              return bouton('class="ss-box ss-ic b-' + b.cls + '" data-boite="' + esc(b.mot) + '"', '',
+                b.nom + ' — encadre ce qui suit en ' + b.couleur
+                  + ' : une ligne vide referme la boîte', b.mot);
+            }).join('')
+          + bouton('class="ss-mk ss-ic" data-mk="titre"', '<i class="ss-i">¶</i>',
+              'Titre de rubrique — toute ligne sans job devant en est un', 'Fomor ×3 · SC Step 4')
+          + bouton('class="ss-mk ss-ic" data-mk="note"', '<i class="ss-i">()</i>',
+              'Remarque — une précision en italique, sous le titre', '(on attend le proc)')
+          + bouton('class="ss-mk ss-ic" data-img="1"', '<i class="ss-i">▣</i>',
+              'Vignette — l’image d’un mob, à côté du titre de la rubrique', '[img:Fomor]')
+          + bouton('class="ss-mk ss-ic" data-mk="ferme"', '<i class="ss-i">⏎</i>',
+              'Refermer — une ligne vide : la boîte s’arrête ici'))
+
+      + '</div>'
       + '</div>';
   }
+  /* Ce qu'on tape n'entre pas dans la strat à la lettre : on attend un court
+     silence avant de relire le bloc, sinon chaque touche redessine tout.
+
+     Mais ce délai appartient à la SAISIE, pas à la strat. Enregistrer pendant
+     qu'il court — et Ctrl+S juste après le dernier mot tombe toujours dedans —
+     partait avec le texte d'avant, et le bloc revenait à l'écran amputé de sa
+     dernière phrase. Toute lecture de la strat vide donc l'attente d'abord. */
+  var enAttente = [];
+  function vide(){ var l = enAttente; enAttente = []; l.forEach(function(f){ f(); }); }
+
   // Branche une zone de saisie sur la même barre d'outils que les blocs.
   function branche(el, ta, lu, applique){
     var t = null;
+    function maintenant(){
+      if(t === null) return;                       // rien en attente : ne rien refaire
+      clearTimeout(t); t = null;
+      var i = enAttente.indexOf(maintenant); if(i >= 0) enAttente.splice(i, 1);
+      applique();
+    }
     function relit(){
       clearTimeout(t);
-      t = setTimeout(applique, 240);
+      if(enAttente.indexOf(maintenant) < 0) enAttente.push(maintenant);
+      t = setTimeout(maintenant, 240);
       lecture(ta, lu);
     }
     ta.addEventListener('input', relit);
+    // quitter le champ vaut le silence qu'on attendait
+    ta.addEventListener('blur', maintenant);
     ['click','keyup','focus'].forEach(function(ev){ ta.addEventListener(ev, function(){ lecture(ta, lu); }); });
     lecture(ta, lu);
     ta.addEventListener('keydown', entreeSousLesPuces);
@@ -402,6 +501,12 @@
       var b = e.target.closest('button'); if(!b) return;
       if(b.dataset.plus){ choisirAutreJob(b, ta); return; }
       if(b.dataset.img){ choisirImage(b, ta); return; }
+      if(b.dataset.coul){ entoure(ta, '[c:'+b.dataset.coul+']', '[/c]');
+                          ta.dispatchEvent(new Event('input', {bubbles:true})); return; }
+      if(b.dataset.fmt){ entoure(ta, '['+b.dataset.fmt+']', '[/'+b.dataset.fmt+']');
+                         ta.dispatchEvent(new Event('input', {bubbles:true})); return; }
+      if(b.dataset.taille){ entoure(ta, '[t:'+b.dataset.taille+']', '[/t]');
+                            ta.dispatchEvent(new Event('input', {bubbles:true})); return; }
       if(b.dataset.job) insereDebut(ta, b.dataset.job+' : ');
       else if(b.dataset.boite) insereBoite(ta, b.dataset.boite);
       else if(b.dataset.mk==='warn') marqueWarn(ta);
@@ -413,6 +518,40 @@
       else if(b.dataset.mk==='ferme') insereApres(ta, '\n');
       ta.dispatchEvent(new Event('input', {bubbles:true}));
     });
+    /* Le nuancier n'est pas un bouton : il ne dit rien tant qu'on n'a pas
+       choisi, et il parle ensuite à chaque teinte survolée.
+
+       On entoure donc DÈS L'OUVERTURE, avec la teinte qu'il porte déjà : le mot
+       sélectionné est pris tout de suite, sans attendre. Chaque teinte suivante
+       repart du texte d'avant l'ouverture — sans ça, glisser dans la roue
+       empilerait une marque par couleur traversée. */
+    var libre = el.querySelector('.ss-colibre');
+    if(libre){
+      // surtout pas « applique » : ce nom est déjà celui du paramètre de
+      // branche, et le masquer ferait relire les blocs dans le vide
+      var depart = null, produit = null;
+      var poseTeinte = function(){
+        if(!depart) return;
+        /* Si le texte a bougé depuis notre dernière pose — on a tapé, cliqué
+           un autre bouton, changé d'étape — la roue n'a plus rien à dire :
+           restaurer son instantané effacerait ce travail-là. */
+        if(produit !== null && ta.value !== produit){ depart = null; produit = null; return; }
+        ta.value = depart.v;
+        ta.setSelectionRange(depart.d, depart.f);
+        entoure(ta, '[c:'+libre.value+']', '[/c]');
+        produit = ta.value;
+        ta.dispatchEvent(new Event('input', {bubbles:true}));
+      };
+      // pointerdown : AVANT que le clic ne déplace le focus et n'efface ce
+      // qu'on avait sélectionné dans la zone de saisie
+      libre.addEventListener('pointerdown', function(){
+        depart = {d:ta.selectionStart, f:ta.selectionEnd, v:ta.value};
+        produit = null;
+        poseTeinte();
+      });
+      libre.addEventListener('input', poseTeinte);
+      libre.addEventListener('change', poseTeinte);
+    }
   }
 
   // Le contenu du bloc de préparation, éditable ici même. Il est PARTAGÉ :
@@ -553,6 +692,23 @@
   function insereFin(ta, txt){
     var b = bornesLigne(ta);
     poseLigne(ta, b, b.txt.replace(/\s+$/,'') + txt);
+  }
+  /* Entourer la sélection — c'est le geste d'un traitement de texte : on
+     surligne un mot, on clique une couleur. Sans rien de sélectionné, on pose
+     la marque vide et le curseur au milieu : il n'y a plus qu'à écrire.
+     Recolorer un texte déjà coloré remplace la teinte au lieu d'empiler. */
+  function entoure(ta, avant, apres){
+    var d = ta.selectionStart, f = ta.selectionEnd, sel = ta.value.slice(d, f);
+    var m = sel.match(/^\[(c:[^\]]*|t:[^\]]*|b|i)\]([\s\S]*)\[\/(c|t|b|i)\]$/);
+    var pose = avant, fin = apres;
+    if(m && ('[/' + m[3] + ']') === apres){
+      sel = m[2];                                   // on repart du texte nu
+      // déjà exactement ainsi : le même bouton l'enlève, comme un gras
+      if('[' + m[1] + ']' === avant){ pose = ''; fin = ''; }
+    }
+    replace(ta, function(){
+      ta.value = ta.value.slice(0, d) + pose + sel + fin + ta.value.slice(f);
+    }, d + pose.length, d + pose.length + sel.length);
   }
   /* Entrée en bout d'une ligne d'action : la ligne suivante se pose SOUS les
      actions en retrait du job, jamais entre lui et elles.
@@ -1008,6 +1164,7 @@
   // partagé avec Map Studio pour que les deux outils écrivent à l'identique.
   var DF = window.DATAFILE;
   function blocsData(){
+    vide();           // ce qui vient d'être tapé fait partie de ce qu'on enregistre
     var out = [];
     // le titre du guide : sans lui, toutes les strats publiees s'appelleraient
     // encore comme la premiere
@@ -1086,7 +1243,9 @@
   $('ssFloor').addEventListener('click', function(e){
     var b = e.target.closest('button[data-i]'); if(!b) return;
     $('ssFloor').querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
-    b.classList.add('on'); idx = +b.dataset.i; selP=null; buildTree(); editeur(); rendre();
+    // changer de chapitre referme l'étape ouverte — et l'oublie, sinon un
+    // rechargement rouvrirait l'étape d'un autre chapitre, au même rang
+    b.classList.add('on'); idx = +b.dataset.i; choisir(null);
   });
   $('ssSave').addEventListener('click', enregistrer);
   $('ssReload').addEventListener('click', recharger);
@@ -1121,6 +1280,9 @@
     // l'autre. Seul l'atelier ouvert tout seul garde son raccourci.
     if(mod && k==='s'){ e.preventDefault();
       if(!document.getElementById('stSave')) enregistrer(); return; }
+    // Défaire n'appartient qu'à l'atelier qu'on a sous les yeux — l'autre a le
+    // sien, et les deux répondaient à la même frappe. Voir map-studio.js.
+    if(window.__STUDIO && window.__STUDIO.actif() !== 'strat') return;
     if(mod && k==='z' && !e.shiftKey){ e.preventDefault(); annuler(); return; }
     if(mod && (k==='y' || (k==='z' && e.shiftKey))){ e.preventDefault(); retablir(); }
   });
@@ -1131,7 +1293,7 @@
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
                  recharge:function(){ idx=0; selP=null; JEUX=(typeof BUFFS!=='undefined')?BUFFS:{};
                    CP=(typeof COMPO!=='undefined')?COMPO:CP; buildTree(); editeur(); rendre(); propre(); },
-                 saisie:saisie,
+                 saisie:saisie, vide:vide,
                  blocs:blocsData, blocsTr:function(){ return [{nom:'TR', txt:SC.trConst('TR', TRAD)}]; },
                  sale:function(){ return dirty; }, propre:propre, demande:demande,
                  blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,

@@ -36,10 +36,82 @@
   var ELS = [["WATER|Water|Eau","water"],["THUNDER|Thunder|Foudre","thunder"],["FIRE|Fire|Feu","fire"],
              ["WIND|Wind|Vent","wind"],["EARTH|Earth|Terre","earth"],["ICE|Ice|Glace","ice"],
              ["LIGHT|Light|Lumière","light"],["DARK|Darkness|Dark|Ténèbres","dark"]];
+  /* ---- la couleur qu'on pose soi-même ----
+     Les noms d'élément se colorent tout seuls, mais un lead veut souvent
+     détacher autre chose : le nom d'un TP move devant sa description, un mot
+     qui doit sauter aux yeux. Il l'écrit « [c:or]Chymous Reek[/c] », depuis la
+     barre d'outils, et jamais en HTML : une strat peut être REÇUE, et du HTML
+     dans une ligne serait du code étranger qui s'exécute chez celui qui l'ouvre.
+     La marque est posée APRÈS l'échappement, donc rien ne passe qu'elle.
+
+     Les noms renvoient aux jetons du thème : la même strat reste lisible en
+     clair comme en sombre. Une teinte libre reste possible, passée au filtre. */
+  var COULEURS = {or:'--r-buff', bleu:'--r-tank', rouge:'--r-dd', vert:'--r-heal',
+                  violet:'--violet', gris:'--dim', blanc:'--txt'};
+  // Deux tailles, et pas un nombre : une strat reçue ne fera pas un titre de
+  // 90 px au milieu d'une ligne, et l'écart reste le même partout.
+  var TAILLES = {petit:'.86em', grand:'1.18em'};
+  /* ---- lire les marques, pas les remplacer ----
+     Un remplacement par famille — les couleurs, puis les tailles, puis le gras —
+     marche tant que les marques ne s'emboîtent pas dans le désordre. Il suffit
+     d'un « [c:or]A [c:bleu]B[/c] C[/c] » pour que la première fermeture ferme la
+     mauvaise ouverture, et la ligne sort en morceaux.
+
+     On PARCOURT donc la ligne, une pile d'ouvertures à la main. On y gagne tous
+     les cas d'un coup : deux marques de la même famille l'une dans l'autre, un
+     croisement, une fermeture orpheline, une ouverture qu'on a oublié de
+     refermer. Le balisage produit est toujours refermé dans l'ordre — il ne
+     peut pas casser la page qui l'affiche. */
+  var RE_MARQUE = /\[(b|i|c:(?:[a-zA-Zé]+|#[0-9a-fA-F]{3,8})|t:[a-zé]+)\]|\[\/(b|i|c|t)\]/g;
+  function teinte(nom){
+    var jeton = COULEURS[String(nom).toLowerCase()];
+    return jeton ? 'var(' + jeton + ')' : couleurSure(nom, 'var(--txt)');
+  }
+  function famille(m){ return m.length > 1 ? m.charAt(0) : m; }   // « c:or » → « c »
+  function ouverture(m, f){
+    if(f === 'b') return '<b>';
+    if(f === 'i') return '<i>';
+    var v = m.slice(2);
+    if(f === 'c') return '<span style="color:' + teinte(v) + '">';
+    var px = TAILLES[v.toLowerCase()];
+    return px ? '<span style="font-size:' + px + '">' : '<span>';
+  }
+  function fermeture(f){ return f === 'b' ? '</b>' : f === 'i' ? '</i>' : '</span>'; }
+
+  function marques(s){
+    var re = new RegExp(RE_MARQUE.source, 'g');
+    var out = '', pile = [], vu = 0, m;
+    while((m = re.exec(s)) !== null){
+      out += s.slice(vu, m.index);
+      vu = re.lastIndex;
+      if(m[1]){                                   // une ouverture
+        var f = famille(m[1]);
+        out += ouverture(m[1], f);
+        pile.push(f);
+      } else {                                    // une fermeture
+        var i = pile.lastIndexOf(m[2]);
+        // rien d'ouvert de cette famille : ce n'est pas une marque, c'est du texte
+        if(i < 0){ out += m[0]; continue; }
+        // on referme aussi ce qui a été ouvert depuis, sinon le balisage se croise
+        while(pile.length > i) out += fermeture(pile.pop());
+      }
+    }
+    out += s.slice(vu);
+    while(pile.length) out += fermeture(pile.pop());   // ouvertures restées en l'air
+    return out;
+  }
+
   function colorize(s){
     s = esc(s);
     ELS.forEach(function(e){ s = s.replace(new RegExp("\\b("+e[0]+")\\b","g"), '<span class="el '+e[1]+'">$1</span>'); });
-    return s.replace(/→/g, '<span style="color:var(--dim)">→</span>');
+    s = s.replace(/→/g, '<span style="color:var(--dim)">→</span>');
+    return marques(s);
+  }
+  /* Le même texte, débarrassé de ses marques : pour Discord, qui n'a ni couleur
+     ni taille, et partout où on compte des caractères. Ce qui n'est pas une
+     marque bien formée reste tel quel — c'est du texte, et il compte. */
+  function sansMarques(s){
+    return String(s == null ? '' : s).replace(new RegExp(RE_MARQUE.source, 'g'), '');
   }
   function roleChip(r){ return '<span class="role" style="--jc:'+jcol(r)+'">'+esc(r)+'</span>'; }
 
@@ -74,14 +146,35 @@
   }
 
   // ---- une ligne d'action ----
+  /* Dans une boîte à procs, la flèche sépare l'action de son effet. Mais elle ne
+     se cherche pas au hasard dans la ligne : une flèche ÉCRITE À L'INTÉRIEUR
+     d'une marque couperait celle-ci en deux, et la ligne sortirait avec une
+     ouverture d'un côté et sa fermeture de l'autre. On ne coupe donc que sur une
+     flèche posée hors de toute marque. */
+  function couperFleche(s){
+    var re = new RegExp(RE_MARQUE.source + '|→', 'g'), prof = 0, m;
+    while((m = re.exec(s)) !== null){
+      if(m[0] === '→'){ if(prof === 0) return m.index; }
+      else if(m[1]) prof++;
+      else if(prof > 0) prof--;
+    }
+    return -1;
+  }
   function lineHtml(l, g){
     var roles = (l.r || ["ALL"]);
     var chips = roles.map(roleChip).join("");
-    var isProc = g && /\bproc\b/.test(g.cls||"") && typeof l.t === "string" && /→/.test(l.t);
+    var coupe = (g && /\bproc\b/.test(g.cls||"") && typeof l.t === "string") ? couperFleche(l.t) : -1;
+    var isProc = coupe >= 0;
     var body;
     if(isProc){
-      var parts = l.t.split("→");
-      body = '<span class="pcja">'+esc(parts[0].trim())+'</span><span class="pcsep">›</span><span class="pcel">'+colorize(parts[1].trim())+'</span>';
+      /* L'action était seulement échappée : ce qu'on y mettait en forme sortait
+         en toutes lettres — « [b][c:or]Cesspool[/c][/b] » écrit tel quel devant
+         son effet. Elle passe par les marques comme le reste de la strat. Pas
+         par la colorisation des éléments, en revanche : c'est un NOM d'attaque,
+         et « Icy Grasp » n'y désigne pas la glace. */
+      body = '<span class="pcja">'+marques(esc(l.t.slice(0, coupe).trim()))+'</span>'
+           + '<span class="pcsep">›</span>'
+           + '<span class="pcel">'+colorize(l.t.slice(coupe + 1).trim())+'</span>';
     }
     else if(Array.isArray(l.t)){ body = '<ul class="acts">'+l.t.map(function(it){ return '<li>'+colorize(H.tr(it))+'</li>'; }).join("")+'</ul>'; }
     else { body = colorize(H.tr(l.t)); }
@@ -148,9 +241,16 @@
       // Encadrée soit parce qu'un mot-clé l'a demandé (et elle peut alors
       // porter un titre), soit parce qu'elle est colorée et muette.
       var boite = (g.boite || (!g.label && !g.img && (g.cls||''))) ? ' boite' : '';
-      return '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+boite
+      /* Une rubrique qui n'est QUE son titre et sa remarque — le nom d'un TP
+         move et ses effets — n'a pas besoin de l'air d'une rubrique qui porte
+         des lignes. Sept d'entre elles dans une boîte à procs en faisaient un
+         mur, alors qu'elles se lisent d'un coup d'œil. */
+      var serre = (!(g.lines||[]).length && (g.label || g.note)) ? ' seultitre' : '';
+      return '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+boite+serre
         +(noeud.enfants.length?' aimbrique':'')+'">'+headHtml
-        +(g.note?'<div class="gnote">'+esc(H.tr(g.note))+'</div>':'')+groupBody(g)
+        // la remarque se met en forme comme le reste : c'est là qu'on écrit les
+        // effets d'un TP move, sous son nom
+        +(g.note?'<div class="gnote">'+colorize(H.tr(g.note))+'</div>':'')+groupBody(g)
         +noeud.enfants.map(rendGrp).join('')+'</div>';
     }
     return enArbre(liste).map(rendGrp).join('');
@@ -196,7 +296,7 @@
 
   global.STRATR = {
     config: function(o){ for(var k in o) if(o[k] != null) H[k] = o[k]; },
-    jcol: jcol, colorize: colorize, roleChip: roleChip, entete: entete,
+    jcol: jcol, colorize: colorize, sansMarques: sansMarques, roleChip: roleChip, entete: entete,
     lineHtml: lineHtml, groupBody: groupBody, groupsHtml: groupsHtml,
     cardHtml: cardHtml, buffsHtml: buffsHtml
   };

@@ -36,7 +36,17 @@
            MOB:   (typeof MOB   !== 'undefined') ? MOB   : {},
            TR:    (typeof TR    !== 'undefined') ? TR    : {},
            FLOORS: FL};
-  var stratId = null, dernierEcrit = '';
+  /* Ta strat existe à DEUX endroits : le fichier du dépôt, et l'espace de
+     travail du navigateur. Tant que tu es seul à écrire, ils se suivent. Mais
+     le fichier peut bouger sans l'atelier — un `git pull`, une correction à la
+     main, un rechargement de page qui repart d'une version d'avant — et alors
+     l'un écrasait l'autre en silence.
+
+     `empreintePubliee` est l'empreinte du fichier tel qu'il était à la dernière
+     publication. Au chargement, on la compare au fichier réel : identiques, le
+     fichier n'a pas bougé et l'atelier reprend ton travail sans rien dire ;
+     différentes, quelqu'un d'autre a écrit, et c'est TOI qui tranches. */
+  var stratId = null, dernierEcrit = '', empreintePubliee = '', duFichier = '';
 
   function nomCourant(){
     var s = $('stStratSel');
@@ -44,22 +54,59 @@
     return o ? o.textContent : 'Sans titre';
   }
   function instantane(){
+    // même raison que pour l'enregistrement : la dernière phrase tapée met un
+    // court instant à entrer dans la strat, et on garderait celle d'avant
+    if(SS && SS.vide) SS.vide();
     return BI.depuisGlobaux(G, nomCourant(), MS && MS.reglages ? MS.reglages() : null);
   }
   // Ce qui distingue deux versions d'une strat, c'est son contenu — ni son
-  // identifiant ni sa date. Sans ça, la sauvegarde silencieuse réécrirait à
-  // chaque tour d'horloge, puisque la date change toujours.
-  function signature(s){ return JSON.stringify(Object.assign({}, s, {id:'', maj:0})); }
+  // identifiant, ni sa date, ni la trace de sa dernière publication. Sans ça,
+  // la sauvegarde silencieuse réécrirait à chaque tour d'horloge, puisque la
+  // date change toujours.
+  function signature(s){ return JSON.stringify(Object.assign({}, s, {id:'', maj:0, fichier:''})); }
 
-  // Sauvegarde silencieuse dans l'espace de travail. Rien à voir avec
-  // « Enregistrer », qui publie dans le dépôt.
+  /* L'empreinte SERT À COMPARER DEUX FICHIERS, et rien d'autre. Elle laisse donc
+     de côté ce qui ne vient pas de `js/data.js` :
+
+     · le nom — renommer une strat dans l'atelier ne veut pas dire que le fichier
+       a changé ;
+     · les traductions — elles vivent dans `js/i18n.js`, et l'atelier y ajoute au
+       passage les mots de l'interface. Les compter ici ferait dire au fichier
+       qu'il a bougé à chaque ouverture, et la question se poserait pour rien.
+
+     Une question qui se pose à tort est pire que pas de question du tout : on
+     apprend à répondre sans lire. */
+  function empreinteFichier(s){
+    /* Tout ce qui commence par « _ » est de l'échafaudage : l'atelier Carte
+       accroche à chaque marqueur une copie de sa forme Konva (`_mk`), refaite
+       à chaque rendu. Ça ne va jamais dans `data.js`, mais ça voyage avec les
+       données — dix kilo-octets qui changent tout seuls, et le fichier aurait
+       l'air d'avoir bougé à chaque ouverture. */
+    return JSON.stringify(Object.assign({}, s, {id:'', maj:0, fichier:'', nom:'', tr:null}),
+      function(cle, valeur){ return cle.charAt(0) === '_' ? undefined : valeur; });
+  }
+  // Ce que les globales disent EN CE MOMENT. Appelée avant d'avoir rien posé,
+  // elle décrit le fichier tel qu'il vient d'être chargé.
+  function empreinte(){
+    return empreinteFichier(BI.depuisGlobaux(G, '', MS && MS.reglages ? MS.reglages() : null));
+  }
+
+  /* Sauvegarde silencieuse dans l'espace de travail. Rien à voir avec
+     « Enregistrer », qui publie dans le dépôt.
+
+     Le délai est court : c'est la fenêtre pendant laquelle un rechargement
+     imprévu — un serveur de développement qui surveille les fichiers, par
+     exemple — repartirait d'une version d'avant ta dernière phrase. */
   var tSauve = null;
-  function sauveBientot(){ clearTimeout(tSauve); tSauve = setTimeout(sauve, 1200); }
-  function sauve(){
+  function sauveBientot(){ clearTimeout(tSauve); tSauve = setTimeout(sauve, 350); }
+  // `publie` : on vient d'écrire le fichier, il dit donc exactement ceci.
+  function sauve(publie){
     if(!stratId || !BI) return Promise.resolve();
     var s = instantane(); s.id = stratId;
     var j = signature(s);
-    if(j === dernierEcrit) return Promise.resolve();      // rien n'a bougé
+    if(publie) empreintePubliee = empreinteFichier(s);
+    else if(j === dernierEcrit) return Promise.resolve();  // rien n'a bougé
+    s.fichier = empreintePubliee;
     dernierEcrit = j;
     return BI.ecris(s).catch(function(){});
   }
@@ -88,6 +135,7 @@
   function poseStrat(s){
     var reg = BI.versGlobaux(s, G, S.resoudreCartes);
     stratId = s.id; BI.noteCourante(s.id);
+    empreintePubliee = s.fichier || '';
     construitChapitres();
     if(MS && MS.recharge) MS.recharge(reg);
     dernierEcrit = signature(BI.depuisGlobaux(G, s.nom, reg));
@@ -503,6 +551,19 @@
       $('stFile').textContent = h.name;
       if(!(await DF.permission(h))){ toast('Permission refusée — rien n’a été sauvegardé.','err'); return; }
 
+      /* L'espace de travail d'abord, et à jour — avant d'écrire le fichier.
+
+         Il se garde tout seul, mais une seconde après coup. Or certains
+         serveurs de développement (Live Server, port 5500) rechargent la page
+         DÈS QU'UN FICHIER BOUGE : écrire js/data.js déclenche le rechargement
+         de l'atelier au moment même où on l'écrit. La page repart alors de la
+         bibliothèque — qui n'a pas encore la dernière seconde de travail — et
+         ce qu'on venait d'écrire réapparaît dans son état d'avant : un libellé
+         revenu à son nom, ou au contraire un libellé qu'on vient d'effacer et
+         qui revient. On force donc la mise à jour ici : au moment où le
+         fichier change, la bibliothèque dit déjà la même chose que lui. */
+      await sauve();
+
       // carte ET strat en UNE passe : le fichier n'est lu et réécrit qu'une fois
       var blocs = [].concat(MS ? MS.blocs() : [], SS ? SS.blocs() : []);
       var r = DF.remplace(await DF.lis(h), blocs);
@@ -514,6 +575,9 @@
       await DF.ecris(h, r.texte);
       if(MS) MS.propre();
       if(SS) SS.propre();
+      // le fichier dit maintenant exactement ceci : c'est le point d'accord des
+      // deux, et c'est à lui qu'on comparera le fichier à la prochaine ouverture
+      await sauve(true);
 
       // la version anglaise vit dans un autre fichier : elle suit, sans bloquer
       if(await DF.permission(h2)){
@@ -559,26 +623,72 @@
   async function ouvreBibliotheque(){
     if(!BI) return;
     BI.persiste();
+    // TANT QUE les globales n'ont pas été remplacées, elles décrivent le FICHIER.
+    // C'est le seul moment de la vie de la page où on peut le prendre en photo.
+    duFichier = empreinte();
     var l = await BI.liste();
     if(!l.length){
       var reg = MS && MS.reglages ? MS.reglages() : null;
       var s = BI.depuisGlobaux(G, (typeof NOM !== 'undefined' && NOM) ? NOM : 'Ma strat', reg);
+      // ce que le fichier dit aujourd'hui EST ce qu'on garde : les deux partent d'accord
+      s.fichier = duFichier;
       await BI.ecris(s);
       stratId = s.id; BI.noteCourante(s.id);
-      dernierEcrit = signature(s);
+      dernierEcrit = signature(s); empreintePubliee = s.fichier;
     } else {
       var vise = BI.courante();
       var choix = l.filter(function(x){ return x.id === vise; })[0] || l[0];
       var s2 = await BI.lis(choix.id);
-      if(s2) poseStrat(s2); else stratId = null;
+      if(!s2){ stratId = null; await majListeStrats(); return; }
+      if(s2.fichier && s2.fichier !== duFichier) s2 = await tranche(s2, duFichier);
+      poseStrat(s2);
     }
     await majListeStrats();
   }
 
+  /* Le fichier a changé depuis la dernière publication de cette strat. On ne
+     choisit pas à sa place : les deux versions sont du travail, et rien ne dit
+     laquelle compte. Quoi qu'il réponde, on note le fichier comme vu — la
+     question ne revient pas à chaque ouverture. */
+  async function tranche(gardee, duFichier){
+    var prendLeFichier = await demande(
+        '<b>js/data.js a changé depuis ta dernière publication.</b><br><br>'
+      + 'Ça arrive quand le fichier a été modifié en dehors de l’atelier — une '
+      + 'récupération depuis GitHub, une correction à la main, ou une autre '
+      + 'machine.<br><br>'
+      + 'Ton travail en cours dans l’atelier et le contenu du fichier ne disent '
+      + 'plus la même chose. Lequel garde-t-on ?',
+      {titre:'Deux versions de « ' + S.esc(gardee.nom) + ' »',
+       ok:'Repartir du fichier', annule:'Garder mon travail', danger:false});
+    if(!prendLeFichier){
+      gardee.fichier = duFichier;                 // vu, et écarté : on n'y revient pas
+      await BI.ecris(gardee);
+      toast('Ton travail est gardé — le fichier sera écrasé au prochain enregistrement.','ok');
+      return gardee;
+    }
+    var neuve = BI.depuisGlobaux(G, gardee.nom, MS && MS.reglages ? MS.reglages() : null);
+    neuve.id = gardee.id; neuve.fichier = duFichier;
+    await BI.ecris(neuve);
+    toast('Repartie de js/data.js.','ok');
+    return neuve;
+  }
+
+  /* Reprendre là où on en était.
+
+     Enregistrer peut faire recharger la page — Live Server et consorts le font
+     dès qu'un fichier bouge, et c'est justement le fichier qu'on vient
+     d'écrire. On revenait alors à l'écran d'accueil, l'étape refermée : on
+     sauvegardait son travail et on perdait sa place.
+
+     L'étape se lit AVANT de poser le chapitre : changer de chapitre referme
+     l'étape ouverte, et l'effacerait avant qu'on ait pu la relire. */
   function restaure(){
-    var depart = 'map';
+    var depart = 'map', etape = null;
     try{ var m = localStorage.getItem('studio_atelier'); if(m==='map'||m==='strat') depart = m; }catch(e){}
+    try{ var e0 = localStorage.getItem('studio_etape'); if(e0) etape = +e0; }catch(e){}
     try{ var c = +localStorage.getItem('studio_chapitre'); if(c > 0 && c < FL.length) chapitre(c); }catch(e){}
+    // `choisir` écarte lui-même un rang qui ne désigne plus d'étape
+    if(etape != null && SS && SS.choisir) SS.choisir(etape);
     ouvre(depart);
     if(DF.connue) DF.connue('data').then(function(h){ if(h) $('stFile').textContent = h.name; });
     majEtat();
@@ -653,5 +763,9 @@
   });
   window.addEventListener('appinstalled', function(){ noteInstalle(); majBoutonInstall(); });
 
-  window.__STUDIO = {ouvre:ouvre, chapitre:chapitre, enregistrer:enregistrer, actif:function(){ return actif; }};
+  window.__STUDIO = {ouvre:ouvre, chapitre:chapitre, enregistrer:enregistrer, actif:function(){ return actif; },
+                     instantane:instantane,
+                     // crochets de test : publier sans disque, et les deux empreintes
+                     publieFictif:function(){ return sauve(true); },
+                     empreintes:function(){ return {fichier:duFichier, publiee:empreintePubliee}; }};
 })();

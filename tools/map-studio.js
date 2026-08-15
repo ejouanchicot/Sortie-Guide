@@ -186,10 +186,43 @@
       stage.scale({x:ns,y:ns});stage.position({x:c.x-rel.x*ns+(c.x-_pc.x),y:c.y-rel.y*ns+(c.y-_pc.y)});
       _pd=d;_pc=c;updateZoom();});
     stage.on('touchend',ev=>{if(!ev.evt.touches||ev.evt.touches.length<2){_pd=0;_pc=null;}});
-    // resize : jamais 0 (Konva plante sinon), re-fit après stabilisation
-    let _rz;window.addEventListener('resize',()=>{stage.width(Math.max(1,stageWrap.clientWidth));stage.height(Math.max(1,stageWrap.clientHeight));clearTimeout(_rz);_rz=setTimeout(fit,160);});
+    /* resize : jamais 0 (Konva plante sinon), puis on RÉTABLIT le cadrage.
+       C'était un re-fit : revenir à l'onglet Carte — ce qui déclenche un
+       resize — recadrait sur l'étage entier, et on reperdait le zoom qu'on
+       venait de prendre pour placer un marqueur au pixel près. Sans cadrage
+       retenu, `reprendVue` fait le fit d'origine. */
+    let _rz;window.addEventListener('resize',()=>{stage.width(Math.max(1,stageWrap.clientWidth));stage.height(Math.max(1,stageWrap.clientHeight));clearTimeout(_rz);_rz=setTimeout(reprendVue,160);});
   }
-  function updateZoom(){document.getElementById('zoomLbl').textContent='Zoom '+Math.round(stage.scaleX()*100)+' %';if(mapEd)positionMapEdit();if(mapPanel)positionMapPanel();}
+  function updateZoom(){document.getElementById('zoomLbl').textContent='Zoom '+Math.round(stage.scaleX()*100)+' %';if(mapEd)positionMapEdit();if(mapPanel)positionMapPanel();noteVueBientot();}
+  /* Le cadrage appartient a la carte qu'on regarde, pas a la session.
+     Enregistrer peut faire recharger la page — et on repartait cadre sur la
+     carte entiere, alors qu'on travaillait zoome dans un coin. Chaque carte
+     retient donc le sien. */
+  const VUES='studio_vues';let tVue=null;
+  const ZMIN=.12, ZMAX=6;                       // les bornes de la molette
+  /* La scene n'est mesurable que si elle est VISIBLE. Quand l'atelier ouvre sur
+     l'onglet Strategie, la carte naît dans un panneau masque : elle mesure 0, et
+     le cadrage calcule la-dessus vaut un zoom de 0,1 %. Le retenir, puis le
+     rappliquer en revenant sur la carte, donnait une carte « qui ne charge
+     plus » — elle etait la, grande comme un point. On ne retient donc rien tant
+     qu'on ne voit rien, et on se mefie d'un cadrage hors des bornes. */
+  function mesurable(){return stageWrap.clientWidth>40 && stageWrap.clientHeight>40;}
+  function vues(){try{return JSON.parse(localStorage.getItem(VUES)||'{}');}catch(e){return {};}}
+  function noteVueBientot(){clearTimeout(tVue);tVue=setTimeout(noteVue,300);}
+  function noteVue(){if(!stage||!mesurable())return;const nom=(FL[curIdx]||{}).carte;if(!nom)return;
+    const s=stage.scaleX();if(!(s>=ZMIN&&s<=ZMAX))return;
+    const v=vues();v[nom]={s:s,x:stage.x(),y:stage.y()};
+    try{localStorage.setItem(VUES,JSON.stringify(v));}catch(e){}}
+  // le cadrage retenu, ou la carte entiere si on ne le connait pas — ou s'il est
+  // hors de ce que la molette permet, donc qu'il ne vient pas d'un geste
+  // …et d'un cadrage qui laisse la carte entierement hors de l'ecran : une
+  // fenetre redimensionnee, un cadrage venu d'un autre poste, et on ouvre sur
+  // du vide sans savoir qu'il suffirait de recadrer.
+  function seVoit(v){const W=stageWrap.clientWidth,H=stageWrap.clientHeight,c=MAP*v.s;
+    return v.x<W && v.y<H && v.x+c>0 && v.y+c>0;}
+  function reprendVue(){const v=vues()[(FL[curIdx]||{}).carte];
+    if(!mesurable()||!v||!(v.s>=ZMIN&&v.s<=ZMAX)||!seVoit(v)){fit();return;}
+    stage.scale({x:v.s,y:v.s});stage.position({x:v.x,y:v.y});updateZoom();}
   function fit(){const W=Math.max(1,stageWrap.clientWidth),H=Math.max(1,stageWrap.clientHeight),pad=Math.min(64,W*.06,H*.06),w=Math.max(1,W-pad*2),h=Math.max(1,H-pad*2),s=Math.min(w/MAP,h/MAP);
     stage.scale({x:s,y:s});stage.position({x:(W-MAP*s)/2,y:(H-MAP*s)/2});updateZoom();}
   function setPanMode(on){stage.draggable(on);stage.container().style.cursor=on?'grab':'default';}
@@ -244,7 +277,7 @@
 
     applyVis();
     anim=new Konva.Animation(fr=>{const d=fr.time/1000*20;gRoutes.find('.flow').forEach(l=>{const dd=l.dash(),per=(dd[0]+dd[1])||24.5;l.dashOffset(-(d%per));});},layer);updateAnim();
-    setToolMode();fit();buildLayers();loadingEl.style.display='none';
+    setToolMode();reprendVue();buildLayers();loadingEl.style.display='none';
   }
   /* ---------- les ICÔNES : un job, ou un marqueur générique ----------
      Un AUTOCOLLANT : le dessin a la couleur de son rôle, cerné de blanc, posé
@@ -1969,6 +2002,14 @@
     liveUpdate();commitSoon();}
 
   window.addEventListener('keydown',e=>{if(inField(e)||modalOpen)return;
+    /* Ces raccourcis n'appartiennent qu'a l'atelier qu'on a SOUS LES YEUX.
+       Sous la coque a onglets, ils restaient a l'ecoute meme depuis l'onglet
+       Strategie : un Ctrl+Z tape sur du texte defaisait aussi, en silence et
+       hors de vue, le dernier geste de la carte. Et defaire remplace les
+       calques du chapitre courant — marqueurs, tracés, textes — que
+       l'enregistrement gravait ensuite dans data.js. Une carte y a laisse ses
+       cinq boss. Seul, l'atelier garde bien sur tous ses raccourcis. */
+    if(window.__STUDIO && window.__STUDIO.actif() !== 'map') return;
     const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
     // --- raccourcis globaux façon appli Windows (n'importe où) ---
     // Dans la coque à onglets, c'est ELLE qui enregistre — carte et strat en une

@@ -97,6 +97,26 @@ dit('elle propose tout, plutôt que rien',
     sans.vus.length === sans.tousLesMobs && sans.vus.includes('Degei') && sans.vus.includes('Dhartok'),
     sans.vus.length + ' proposés sur ' + sans.tousLesMobs + ' créatures connues');
 
+/* ---------------- une strat gardee avant le roster ----------------
+   Le cas qui a coute une carte : la bibliotheque garde la strat telle
+   qu'elle etait. Une strat gardee avant que les cartes declarent leur
+   roster n'en a pas — et la rouvrir vidait les cartes du leur, puis
+   l'enregistrement l'effacait de data.js. Sans un mot, puisqu'une carte
+   sans roster propose simplement tout. */
+console.log('\n— une strat gardée avant que les cartes déclarent leur roster —');
+const reprise = await p.evaluate(() => {
+  const s = window.__STUDIO.instantane();
+  Object.keys(s.cartes).forEach(k => { delete s.cartes[k].roster; });   // comme avant
+  const g = {COMPO:{}, ROLE:{}, BUFFS:{}, MOB:{}, TR:{}, FLOORS:[],
+             CARTES: JSON.parse(JSON.stringify(CARTES))};               // les cartes livrées
+  BIBLIO.versGlobaux(s, g, SORTIE.resoudreCartes);
+  return Object.keys(g.CARTES).map(k =>
+    k + ' : ' + (g.CARTES[k].roster ? g.CARTES[k].roster.boss.join(',') : 'PERDU'));
+});
+dit('la carte livrée lui rend le sien', reprise.every(x => !/PERDU$/.test(x)), reprise.join(' · '));
+dit('et chacune retrouve le sien, pas celui d\'à côté',
+    reprise.length > 1 && reprise[0] !== reprise[1], reprise.join(' · '));
+
 /* ---------------- le filet des creatures non classees ---------------- */
 console.log('\n— une créature que le roster ignore —');
 const filet = await p.evaluate(async () => {

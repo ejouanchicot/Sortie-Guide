@@ -64,6 +64,11 @@
         return;
       }
       var reste = decoupeCond(m[4].trim());
+      /* Un job sans action n'est pas une ligne. On clique « PLD » pour
+         commencer, on change d'avis, et « PLD : » restait — enregistré tel
+         quel, il donnait dans le guide un badge PLD suivi de rien du tout.
+         Le job seul attend qu'on écrive ; il n'entre pas dans la strat. */
+      if(!reste.texte.trim() && !reste.cond) return;
       var l = {r: m[1].split(',').map(function(x){return x.trim();}).filter(Boolean), t: reste.texte};
       if(reste.cond) l.cond = reste.cond;
       if(m[2]) l.warn = 1;
@@ -92,8 +97,9 @@
     }).join('\n');
   }
 
-  var THEMES = {'':'neutre', tank:'tank', buff:'buffs', dd:'dégâts', heal:'soin',
-                rules:'règles', 'rules proc':'procs', mb:'magic burst'};
+  var THEMES = {'':'neutre', tank:'tank', buff:'buffs', debuff:'débuffs', dd:'dégâts',
+                heal:'soin', tp:'TP moves', rules:'règles', 'rules proc':'procs',
+                mb:'magic burst'};
   var THEME_INV = (function(){ var o={}; for(var k in THEMES) o[THEMES[k]] = k; return o; })();
 
   /* ---------------- les BOÎTES ----------------
@@ -108,13 +114,16 @@
      l'écran : seul le badge de la ligne reste. Le mot occupe la ligne
      entière — « TANKBOX du camp » reste un titre ordinaire. */
   var BOITES = {TANKBOX:'tank', HEALERBOX:'heal', HEALBOX:'heal', SOINBOX:'heal',
-                BUFFBOX:'buff', DDBOX:'dd', MBBOX:'mb',
+                BUFFBOX:'buff', DEBUFFBOX:'debuff', DEBUFBOX:'debuff',
+                DDBOX:'dd', MBBOX:'mb',
                 REGLEBOX:'rules', RULEBOX:'rules', RULESBOX:'rules',
+                TPBOX:'tp', TPMOVEBOX:'tp', JABOX:'tp', MOVEBOX:'tp',
                 PROCBOX:'rules proc', PROCSBOX:'rules proc'};
   // Ce qu'on RÉÉCRIT pour chaque couleur — un seul mot par couleur, les autres
   // restent acceptés à la lecture.
-  var BOITE_INV = {tank:'TANKBOX', heal:'HEALERBOX', buff:'BUFFBOX', dd:'DDBOX',
-                   mb:'MBBOX', rules:'REGLEBOX', 'rules proc':'PROCBOX'};
+  var BOITE_INV = {tank:'TANKBOX', heal:'HEALERBOX', buff:'BUFFBOX', debuff:'DEBUFFBOX',
+                   dd:'DDBOX', mb:'MBBOX', tp:'TPBOX', rules:'REGLEBOX',
+                   'rules proc':'PROCBOX'};
 
   /* ---------------- UN BLOC <-> UN TEXTE, SANS SYNTAXE ----------------
      On écrit comme on le dirait à quelqu'un :
@@ -284,11 +293,21 @@
         groups.push(g); enBoite = true; return; }
       // sinon : titre de rubrique
       var t = ligne.trim(), cls = null, img = null;
-      t = t.replace(RE_CROCHET, function(_, v){
+      /* Un titre peut porter deux consignes entre crochets — sa couleur et sa
+         vignette — et c'est tout ce que l'outil y réécrit.
+
+         N'importe quel autre crochet était pourtant avalé comme une couleur :
+         « [b]Nullifying Rain[/b] » ressortait titré « Nullifying Rain » avec un
+         thème « /b », et la mise en forme partait à la poubelle. Les crochets
+         qu'on écrit — une marque de couleur, un « [AoE] » à la main — sont du
+         TEXTE, et le restent. */
+      t = t.replace(RE_CROCHET, function(tout, v){
         var mi = v.match(/^img\s*:\s*(.+)$/i);
         if(mi){ img = mi[1].trim(); return ''; }
-        cls = (THEME_INV[v.trim()] !== undefined) ? THEME_INV[v.trim()] : v.trim();
-        return '';
+        var nom = v.trim();
+        if(THEME_INV[nom] !== undefined){ cls = THEME_INV[nom]; return ''; }
+        if(THEMES[nom] !== undefined){ cls = nom; return ''; }
+        return tout;
       }).replace(/\s+$/,'').trim();
       // Juste après une BOÎTE : ce titre est LE SIEN, il n'en ouvre pas une
       // autre. La couleur reste celle du mot-clé — c'est lui qui l'a choisie,

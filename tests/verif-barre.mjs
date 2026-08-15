@@ -49,7 +49,8 @@ if (!trouve) { console.log('le bloc du boss Degei est introuvable'); await b.clo
 const barre = await p.evaluate(() => {
   const tb = document.querySelector('.ss-bloc[data-essai] .ss-tb');
   return {
-    familles: [...tb.querySelectorAll('.ss-tbl')].map(x => x.textContent.trim()),
+    familles: [...tb.querySelectorAll('.ss-tbl')].map(x => x.textContent.trim())
+                .concat([...tb.querySelectorAll('[data-grp]')].map(x => x.dataset.grp)),
     sansInfo: [...tb.querySelectorAll('button')].filter(x => !x.dataset.info)
                 .map(x => x.textContent.trim()),
     boites: [...tb.querySelectorAll('button[data-boite]')].map(x => x.dataset.boite),
@@ -60,13 +61,16 @@ const barre = await p.evaluate(() => {
   };
 });
 
-console.log('\n— les trois familles —');
-dit('qui · la ligne · le bloc', JSON.stringify(barre.familles) === '["qui","la ligne","le bloc"]',
+console.log('\n— deux rangées : les jobs, puis tout le reste en groupes —');
+dit('qui · mise en forme · couleur · la ligne · le bloc',
+    JSON.stringify(barre.familles)
+      === '["qui","mise en forme","couleur","la ligne","le bloc"]',
     JSON.stringify(barre.familles));
 
 console.log('\n— tout ce que la grammaire connait a son bouton —');
-const BOITES = ['TANKBOX','HEALERBOX','BUFFBOX','DDBOX','MBBOX','REGLEBOX','PROCBOX'];
-dit('les sept couleurs de boite', JSON.stringify(barre.boites) === JSON.stringify(BOITES),
+const BOITES = ['TANKBOX','HEALERBOX','BUFFBOX','DEBUFFBOX','DDBOX','MBBOX',
+                'TPBOX','REGLEBOX','PROCBOX'];
+dit('les neuf couleurs de boite', JSON.stringify(barre.boites) === JSON.stringify(BOITES),
     JSON.stringify(barre.boites));
 ['warn','cond','comp','sub','titre','note','ferme'].forEach(m => {
   dit('le marqueur « ' + m + ' »', barre.marqueurs.indexOf(m) >= 0, JSON.stringify(barre.marqueurs));
@@ -80,8 +84,8 @@ console.log('\n— chaque bouton dit ce qu\'il fait —');
 dit('aucun bouton sans infobulle', barre.sansInfo.length === 0, JSON.stringify(barre.sansInfo));
 
 console.log('\n— et il ecrit vraiment ce qu\'il annonce —');
-const attendu = {TANKBOX:'tank', HEALERBOX:'heal', BUFFBOX:'buff', DDBOX:'dd',
-                 MBBOX:'mb', REGLEBOX:'rules', PROCBOX:'rules proc'};
+const attendu = {TANKBOX:'tank', HEALERBOX:'heal', BUFFBOX:'buff', DEBUFFBOX:'debuff', DDBOX:'dd',
+                 MBBOX:'mb', TPBOX:'tp', REGLEBOX:'rules', PROCBOX:'rules proc'};
 const essais = await p.evaluate(mots => {
   const el = document.querySelector('.ss-bloc[data-essai]'), ta = el.querySelector('.ss-btxt');
   const out = {};

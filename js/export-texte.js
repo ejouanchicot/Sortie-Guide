@@ -75,7 +75,13 @@
     if(o.job && r.indexOf(o.job) < 0 && r.indexOf('ALL') < 0) return false;
     return true;
   }
-  function T(o, s){ return (o.tr ? o.tr(s) : s) || ''; }
+  /* Discord n'a pas de couleur. Les marques « [c:or]…[/c] » posées dans une
+     ligne y resteraient telles quelles, en plein milieu d'une consigne : on
+     garde le texte, on jette la teinte. */
+  function T(o, s){
+    var t = (o.tr ? o.tr(s) : s) || '';
+    return (global.STRATR && global.STRATR.sansMarques) ? global.STRATR.sansMarques(t) : t;
+  }
 
   function action(l, o){
     var jobs = (l.r || ['ALL']).filter(function(j){ return !exclu(o, j); });

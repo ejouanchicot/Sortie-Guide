@@ -138,12 +138,31 @@
     return c;
   }
 
+  /* ---------------- ce qu'une strat gardée trop tôt ne sait pas ----------------
+     Une carte dit maintenant quelles créatures on y rencontre. Une strat gardée
+     en bibliothèque AVANT ça n'a pas ce roster — et rouvrir cette strat vidait
+     les cartes du sien, puis l'enregistrement l'effaçait du fichier.
+
+     Sans un mot, en plus : une carte sans roster propose simplement tout ce que
+     MOB connaît, donc rien ne se voyait à l'écran. Il n'y a qu'au moment où on
+     relit `data.js` qu'on s'apercevait que le contenu avait disparu.
+
+     Ce que la strat gardée ne dit pas, la carte livrée le sait encore : on le
+     lui reprend, une fois, à l'ouverture. Comme pour les chemins d'images. */
+  function repriseRoster(cartes, livrees){
+    Object.keys(cartes || {}).forEach(function(nom){
+      var c = cartes[nom], l = (livrees || {})[nom];
+      if(c && !c.roster && l && l.roster) c.roster = copie(l.roster);
+    });
+    return cartes;
+  }
+
   function versGlobaux(s, g, resoudre){
     var c = repriseImages(copie(s));
     remplit(g.COMPO, c.compo);
     remplit(g.ROLE,  c.role);
     remplit(g.BUFFS, c.buffs);
-    remplit(g.CARTES, c.cartes);
+    remplit(g.CARTES, repriseRoster(c.cartes, g.CARTES));
     remplit(g.MOB,   c.mob);
     // les mots de l'interface d'abord, ceux de la strat par-dessus : une strat
     // neuve n'arrive donc jamais avec un guide anglais amputé de ses libellés

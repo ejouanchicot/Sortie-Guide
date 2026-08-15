@@ -199,7 +199,8 @@ body{overflow:hidden;background:var(--bg)}
 .ss-cle code.b-tank{--c:var(--r-tank)}  .ss-cle code.b-heal{--c:var(--r-heal)}
 .ss-cle code.b-buff{--c:var(--r-buff)}  .ss-cle code.b-dd{--c:var(--r-dd)}
 .ss-cle code.b-mb{--c:#22d3ee}          .ss-cle code.b-rules{--c:var(--r-all)}
-.ss-cle code.b-proc{--c:#3fbfae}
+.ss-cle code.b-proc{--c:#3fbfae}      .ss-cle code.b-debuff{--c:var(--violet)}
+.ss-cle code.b-tp{--c:var(--gc-tp)}
 .ss-cle .ss-boites{display:inline-flex;flex-wrap:wrap;gap:5px;vertical-align:middle;margin-top:5px}
 
 .ss-hero-go{font-size:13px;line-height:1.6;color:var(--txt2);margin:0 0 14px}
@@ -257,15 +258,56 @@ body{overflow:hidden;background:var(--bg)}
 button.ss-box.b-tank{--bc:var(--r-tank)}  button.ss-box.b-heal{--bc:var(--r-heal)}
 button.ss-box.b-buff{--bc:var(--r-buff)}  button.ss-box.b-dd{--bc:var(--r-dd)}
 button.ss-box.b-mb{--bc:#22d3ee}          button.ss-box.b-rules{--bc:var(--r-all)}
-button.ss-box.b-proc{--bc:#3fbfae}
+button.ss-box.b-proc{--bc:#3fbfae}        button.ss-box.b-debuff{--bc:var(--violet)}
+button.ss-box.b-tp{--bc:var(--gc-tp)}
 .ss-tb button.ss-box{color:var(--bc);border-color:color-mix(in srgb,var(--bc) 32%,transparent);
   background:color-mix(in srgb,var(--bc) 9%,transparent)}
 .ss-tb button.ss-box:hover{color:#fff;border-color:var(--bc);
   background:color-mix(in srgb,var(--bc) 26%,transparent)}
-/* le carre de couleur : c'est le cadre qu'on va poser, en miniature */
+/* le carre de couleur : c'est le cadre qu'on va poser, en miniature. Dans la
+   rangee dense il EST le bouton — le nom du cadre passe dans l'infobulle. */
 .ss-tb button.ss-box::before{content:"";flex:none;width:10px;height:10px;border-radius:3px;
   background:color-mix(in srgb,var(--bc) 22%,transparent);
   border:1.5px solid var(--bc);box-shadow:0 0 7px -2px var(--bc)}
+.ss-tb button.ss-box.ss-ic{min-width:22px;width:22px;min-height:22px}
+.ss-tb button.ss-box.ss-ic::before{width:11px;height:11px}
+
+/* ─── la rangee dense ───
+   Cinq familles a une ligne chacune, la barre prenait plus de place que le
+   texte. Les jobs gardent la leur — on les LIT — et tout le reste tient ici,
+   reduit a son signe, en groupes separes par un filet. */
+.ss-tbd{gap:3px;flex-wrap:wrap;padding-left:59px}   /* aligne sous les jobs */
+.ss-grp{display:inline-flex;align-items:center;gap:2px}
+.ss-sep{flex:none;width:1px;height:17px;margin:0 5px;background:var(--line2);opacity:.7}
+
+/* un bouton qui n'est qu'un signe : carre, sans etiquette */
+.ss-tb button.ss-ic{gap:0;padding:0;min-width:26px;width:26px;justify-content:center;
+  font-size:12px;font-weight:700}
+.ss-tb button.ss-ic .ss-i{background:none;min-width:0;padding:0;font-size:11px}
+.ss-tb button.ss-ic:hover .ss-i{background:none;color:#fff}
+.ss-tb button.ss-ic sup{font-size:.62em;line-height:1}
+
+/* ─── les teintes ───
+   Chaque bouton PORTE sa couleur : on la choisit de l'oeil, pas en lisant son
+   nom. Le nuancier ferme la rangee, pour ce que la palette ne couvre pas. */
+.ss-tb button.ss-coul{gap:0;padding:0;min-width:22px;width:22px;min-height:22px;
+  justify-content:center;border-color:color-mix(in srgb,var(--tc) 34%,transparent);
+  background:color-mix(in srgb,var(--tc) 10%,transparent)}
+.ss-tb button.ss-coul:hover{border-color:var(--tc);
+  background:color-mix(in srgb,var(--tc) 26%,transparent)}
+.ss-tb button.ss-coul .ss-pastille{flex:none;width:11px;height:11px;border-radius:50%;
+  background:var(--tc);box-shadow:0 0 7px -2px var(--tc)}
+/* le nuancier : meme pastille, mais elle ouvre le selecteur du navigateur */
+.ss-nuancier{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--chipbd);background:var(--chip);transition:.13s var(--ease)}
+.ss-nuancier:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+/* une roue de couleurs, pas un signe : c'est ce qu'on cherche des yeux quand
+   aucune des sept pastilles ne convient */
+.ss-nuancier i{width:11px;height:11px;border-radius:50%;
+  background:conic-gradient(#f2564d,#e9c23e,#3fca6a,#22d3ee,#4c9df0,#8b7cff,#f2564d);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--txt) 22%,transparent) inset}
+.ss-nuancier .ss-colibre{position:absolute;inset:0;opacity:0;cursor:pointer;border:0;padding:0}
 
 /* ─── l'infobulle ───
    Ancree sur la barre : meme place pour tous les boutons. Deux lignes — ce que

@@ -30,10 +30,41 @@ await p.setViewport({width:900, height:800});
 await p.goto(STUDIO, {waitUntil:'networkidle0'});
 await p.waitForFunction(() => window.STRATCORE && window.STRATR, {timeout:9000});
 
+/* ---------------- chaque cadre se nomme ----------------
+   Un cadre n'etait distingue QUE par sa couleur. Pour un oeil deuteranope,
+   celui du tank et celui des degats donnaient le meme rectangle. Trois lettres
+   dans le coin se lisent sans la couleur — et elles doivent y etre sur TOUS les
+   cadres, y compris ceux qui portent deja un titre. */
+console.log('\n— chaque cadre dit son nom dans le coin —');
+const ETIQUETTES = {tank:'TANK', heal:'SOIN', buff:'BUFF', debuff:'DEBUFF', dd:'DPS',
+                    mb:'MB', tp:'TP MOVES', rules:'RÈGLES', 'rules proc':'PROCS'};
+const coins = await p.evaluate(mots => {
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:0;top:0;width:900px;z-index:9999';
+  document.body.appendChild(h);
+  const out = mots.map(mot => {
+    // avec un titre : c'est le cas qui n'avait pas d'etiquette
+    const bloc = STRATCORE.textToBloc(mot + '\nUn titre\nPLD : une action');
+    h.innerHTML = STRATR.groupsHtml(bloc.groups, []);
+    const g = h.querySelector('.grp.boite');
+    return {mot, cls: g ? g.className : null,
+            tag: g ? getComputedStyle(g, '::before').content.replace(/^"|"$/g, '') : null};
+  });
+  h.remove();
+  return out;
+}, Object.keys(ETIQUETTES).map(c => ({tank:'TANKBOX', heal:'HEALERBOX', buff:'BUFFBOX',
+  debuff:'DEBUFFBOX', dd:'DDBOX', mb:'MBBOX', tp:'TPBOX', rules:'REGLEBOX',
+  'rules proc':'PROCBOX'})[c]));
+Object.keys(ETIQUETTES).forEach((cls, i) => {
+  dit('« ' + ETIQUETTES[cls] + ' » dans le coin du cadre ' + cls,
+      coins[i] && coins[i].tag === ETIQUETTES[cls], JSON.stringify(coins[i]));
+});
+
 /* ---------------- ce qu'on lit ---------------- */
 console.log('\n— chaque mot pose sa couleur, et se tait —');
 const MOTS = [['TANKBOX','tank'], ['HEALERBOX','heal'], ['BUFFBOX','buff'],
-              ['DDBOX','dd'], ['MBBOX','mb'], ['REGLEBOX','rules'], ['PROCBOX','rules proc']];
+              ['DEBUFFBOX','debuff'], ['DDBOX','dd'], ['MBBOX','mb'],
+              ['TPBOX','tp'], ['REGLEBOX','rules'], ['PROCBOX','rules proc']];
 const lu = await p.evaluate(mots => mots.map(([mot, cls]) => {
   const g = STRATCORE.textToBloc(mot + '\nPLD : une action').groups[0];
   return {mot, cls, obtenu: g.cls, titre: g.label, lignes: (g.lines||[]).length};
