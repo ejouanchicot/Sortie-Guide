@@ -182,6 +182,53 @@ dit('une note est annoncée « 1 »', calques.textes === calques.vraiTextes,
 dit('aucune forme, donc « 0 »', calques.formes === 0, String(calques.formes));
 dit('un seul fond de carte', calques.fond === 1, String(calques.fond));
 
+/* ---------------- 5. le catalogue est la source unique ----------------
+   Les trois premieres pannes venaient du meme endroit : ajouter un type de
+   marqueur demandait de toucher treize listes, et quatre ont ete manquees.
+   Elles se deduisent maintenant d'un catalogue. Ce test verifie qu'un type
+   declare est reellement pris partout — sans quoi on aurait juste deplace
+   l'oubli. */
+console.log('\n— un type déclaré est pris partout —');
+const cat = await p.evaluate(async () => {
+  const f = FLOORS[0];
+  // une carte qui porte un objet de CHAQUE type, pose par le vrai chemin
+  f.bosses = [{name:'Degei', n:1, el:'red', x:20, y:20}];
+  f.mids   = [{name:'Bhoot', el:'blue', x:30, y:30}];
+  f.packs  = [{name:'Acuex', el:'gray', x:40, y:40, q:'×3', ph:1}];
+  f.icones = [{ico:'PLD', x:50, y:50, c:'#4c9df0'}];
+  window.__MS.recharge();
+  await new Promise(r => setTimeout(r, 1700));
+
+  const avant = {bosses:f.bosses.length, mids:f.mids.length,
+                 packs:f.packs.length, icones:f.icones.length};
+  // l'historique doit tout retenir : on modifie, on annule, on recompte
+  const instantane = JSON.stringify(avant);
+  f.icones.push({ico:'WHM', x:60, y:60, c:'#3fca6a'});
+  f.packs.push({name:'Acuex', el:'gray', x:70, y:70, q:'×1', ph:1});
+  window.__MS.blocs();                       // force un pas d'historique
+  return {avant: instantane,
+          calques: [...document.querySelectorAll('.lay')]
+            .map(e => e.textContent.replace(/\s+/g,' ').trim())};
+});
+const attendus = ['Boss', 'Mid-boss', 'Packs', 'Icônes'];
+dit('chaque type a sa ligne dans les calques',
+    attendus.every(t => cat.calques.some(l => l.indexOf(t) === 0)),
+    JSON.stringify(cat.calques.filter(l => attendus.some(t => l.indexOf(t) === 0))));
+
+const couvre = await p.evaluate(() => {
+  /* Ce que l'atelier ecrit dans data.js doit contenir un objet de chaque type.
+     Un type oublie par le catalogue disparaitrait ici en silence. */
+  const ecrit = window.__MS.blocs().find(x => x.nom === 'CARTES').txt;
+  return {boss: /\{name:'Degei'/.test(ecrit),
+          mid:  /\{name:'Bhoot'/.test(ecrit),
+          pack: /\{name:'Acuex'/.test(ecrit),
+          ico:  /\{ico:'PLD'/.test(ecrit),
+          fantome: /el:'undefined'|ph:undefined/.test(ecrit)};
+});
+dit('et chacun s\'écrit dans data.js',
+    couvre.boss && couvre.mid && couvre.pack && couvre.ico, JSON.stringify(couvre));
+dit('sans qu\'aucun ne se range au mauvais endroit', !couvre.fantome, String(couvre.fantome));
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();

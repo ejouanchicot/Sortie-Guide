@@ -36,10 +36,35 @@
   // « Marqueurs » regroupait boss, mid-boss, packs et depart sous un seul
   // interrupteur : impossible de ne regarder que les boss. Chaque type a
   // desormais le sien, et le groupe reste la pour tout eteindre d'un coup.
-  const layerVis={map:true,shapes:true,routes:true,texts:true,pins:true,
-                  boss:true,mid:true,pack:true,ico:true,num:true,start:true};
-  const TYPES_PIN=[['boss','Boss'],['mid','Mid-boss'],['pack','Packs'],['ico','Icônes'],
-                   ['num','Numéros d’ordre'],['start','Départ']];
+  /* ---------------- LE CATALOGUE DES TYPES DE MARQUEUR ----------------
+     Ajouter un type demandait de toucher treize endroits, dispersés dans le
+     fichier, dont aucun ne signale l'oubli. La derniere fois — les icones —
+     quatre ont ete manques : coller une icone la rangeait en pack et gravait
+     une creature fantome dans data.js, Ctrl+Z ne defaisait pas sa pose, et
+     supprimer une carte annoncait qu'on ne perdait rien.
+
+     Une seule entree ici, et les listes qui suivent s'en deduisent. Ce qu'une
+     entree dit :
+       cle      · le `kind` porte par le noeud Konva
+       calque   · son libelle dans le panneau des calques
+       carte    · le tableau de la carte ou il vit (null : pas un objet de la
+                  carte — le depart est un champ, les numeros suivent leur boss)
+       titre    · comment on le nomme dans une carte de reglages
+       palette  · la categorie de la barre de pose qui le propose */
+  const TYPES=[
+    {cle:'boss',  calque:'Boss',             carte:'bosses', titre:'Boss',     palette:'boss'},
+    {cle:'mid',   calque:'Mid-boss',         carte:'mids',   titre:'Midboss',  palette:'mid'},
+    {cle:'pack',  calque:'Packs',            carte:'packs',  titre:'Pack',     palette:'pack'},
+    {cle:'ico',   calque:'Icônes',           carte:'icones', titre:'Icône',    palette:'job'},
+    {cle:'num',   calque:'Numéros d’ordre',  carte:null,     titre:'Numéro'},
+    {cle:'start', calque:'Départ',           carte:null,     titre:'Départ'}
+  ];
+  const TYPE=Object.fromEntries(TYPES.map(t=>[t.cle,t]));
+  // le tableau de la carte qui porte ce type — la seule table a consulter
+  function tableauDe(f,cle){const t=TYPE[cle];return (t&&t.carte)?(f[t.carte]=f[t.carte]||[]):null;}
+  const layerVis=Object.assign({map:true,shapes:true,routes:true,texts:true,pins:true},
+                               Object.fromEntries(TYPES.map(t=>[t.cle,true])));
+  const TYPES_PIN=TYPES.map(t=>[t.cle,t.calque]);
   /* Le type d'un marqueur. Attention : les pastilles numerotees des boss
      portent kind:'marker' — ce sont les ronds 1..4, deplacables a part, pas
      le depart. Les confondre affichait « Depart 4 » sur une carte qui n'a
@@ -48,7 +73,7 @@
     if(n.name()==='start')return 'start';
     const k=n._meta&&n._meta.kind;
     if(k==='marker')return 'num';
-    return (k==='boss'||k==='mid'||k==='pack'||k==='ico')?k:null;   // null : l'anneau de selection
+    return (TYPE[k]&&TYPE[k].carte)?k:null;   // null : l'anneau de selection
   }
   // Phase 3 : création de marqueurs depuis une palette d'images
   let armedPin=null,palCat='boss';
@@ -799,9 +824,12 @@
        d'abord, on nomme ensuite — et sur une carte deja chargee, un marqueur
        qui arrive avec son texte et son rond recouvre ce qu'on visait.
        Les deux se rallument d'une case dans la carte de reglages. */
-    if(kind==='boss'){const maxN=(f.bosses||[]).reduce((m,b)=>Math.max(m,b.n||0),0);o={name,n:maxN+1,el:'gray',x,y,hl:1};(f.bosses=f.bosses||[]).push(o);}
-    else if(kind==='mid'){o={name,el:'gray',x,y,hl:1};(f.mids=f.mids||[]).push(o);}
-    else{o={name,el:'gray',x,y,q:'×1',ph:lastPh,hl:1};(f.packs=f.packs||[]).push(o);}
+    // chaque type a sa forme propre — un boss porte un numero, un pack une
+    // quantite et une phase — mais c'est le catalogue qui dit ou le ranger
+    if(kind==='boss'){const maxN=(f.bosses||[]).reduce((m,b)=>Math.max(m,b.n||0),0);o={name,n:maxN+1,el:'gray',x,y,hl:1};}
+    else if(kind==='mid'){o={name,el:'gray',x,y,hl:1};}
+    else{kind='pack';o={name,el:'gray',x,y,q:'×1',ph:lastPh,hl:1};}
+    tableauDe(f,kind).push(o);
     await addPin(kind,o,pinSize(kind),MOBOF());
     poseFinie(o,name);}
   /* On repasse en Selection avec le marqueur qu'on vient de poser, et sa carte
@@ -813,7 +841,7 @@
     const g=pinNode(o); if(g)select(g);
     commit();toast(nom+' posé — il est sélectionné, glisse-le pour l’ajuster.','ok');}
   function deletePin(o,kind){const f=FL[curIdx];
-    const arr=kind==='ico'?f.icones:kind==='boss'?f.bosses:(kind==='pack'?f.packs:f.mids);
+    const arr=tableauDe(f,kind);
     const i=arr?arr.indexOf(o):-1;if(i>=0)arr.splice(i,1);
     const g=pinNode(o);if(g)g.destroy();if(o._mk)o._mk.destroy();
     select(null);buildLayers();draw();commit();}
@@ -1065,7 +1093,7 @@
       body.innerHTML='<div class="hintbox"><b>Clique</b> l’icône sur la carte : sa carte de réglages s’ouvre à côté (couleur du dessin, contour noir ou blanc, taille, position du label). <b>Glisse</b> l’icône pour la déplacer, « <b>Éditer le label</b> » pour le texte, la corbeille pour la supprimer.</div>';
       openIcoPanel(o);return;}
     // boss / pack / mid : réglages sur la carte (carte flottante), inspecteur = simple astuce cohérente avec le texte
-    const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[m.kind];
+    const kindLbl=(TYPE[m.kind]||{}).titre;
     setInspTitle(kindLbl+' · '+o.name,elc(o.el));
     body.innerHTML='<div class="hintbox"><b>Clique</b> le marqueur sur la carte : sa carte de réglages s’ouvre à côté (élément, position du label, quantité, masquer). <b>Glisse</b> le marqueur pour le déplacer, « <b>Éditer le label</b> » pour le texte, la corbeille pour le supprimer.</div>';
     openPinPanel(o,m.kind);
@@ -1223,7 +1251,7 @@
   const RESET_SVG='<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>';
   function openPinPanel(o,kind){const g=pinNode(o);if(!g)return;const col=elc(o.el);
     const anchor=()=>{const bb=g.getClientRect({relativeTo:layer});return {x:bb.x+bb.width/2,y:bb.y,y2:bb.y+bb.height};};
-    const kindLbl={boss:'Boss',pack:'Pack',mid:'Midboss'}[kind]||'Marqueur';
+    const kindLbl=(TYPE[kind]||{}).titre||'Marqueur';
     let h='<div class="mptitle" style="--dot:'+col+'">'+kindLbl+' · '+esc(o.name)+'</div>';
     h+='<div class="mprow"><span class="mplbl">Élément</span><div class="mpsw" id="mp_el"></div></div>';
     // n° d'ordre du boss : c'est lui qui relie le marqueur à sa phase, son onglet et son tracé
@@ -1333,7 +1361,7 @@
      8 · CALQUES
      ============================================================ */
   function eye(on){return on?'<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.2 4.2M9.9 5.2A10.9 10.9 0 0112 5c6.5 0 10 7 10 7a17 17 0 01-3.2 3.9M6.1 6.1A17 17 0 002 12s3.5 7 10 7a10.6 10.6 0 003.4-.6"/></svg>';}
-  function comptePins(){const c={boss:0,mid:0,pack:0,ico:0,num:0,start:0};
+  function comptePins(){const c=Object.fromEntries(TYPES.map(t=>[t.cle,0]));
     if(gPins)gPins.getChildren().forEach(n=>{const t=typePin(n);if(t&&t in c)c[t]++;});return c;}
   function ligneCalque(k,nom,n,sous){
     const el=document.createElement('div');
@@ -1497,7 +1525,7 @@
     // ce qu'on perd vraiment : le contenu pose sur la carte
     // les icones comptent parmi les marqueurs : sans elles, supprimer une carte
     // qui porte dix reperes annoncait qu'on ne perdait rien
-    const quoi=[['marqueur',(c.bosses||[]).length+(c.packs||[]).length+(c.mids||[]).length+(c.icones||[]).length],
+    const quoi=[['marqueur',TYPES.filter(t=>t.carte).reduce((n,t)=>n+((c[t.carte]||[]).length),0)],
                 ['trace',(c.routes||[]).length],['texte',(c.texts||[]).length],
                 ['forme',(c.shapes||[]).length]]
       .filter(x=>x[1]).map(x=>x[1]+' '+x[0]+(x[1]>1?'s':'')).join(', ');
@@ -1867,16 +1895,18 @@
   function cleanPin(o){const c=Object.assign({},o);delete c._mk;return c;}
   function snapState(){const f=FL[curIdx];(f.routes||[]).forEach(rt=>{if(rt._pts)rt.points=S.ptsStr(rt._pts);});
     return JSON.stringify({
-      bosses:(f.bosses||[]).map(cleanPin),packs:(f.packs||[]).map(cleanPin),mids:(f.mids||[]).map(cleanPin),
-      // les icones aussi : sans cette ligne, Ctrl+Z ne defaisait pas leur pose
-      icones:(f.icones||[]).map(cleanPin),
+      // tous les tableaux de marqueurs, tires du catalogue : un type de plus est
+      // pris dans l'historique sans qu'on ait a y penser. C'est l'oubli de cette
+      // ligne qui empechait Ctrl+Z de defaire la pose d'une icone.
+      pins:Object.fromEntries(TYPES.filter(t=>t.carte)
+        .map(t=>[t.carte,(f[t.carte]||[]).map(cleanPin)])),
       texts:(f.texts||[]).map(o=>Object.assign({},o)),
       shapes:(f.shapes||[]).map(o=>Object.assign({},o)),
       routes:(f.routes||[]).map(rt=>({n:rt.n,el:rt.el,c1:rt.c1,a:rt.a,fs:rt.fs,name:rt.name,points:rt.points})),
       mobScale:mobScale,labelMargin:labelMargin});}
   function restoreState(json){const st=JSON.parse(json),f=FL[curIdx];
-    f.bosses=st.bosses;f.packs=st.packs;f.mids=st.mids;f.texts=st.texts;f.routes=st.routes;f.shapes=st.shapes||[];
-    f.icones=st.icones||[];
+    TYPES.filter(t=>t.carte).forEach(t=>{ f[t.carte]=(st.pins&&st.pins[t.carte])||[]; });
+    f.texts=st.texts;f.routes=st.routes;f.shapes=st.shapes||[];
     mobScale=st.mobScale;labelMargin=st.labelMargin;paintGlobals();
     renderFloor(curIdx);}
   // un pas d'historique = une vraie modification → c'est le bon endroit pour lever le témoin
@@ -1899,13 +1929,18 @@
     /* Une icone n'est ni une forme ni une creature : sans cette branche, elle
        tombait dans « pack » et s'ecrivait dans data.js en creature fantome,
        sans element ni phase — « el:'undefined', ph:undefined ». */
-    else if(kind==='ico'){(f.icones=f.icones||[]).push(o);await addIcone(o);
-      buildLayers();pick('select');const g=pinNode(o);if(g)select(g);}
-    else{const MOBimg=(typeof MOB!=='undefined')?MOB:{};
+    else{
+      /* Le catalogue dit dans QUEL tableau ce type vit. Avant, tout ce qui
+         n'etait ni forme ni texte ni boss ni mid tombait dans « pack » : une
+         icone collee devenait une creature sans element ni phase, gravee dans
+         data.js. Un type inconnu ne se colle plus nulle part. */
+      const arr=tableauDe(f,kind); if(!arr)return;
       if(kind==='boss'){const maxN=(f.bosses||[]).reduce((mx,b)=>Math.max(mx,b.n||0),0);o.n=maxN+1;
-        o.nx=r1(S.clamp((o.nx!=null?o.nx:o.x)+2));o.ny=r1(S.clamp((o.ny!=null?o.ny:o.y)+2));(f.bosses=f.bosses||[]).push(o);}
-      else if(kind==='mid'){(f.mids=f.mids||[]).push(o);}else{(f.packs=f.packs||[]).push(o);}
-      await addPin(kind,o,pinSize(kind),MOBimg);buildLayers();pick('select');const g=pinNode(o);if(g)select(g);}
+        o.nx=r1(S.clamp((o.nx!=null?o.nx:o.x)+2));o.ny=r1(S.clamp((o.ny!=null?o.ny:o.y)+2));}
+      arr.push(o);
+      if(kind==='ico')await addIcone(o);
+      else await addPin(kind,o,pinSize(kind),(typeof MOB!=='undefined')?MOB:{});
+      buildLayers();pick('select');const g=pinNode(o);if(g)select(g);}
     commit();toast('Collé.','ok');}
   function duplicateSel(){const d=selData();if(d)pasteObj(d);}
   function deleteSelNow(){if(!selNode||!selNode._meta)return;const m=selNode._meta;if(m.kind==='shape')deleteShape(m.o);else if(m.kind==='text')deleteText(m.o);else if(m.kind!=='marker')deletePin(m.o,m.kind);}
