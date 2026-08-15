@@ -115,8 +115,8 @@ const BUFFS={
  ],
  "Buffs de trajet · sous-sol":[
   {label:"",cls:"",lines:[
-    ln(["ALL"],"Sneak + Invisible"),
-    ln(["COR"],"Bolter's + Tactician's")
+    ln(["ALL"],["Sneak","Invisible"]),
+    ln(["COR"],["Bolter's","Tactician's"])
   ]}
  ]
 };
@@ -127,7 +127,8 @@ const PHASES=[
   {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
     {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],["prend les Acuex → les amène au camp Fomor","tank tout (Acuex + Fomor)"]),
-      ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
+      ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps"),
+      ln(["PLD"],"")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
@@ -301,7 +302,47 @@ const PHASES=[
    ============================================================ */
 const PHASES_B=[
 {n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"boss",name:"Dhartok",tag:"",groups:[]}
+  {kind:"pack",name:"Botulus",tag:"",groups:[
+    {label:"",cls:"dd",boite:1,lines:[
+      ln(["ALL"],["Battez l'Esurient Botulus en infligeant la majorité des dégâts par des Weapon Skills exécutées dans son dos.","Les dégâts de Skillchain ne comptent pas.","Stun chacun de ses TP Moves (Flat Blade)"])
+    ]},
+    {label:"[c:or]Chymous Reek[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:or]Stun[/c] + [c:bleu]Choke[/c][/t]",lines:[]},
+    {label:"[c:or]Crowning Flatus[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:or]Stun[/c] + [c:blanc]Knock[/c][/t]",lines:[]},
+    {label:"[c:or]Gnash 'n Guttle[/c]",cls:"",niv:1,note:"[t:petit][c:blanc]Max HP Down[/c] (-50%)[/t]",lines:[]},
+    {label:"[c:or]Just Desserts[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:or]Stun[/c] + [c:bleu]Drown[/c][/t]",lines:[]},
+    {label:"[c:or]Rancid Reflux[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:#9d4c01]Gravi[/c] + [c:blanc]Knock[/c][/t]",lines:[]},
+    {label:"[c:or]Slimy Proposal[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:#fb00ff]Charm[/c] + [c:blanc]Dia[/c][/t]",lines:[]},
+    {label:"[c:or]Sloughy Sputum[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:#9d4c01]Gravi[/c] + [c:bleu]Drown[/c] + [c:blanc]Knock[/c][/t]",lines:[]}
+  ]},
+  {kind:"pack",name:"Dhartok",tag:"",groups:[
+    {label:"",cls:"tank",boite:1,lines:[
+      ln(["ALL"],"le [c:bleu]MNK[/c]/[c:bleu]DNC[/c] tank ne restez pas Coller a eux")
+    ]},
+    {label:"",cls:"rules",boite:1,niv:1,lines:[
+      ln(["ALL"],"on retire le [c:violet]Poison[/c] systématiquement, il multiplie les dégâts de [c:rouge]Clobbering Wave[/c]",{warn:1})
+    ]},
+    {label:"",cls:"dd",boite:1,lines:[
+      ln(["MNK"],"toutes les WS autorisées, [b]sauf [c:rouge]Howling Fist[/c][/b]"),
+      ln(["DNC"],"[b]Ruthless Stroke[/b]"),
+      ln(["RDM"],"[b]Black Halo[/b]"),
+      ln(["COR","BRD"],"[b]Savage Blade[/b]")
+    ]},
+    {label:"",cls:"debuff",boite:1,lines:[
+      ln(["BRD"],["Elegy","Requiem"]),
+      ln(["RDM"],["Dia III","Distract III"]),
+      ln(["COR"],"Light Shot")
+    ]},
+    {label:"",cls:"buff",boite:1,lines:[
+      ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
+      ln(["COR"],["Chaos Roll","Samurai Roll"]),
+      ln(["BRD"],["Honor March","Minuet V","Minuet IV","Blade Madrigal","Aria of Passion"])
+    ]},
+    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (5 min)[/t]",lines:[]},
+    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:blanc]Silence[/c] + [c:violet]Taint[/c] (-40 HP/tic, 5 min)[/t]",lines:[]},
+    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (5 min)[/t]",lines:[]},
+    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:blanc]Knock[/c][/t]",lines:[]},
+    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (-30 HP/tic, 5 min)[/t]",lines:[]}
+  ]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
@@ -378,19 +419,19 @@ const CARTES={
   trace:"",
   depart:null, departNom:"",
   bosses:[
-   {name:'Dhartok',n:1,el:'red', x:27.6,y:22, nx:28,ny:27.9, lp:'top'},
-   {name:'Triboulex',n:2,el:'green', x:74.8,y:83.5, nx:75,ny:75},
-   {name:'Aita',n:3,el:'gray', x:28.1,y:83, nx:28.1,ny:74.9},
-   {name:'Gartell',n:4,el:'blue', x:83.6,y:27.5, nx:74.9,ny:28, lp:'right'},
-   {name:'Aminon',n:5,el:'dark', x:13.5,y:51.5, nx:20.2,ny:51.5, lp:'left'},
+   {name:'Dhartok',n:1,el:'red', x:27.6,y:22, nx:28,ny:27.9, lp:'top', label:'Dhartok'},
+   {name:'Triboulex',n:2,el:'green', x:74.8,y:83.5, nx:75,ny:75, label:'Triboulex'},
+   {name:'Aita',n:3,el:'gray', x:28.1,y:83, nx:28.1,ny:74.9, label:'Aïta'},
+   {name:'Gartell',n:4,el:'blue', x:83.6,y:27.5, nx:74.9,ny:28, lp:'right', label:'Gartell'},
+   {name:'Aminon',n:5,el:'dark', x:13.5,y:51.5, nx:20.2,ny:51.5, lp:'left', label:'Aminon'},
   ],
   packs:[
   ],
   mids:[
-   {name:'Botulus', el:'earth', x:22.3,y:38.8, lp:'left'},
-   {name:'Ixion', el:'thunder', x:51.4,y:22.7, lp:'top'},
-   {name:'Naraka', el:'ice', x:80.3,y:58.4, lp:'right'},
-   {name:'Tulittia', el:'dark', x:51.6,y:80.5},
+   {name:'Botulus', el:'earth', x:22.3,y:38.8, lp:'left', label:'Botulus'},
+   {name:'Ixion', el:'thunder', x:51.4,y:22.7, lp:'top', label:'Ixion'},
+   {name:'Naraka', el:'ice', x:80.3,y:58.4, lp:'right', label:'Naraka'},
+   {name:'Tulittia', el:'dark', x:51.6,y:80.5, label:'Tulittia'},
   ],
   routes:[
    {n:1, el:'earth', fs:0.5, points:'51.5,45.7 51.5,39 45.3,39 45.3,36 42.3,36 38.5,42.1 32.8,42.1 32.8,35.8 26.6,35.9 26.6,30.9 28,27.9'},
