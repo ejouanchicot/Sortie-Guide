@@ -118,6 +118,19 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
   background:color-mix(in srgb,var(--r-buff) 10%,transparent)}
 #stUnsaved.on{display:inline-flex}
 #stUnsaved::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--r-buff);box-shadow:0 0 8px var(--r-buff)}
+/* ─── quand l'espace de travail ne repond plus ───
+   L'ambre dit « pas encore enregistre », ce qui est normal et attendu. Ces deux
+   etats-la ne le sont pas : le travail n'est PLUS garde. Le rouge, et un mot qui
+   ne se confond avec rien — c'est ce qu'on doit voir du coin de l'oeil.
+   « un autre onglet ecrit » se clique : il reprend la main. */
+#stUnsaved.panne, #stUnsaved.lecture{
+  color:var(--r-dd);border-color:color-mix(in srgb,var(--r-dd) 46%,transparent);
+  background:color-mix(in srgb,var(--r-dd) 13%,transparent)}
+#stUnsaved.panne::before, #stUnsaved.lecture::before{
+  background:var(--r-dd);box-shadow:0 0 9px var(--r-dd);animation:stBat 1.5s ease-in-out infinite}
+#stUnsaved.lecture{cursor:pointer}
+#stUnsaved.lecture:hover{border-color:var(--r-dd);background:color-mix(in srgb,var(--r-dd) 22%,transparent)}
+@keyframes stBat{50%{opacity:.35}}
 .st-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:12.5px;font-weight:600;
   color:var(--txt2);background:var(--chip);border:1px solid var(--chipbd);border-radius:10px;
   padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;transition:.15s var(--ease)}

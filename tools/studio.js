@@ -102,16 +102,106 @@
   // `publie` : on vient d'écrire le fichier, il dit donc exactement ceci.
   function sauve(publie){
     if(!stratId || !BI) return Promise.resolve();
+    if(!jePeuxEcrire()){ enLecture(); return Promise.resolve(); }
     var s = instantane(); s.id = stratId;
     var j = signature(s);
     if(publie) empreintePubliee = empreinteFichier(s);
     else if(j === dernierEcrit) return Promise.resolve();  // rien n'a bougé
     s.fichier = empreintePubliee;
     dernierEcrit = j;
-    return BI.ecris(s).catch(function(){});
+    return BI.ecris(s).then(reprise, panneEspace);
   }
   window.addEventListener('pagehide', function(){ clearTimeout(tSauve); sauve(); });
   document.addEventListener('visibilitychange', function(){ if(document.hidden){ clearTimeout(tSauve); sauve(); } });
+
+  /* ---------------- quand l'espace de travail ne répond plus ----------------
+     Toute erreur d'écriture était avalée : `BI.ecris(s).catch(function(){})`.
+     Quota plein, navigation privée, IndexedDB bloqué — le lead continuait
+     d'écrire une heure en croyant que son travail était gardé, et le
+     rechargement le lui prenait sans que rien ne l'ait annoncé.
+
+     Une panne muette est pire qu'une panne. On le dit UNE fois, et on laisse un
+     état visible tant que ça ne repasse pas : le témoin « non enregistré »
+     devient rouge et change de mot. */
+  var etatEspace = '';                       // '' · 'panne' · 'lecture'
+  function marque(etat, mot, pourquoi){
+    etatEspace = etat;
+    var el = $('stUnsaved'); if(!el) return;
+    el.classList.toggle('panne',   etat === 'panne');
+    el.classList.toggle('lecture', etat === 'lecture');
+    el.classList.toggle('on', !!etat || (MS && MS.sale()) || (SS && SS.sale()));
+    el.textContent = mot;
+    el.title = pourquoi;
+  }
+  function panneEspace(){
+    if(etatEspace === 'panne') return;        // on ne le répète pas à chaque frappe
+    marque('panne', 'sauvegarde impossible',
+      'Le navigateur refuse d’écrire dans son espace de travail — mémoire pleine, '
+      + 'ou navigation privée. Ton travail n’est plus gardé : enregistre dans le projet.');
+    toast('Ton travail n’est plus gardé par le navigateur. Enregistre dans le projet.','err');
+  }
+  function reprise(){
+    if(etatEspace === 'panne'){
+      marque('', 'non enregistré', 'Des changements ne sont pas encore sauvegardés');
+      toast('L’espace de travail répond de nouveau.','ok');
+    } else if(!etatEspace) marque('', 'non enregistré', 'Des changements ne sont pas encore sauvegardés');
+  }
+
+  /* ---------------- un seul onglet écrit ----------------
+     Deux onglets de l'atelier gardaient chacun SA version dans la même entrée,
+     toutes les fractions de seconde, sans se voir. Le dernier à écrire gagnait,
+     et le travail de l'autre disparaissait — c'est ce qui a coûté une carte
+     entière le 15 août 2026.
+
+     Le premier onglet ouvert prend le stylo et le repose régulièrement pour
+     dire qu'il vit encore. Les suivants n'écrivent pas : ils le disent, et un
+     clic sur le témoin reprend la main — c'est un choix, pas un blocage. */
+  var MOI = 'o' + Date.now() + Math.random().toString(36).slice(2, 7);
+  var jeTiensLeStylo = true, jAttendsReponse = true;
+  var CANAL = ('BroadcastChannel' in window) ? new BroadcastChannel('xi-studio') : null;
+  if(CANAL){
+    CANAL.onmessage = function(e){
+      var m = e.data || {};
+      // « qui écrit ? » — je ne réponds que si c'est moi, et que je suis vivant
+      if(m.q === 'qui' && jeTiensLeStylo) CANAL.postMessage({q:'moi', id:MOI});
+      // quelqu'un d'autre écrit déjà. Le plus ANCIEN garde le stylo : deux
+      // onglets ouverts en même temps se répondraient mutuellement, et sans
+      // cette comparaison ils se mettraient tous les deux en lecture.
+      else if(m.q === 'moi' && jAttendsReponse && m.id < MOI){ jeTiensLeStylo = false; enLecture(); }
+      // un onglet vient de reprendre la main : je la lui laisse
+      else if(m.q === 'prend' && m.id !== MOI){ jeTiensLeStylo = false; enLecture(); }
+    };
+    CANAL.postMessage({q:'qui', id:MOI});
+    setTimeout(function(){ jAttendsReponse = false; }, 600);
+  }
+  /* Pas de jeton posé quelque part : les onglets SE PARLENT. Un jeton daté
+     obligeait à deviner quand son porteur est parti — et RECHARGER sa propre
+     page suffisait à se bloquer soi-même, puisque l'ancienne page tenait encore
+     l'écriture pour quelques secondes. Avec un serveur qui recharge à chaque
+     enregistrement, c'était permanent. Une page rechargée redemande, personne
+     ne répond, elle écrit : c'est exactement ce qu'on veut. */
+  function jePeuxEcrire(){ return jeTiensLeStylo; }
+  function prendLeStylo(){
+    jeTiensLeStylo = true;
+    if(CANAL) CANAL.postMessage({q:'prend', id:MOI});
+  }
+  function enLecture(){
+    if(etatEspace === 'lecture') return;
+    marque('lecture', 'un autre onglet écrit',
+      'Un autre onglet de l’atelier tient l’écriture : ce que tu tapes ici n’est pas gardé. '
+      + 'Clique pour reprendre la main — l’autre onglet passera en lecture.');
+    toast('Un autre onglet de l’atelier est ouvert : c’est lui qui écrit.','err');
+  }
+  (function(){
+    var el = $('stUnsaved'); if(!el) return;
+    el.addEventListener('click', function(){
+      if(etatEspace !== 'lecture') return;
+      prendLeStylo();
+      marque('', 'non enregistré', 'Des changements ne sont pas encore sauvegardés');
+      toast('Cet onglet reprend l’écriture.','ok');
+      sauve();
+    });
+  })();
 
   async function majListeStrats(){
     var host = $('stStratSel'); if(!host || !BI) return;
@@ -222,7 +312,9 @@
     var m = MS && MS.sale(), s = SS && SS.sale();
     $('stTabMap').classList.toggle('sale', !!m);
     $('stTabStrat').classList.toggle('sale', !!s);
-    $('stUnsaved').classList.toggle('on', !!(m || s));
+    // une panne ou un autre onglet qui écrit reste affiché, même sans changement
+    // en attente : c'est justement quand on croit que tout va bien qu'il faut le voir
+    $('stUnsaved').classList.toggle('on', !!(m || s) || !!etatEspace);
     if(m || s) sauveBientot();     // l'espace de travail suit, en silence
   }
   setInterval(majEtat, 400);
@@ -525,6 +617,30 @@
       etatSave._t = setTimeout(function(){ etatSave(null); }, 1600); }
   }
 
+  /* ---------------- écrire, puis vérifier ----------------
+     Le navigateur VIDE le fichier avant d'y écrire (`createWritable`). Entre les
+     deux, `js/data.js` ne contient rien. Si l'écriture s'arrête là — disque
+     plein, permission retirée, onglet fermé — le fichier reste vide ou coupé, et
+     c'est toute la strat qui part.
+
+     On relit donc ce qu'on vient d'écrire. Si ce n'est pas ce qu'on voulait, on
+     remet la version d'avant : on l'a en main, on venait de la lire. Le lead
+     perd son dernier enregistrement, pas son fichier. */
+  async function ecrisEtRelis(h, texte, avant, nom){
+    try{
+      await DF.ecris(h, texte);
+      if(await DF.lis(h) === texte) return true;
+    }catch(e){ /* on retombe sur la restauration */ }
+    try{
+      await DF.ecris(h, avant);
+      toast('L’écriture de ' + nom + ' n’a pas abouti — le fichier a été remis comme il était.','err');
+    }catch(e){
+      toast('L’écriture de ' + nom + ' a échoué ET la version d’avant n’a pas pu être remise. '
+          + 'Ne ferme pas l’atelier : ton travail y est encore.','err');
+    }
+    return false;
+  }
+
   async function enregistrer(){
     if(enCours) return;                     // Ctrl+S repete ne relance pas l'ecriture
     if(!DF.dispo()){ toast('La sauvegarde directe demande Chrome ou Edge.','err'); return; }
@@ -566,13 +682,14 @@
 
       // carte ET strat en UNE passe : le fichier n'est lu et réécrit qu'une fois
       var blocs = [].concat(MS ? MS.blocs() : [], SS ? SS.blocs() : []);
-      var r = DF.remplace(await DF.lis(h), blocs);
+      var avant = await DF.lis(h);              // la version qu'on remplace
+      var r = DF.remplace(avant, blocs);
       if(r.absents.length){
         await DF.oublie('data');
         toast('Ce fichier ne contient pas ta strat — on te le redemandera.','err');
         return;
       }
-      await DF.ecris(h, r.texte);
+      if(!(await ecrisEtRelis(h, r.texte, avant, 'js/data.js'))) return;
       if(MS) MS.propre();
       if(SS) SS.propre();
       // le fichier dit maintenant exactement ceci : c'est le point d'accord des
@@ -581,11 +698,12 @@
 
       // la version anglaise vit dans un autre fichier : elle suit, sans bloquer
       if(await DF.permission(h2)){
-        var r2 = DF.remplace(await DF.lis(h2), SS ? SS.blocsTr() : []);
+        var avant2 = await DF.lis(h2);
+        var r2 = DF.remplace(avant2, SS ? SS.blocsTr() : []);
         if(r2.absents.length){ await DF.oublie('i18n');
           toast('Sauvegardé, mais la version anglaise n’a pas pu être écrite dans ce fichier.','err'); }
-        else { await DF.ecris(h2, r2.texte);
-               toast('Carte et strat sauvegardées — le guide est à jour.','ok'); }
+        else if(await ecrisEtRelis(h2, r2.texte, avant2, 'js/i18n.js')){
+          toast('Carte et strat sauvegardées — le guide est à jour.','ok'); }
       } else toast('Sauvegardé. La version anglaise n’a pas été enregistrée.','ok');
       majEtat();
       etatSave('fait');
@@ -765,7 +883,9 @@
 
   window.__STUDIO = {ouvre:ouvre, chapitre:chapitre, enregistrer:enregistrer, actif:function(){ return actif; },
                      instantane:instantane,
-                     // crochets de test : publier sans disque, et les deux empreintes
+                     // crochets de test : publier sans disque, les deux empreintes,
+                     // et l'écriture vérifiée, qu'on ne peut pas mettre en échec autrement
                      publieFictif:function(){ return sauve(true); },
+                     ecrisEtRelis:ecrisEtRelis,
                      empreintes:function(){ return {fichier:duFichier, publiee:empreintePubliee}; }};
 })();
