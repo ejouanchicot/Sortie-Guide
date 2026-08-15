@@ -63,7 +63,19 @@
      Une strat sort de la bibliothèque détachée de tout : sans ça, deux
      onglets ouverts sur la même strat se marcheraient dessus, et
      « dupliquer » partagerait ses tableaux avec l'original. */
-  function copie(o){ return JSON.parse(JSON.stringify(o)); }
+  /* Rien de ce qui commence par « _ » n'appartient à la strat : l'atelier Carte
+     accroche à chaque marqueur sa forme Konva (`_mk`), et à chaque tracé les
+     poignées qu'on y traîne (`_pts`). Tout se refait au rendu — `_pts` se relit
+     depuis `points`, `_mk` se redessine — et rien de tout ça ne va jamais dans
+     `data.js`.
+
+     Sérialisé, `_mk` pesait le QUART de ce qu'on écrivait en bibliothèque, et on
+     y écrit toute la strat à chaque silence dans la frappe. C'est aussi ce que
+     l'empreinte de comparaison laisse déjà de côté, pour la même raison. */
+  function copie(o){
+    return JSON.parse(JSON.stringify(o, function(cle, valeur){
+      return cle.charAt(0) === '_' ? undefined : valeur; }));
+  }
 
   function id(){
     return 'st-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
