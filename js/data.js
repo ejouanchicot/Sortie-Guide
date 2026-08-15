@@ -316,7 +316,7 @@ const PHASES_B=[
   ]},
   {kind:"pack",name:"Dhartok",tag:"",groups:[
     {label:"",cls:"tank",boite:1,lines:[
-      ln(["ALL"],"le [c:bleu]MNK[/c]/[c:bleu]DNC[/c] tank ne restez pas Coller a eux")
+      ln(["ALL"],"le [c:bleu]MNK[/c]/[c:bleu]DNC[/c] tank ne restez pas Coller a eux",{comp:"DNC"})
     ]},
     {label:"",cls:"rules",boite:1,niv:1,lines:[
       ln(["ALL"],"on retire le [c:violet]Poison[/c] systématiquement, il multiplie les dégâts de [c:rouge]Clobbering Wave[/c]",{warn:1})
