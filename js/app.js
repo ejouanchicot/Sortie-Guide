@@ -422,6 +422,22 @@ function lineHidden(el){
   }
   return false;
 }
+/* Un bloc dont toutes les lignes sont filtrées n'a plus lieu d'être : « Mon
+   rôle » sur le PLD ne doit pas laisser une rubrique vide derrière lui.
+
+   Mais TOUT bloc sans ligne visible était masqué, y compris ceux qui n'en ont
+   aucune à filtrer. Un TP move s'écrit avec son nom en titre et ses effets en
+   remarque — pas une seule ligne — et la liste entière disparaissait du guide,
+   alors qu'elle s'affichait dans l'atelier.
+
+   La règle sépare donc les deux cas : s'il y a des lignes, c'est le filtre qui
+   décide, comme avant. S'il n'y en a aucune, il n'y a rien à filtrer — le bloc
+   se montre s'il a quelque chose à dire. */
+function plusRienAMontrer(el){
+  const lignes = [...el.querySelectorAll(".line")];
+  if(lignes.length) return !lignes.some(l => !lineHidden(l));
+  return !el.querySelector(".glabel:not(:empty), .gnote");
+}
 function applyFilter(){
   const solo=document.body.classList.contains("solo") && !!curJob;
   document.querySelectorAll(".line").forEach(el=>{
@@ -430,17 +446,17 @@ function applyFilter(){
     el.classList.toggle("solohide", solo && roles.indexOf("ALL")<0 && roles.indexOf(curJob)<0);
   });
   document.querySelectorAll(".grp").forEach(g=>{
-    g.classList.toggle("emptyhide", ![...g.querySelectorAll(".line")].some(l=>!lineHidden(l)));
+    g.classList.toggle("emptyhide", plusRienAMontrer(g));
   });
   document.querySelectorAll(".card").forEach(c=>{
     // les cartes boss restent toujours visibles (marqueur de fin de secteur, même sans strat encore écrite)
     if(c.classList.contains("boss")){ c.classList.remove("emptyhide"); return; }
-    c.classList.toggle("emptyhide", ![...c.querySelectorAll(".line")].some(l=>!lineHidden(l)));
+    c.classList.toggle("emptyhide", plusRienAMontrer(c));
   });
   // la préparation est un bloc comme les autres : ses lignes sont déjà passées
   // dans la boucle du dessus, il ne reste qu'à masquer le bloc s'il ne montre plus rien
   document.querySelectorAll(".buffs").forEach(bf=>{
-    bf.classList.toggle("emptyhide", ![...bf.querySelectorAll(".line")].some(l=>!lineHidden(l)));
+    bf.classList.toggle("emptyhide", plusRienAMontrer(bf));
   });
   if(typeof placeNodes==='function') requestAnimationFrame(placeNodes);
 }
