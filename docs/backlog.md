@@ -71,8 +71,8 @@ cette page est du contenu à écrire.
 
 ## 📋 Contenu à compléter
 
-- [ ] **Refaire les images des mobs** au propre — mêmes noms (`img/mob-*.webp`), remplacement
-      direct, aucun code à toucher. *(Eric s'en occupe.)*
+- [ ] **Refaire les images des mobs** au propre — mêmes noms (`img/mobs/mob-*.webp`),
+      remplacement direct, aucun code à toucher. *(Eric s'en occupe.)*
 - [ ] **Variante DNC** là où il manque encore des lignes.
 - [ ] **Actions WHM / GEO** manquantes sur certains boss.
 - [ ] **Valider les chiffres et les rôles** en conditions réelles.
@@ -82,6 +82,26 @@ cette page est du contenu à écrire.
 
 - [ ] Impression / export PDF propre.
 - [ ] Checklist « pré-run » : buffs, positions de départ.
+
+### Quand il y aura beaucoup plus de mobs
+
+Sortie tient aujourd'hui en 24 vignettes. Au deuxième donjon, et surtout quand
+chaque zone aura sa faune complète, `img/mobs/` redeviendra le fouillis qu'on
+vient de défaire. Deux choses à savoir avant d'y toucher :
+
+- **La plomberie est déjà prête.** Un cran de plus — `img/mobs/sortie/…`,
+  `img/cartes/odyssey/…` — traverse sans rien casser : la reprise des anciens
+  chemins laisse passer les chemins profonds, la collecte de l'export les trouve,
+  et l'accès au dossier descend cran par cran. Il n'y aura ni migration de code
+  ni compatibilité à réécrire : déplacer les fichiers et mettre à jour `data.js`.
+- **Ce qui ne suivra pas, c'est la palette.** Le roster est déclaré *par carte*,
+  en trois listes (boss / mid / pack). Avec trente créatures sur un étage, la
+  barre de pose devient un mur. Les cartes portent déjà des `zones` : le
+  prolongement naturel est un roster **par zone**, et une barre qui suit le
+  secteur qu'on est en train d'écrire.
+
+Rien de tout ça n'est urgent tant qu'un étage tient en dix créatures. Le jour où
+ce n'est plus vrai, c'est la palette qu'il faut reprendre — pas le rangement.
 
 ---
 
