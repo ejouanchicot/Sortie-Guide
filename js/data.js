@@ -328,7 +328,7 @@ const PHASES_B=[
       ln(["COR","BRD"],"[b]Savage Blade[/b]")
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
-      ln(["BRD"],["Elegy","Requiem"]),
+      ln(["BRD"],["Elegy","Requiem","Light Threnody"]),
       ln(["RDM"],["Dia III","Distract III"]),
       ln(["COR"],"Light Shot")
     ]},
