@@ -148,7 +148,7 @@ const PHASES=[
     ]}
   ]},
   {kind:"boss",name:"Boss · Degei",tag:"on spam pour tuer · le proc (mages) ne fait pas de dégât",groups:[
-    {label:"Règles",cls:"rules",boite:1,lines:[
+    {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
       ln(["ALL"],"Setup : PLD fixe l'aggro · RDM pose Gravity II · GEO pose Geo-Gravity"),
@@ -156,7 +156,7 @@ const PHASES=[
       ln(["ALL"],"RDM libre → BRD + RDM procent ensemble"),
       ln(["ALL"],"1 proc suffit en général (2 max) · sous ~20 % pas la peine")
     ]},
-    {label:"Procs",cls:"rules proc",boite:1,lines:[
+    {label:"",cls:"rules proc",boite:1,lines:[
       ln(["ALL"],"Flaming Kick → WATER"),
       ln(["ALL"],"Flashflood → THUNDER"),
       ln(["ALL"],"Icy Grasp → FIRE"),
@@ -168,16 +168,16 @@ const PHASES=[
       ln(["PLD"],"Sous 30 yalm : build l'aggro (JA magie : Flash, Foil)"),
       ln(["PLD"],"Heal la party à ~21 yalm")
     ]},
-    {label:"Buffs",cls:"buff",boite:1,lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["GEO"],"Geo-Gravity"),
       ln(["GEO"],"Indi-Frailty"),
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["BRD"],["Honor March","Victory March","Minuet V","Aria"],{cond:"set anti-slow"})
     ]},
-    {label:"",cls:"heal",boite:1,lines:[
+    {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["Saboteur → Gravity II","Dia III","Distract III"])
     ]},
-    {label:"DD",cls:"dd",boite:1,lines:[
+    {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"WS libres (spam)"),
       ln(["DNC"],["spam Ruthless Stroke","Switch Rudra's Storm si Degei est Fire / Wind / Thunder"]),
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"])
@@ -205,15 +205,15 @@ const PHASES=[
       ln(["PLD"],"tank sur place"),
       ln(["PLD"],"Holy Circle + Sepulcher")
     ]},
-    {label:"Buffs · COR · GEO · BRD",cls:"buff",lines:[
+    {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["Chaos Roll","Samurai Roll"]),
       ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"],{cond:"sans RDM : Honor + Minuet ×2 + Victory"})
     ]},
-    {label:"",cls:"heal",boite:1,lines:[
+    {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["Dia III","Distract III · plus dur à land (Skomora est Darkness)"])
     ]},
-    {label:"DD",cls:"dd",lines:[
+    {label:"",cls:"dd",boite:1,lines:[
       ln(["COR"],["spam Savage Blade","Light Shot (Dia III)"]),
       ln(["MNK"],"Victory Smite ×2  (ou Victory → Shijin)"),
       ln(["DNC"],"spam Ruthless Stroke")
@@ -240,7 +240,7 @@ const PHASES=[
       ln(["GEO"],["Geo-Gravity","Indi-Frailty"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"])
     ]},
-    {label:"",cls:"heal",boite:1,lines:[
+    {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["Saboteur → Gravity II","Distract III"]),
       ln(["RDM"],"Zap copie un debuff → pas de Paralyze")
     ]},
@@ -250,13 +250,13 @@ const PHASES=[
       ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
       ln(["ALL"],"pas d'empilement (Counter 500+/hit)")
     ]},
-    {label:"Mains THUNDER → proc Earth",cls:"rules",boite:1,lines:[
+    {label:"Mains THUNDER → proc Earth",cls:"tp",boite:1,lines:[
       ln(["MNK"],"Shijin Spiral > Asuran Fists (Gravitation)"),
       ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"spam Savage Blade"),
       ln(["RDM","GEO"],"MB Earth sur le SC")
     ]},
-    {label:"Mains WIND → proc Ice",cls:"rules",boite:1,lines:[
+    {label:"Mains WIND → proc Ice",cls:"tp",boite:1,lines:[
       ln(["MNK"],"Shijin Spiral > Tornado Kick (Induration)"),
       ln(["DNC"],"Rudra's Storm ×2 = Darkness"),
       ln(["COR"],"Savage Blade"),
@@ -275,7 +275,7 @@ const PHASES=[
       ln(["GEO"],["Geo-Frailty","Indi-Fury"]),
       ln(["BRD"],["Honor March","Minuet ×2","Aria"])
     ]},
-    {label:"",cls:"heal",boite:1,lines:[
+    {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["Dia III","Distract III"])
     ]},
     {label:"",cls:"dd",boite:1,lines:[
