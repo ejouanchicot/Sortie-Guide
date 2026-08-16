@@ -297,7 +297,7 @@ const PHASES_B=[
     {label:"[c:or]Slimy Proposal[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:#fb00ff]Charm[/c] + [c:blanc]Dia[/c][/t]",lines:[]},
     {label:"[c:or]Sloughy Sputum[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:#9d4c01]Gravi[/c] + [c:bleu]Drown[/c] + [c:blanc]Knock[/c][/t]",lines:[]}
   ]},
-  {kind:"pack",name:"Dhartok",tag:"",groups:[
+  {kind:"boss",name:"Dhartok",tag:"",groups:[
     {label:"",cls:"tank",boite:1,lines:[
       ln(["ALL"],"le [b][c:bleu]MNK[/c][/b]/[b][c:bleu]DNC[/c][/b] tank ne restez pas Coller a eux",{comp:"DNC"})
     ]},
@@ -333,7 +333,23 @@ const PHASES_B=[
       ln(["ALL"],"Stun chacun de ses [b]TP moves[/b] au [b]Flat Blade[/b]")
     ]}
   ]},
-  {kind:"boss",name:"Triboulex",tag:"",groups:[]}
+  {kind:"boss",name:"Triboulex",tag:"",groups:[
+    {label:"[c:or]Setting The Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"rules",boite:1,note:"[t:petit]~[b]30 000[/b] dégâts divisés par le nombre de cibles à portée[/t]",lines:[]},
+    {label:"",cls:"dd",boite:1,lines:[
+      ln(["ALL"],"[b]derrière[/b] le mob, à [c:or]5,1 yalms[/c] du tank hors des [c:or]fetters[/c], mais groupés"),
+      ln(["PLD"],"straight tank à [b]max melee range[/b], côté [c:or]nord[/c]"),
+      ln(["MNK"],"[b]Tornado Kick[/b]",{cond:"espacer les WS, sinon on se wall"}),
+      ln(["DNC"],"[b]Climactic Flourish[/b] → WS → [b]Reverse Flourish[/b] → WS",{comp:"DNC"})
+    ]},
+    {label:"",cls:"debuff",boite:1,lines:[
+      ln(["RDM"],["[b]Dia III[/b]","[b]Saboteur[/b], [b]Frazzle III[/b], [b]Distract III[/b]"])
+    ]},
+    {label:"[c:or]Cruel Joke[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:violet][b]Haunted[/b][/c] un [c:violet][b]Curse[/b][/c] renforcé[/t]",lines:[]},
+    {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Paralysis[/b][/c], [c:or]RESET TP[/c][/t]",lines:[]},
+    {label:"[c:or]Last Laugh[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Critical damage[/b][/c] + [c:violet][b]Drain[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
+    {label:"[c:or]Feast of Arrows[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:#00ccff][b]Bind[/b][/c], [c:vert][b]Bio[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Curtain Call[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c], [c:vert][b]Bio[/b][/c][/t]",lines:[]}
+  ]}
 ]},
 {n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"boss",name:"Boss · Aïta",tag:"à définir",groups:[]}
