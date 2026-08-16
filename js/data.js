@@ -98,7 +98,8 @@ const BUFFS={
     ln(["ALL"],"Au Start : on attend [c:wind][b]Chocobo Mazurka[/b][/c] (BRD), [b]Bolter's Roll[/b] (COR) et/ou [b]Chocobo Jig II[/b] (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
     ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
     ln(["BRD"],"[c:wind][b]Chocobo Mazurka[/b][/c]"),
-    ln(["DNC"],"[b]Chocobo Jig II[/b]")
+    ln(["DNC"],"[b]Chocobo Jig II[/b]"),
+    ln(["ALL"],["[b]Remedy[/b] ×3-12 · [b]Panacea[/b] ×3-12 · [b]Sneak Oil[/b] ×6-12","[b]Antidotes[/b] (Ghatjot, Dhartok) · [b]Holy Water[/b] (Skomora, Triboulex)","on ramasse les Ra'Kaznar Metals au passage · un par secteur, il disparaît à la mort du boss"])
   ]}
  ],
  "Buffs de trajet":[
@@ -146,13 +147,14 @@ const PHASES=[
       ln(["RDM","GEO"],"MB Fire sur le SC")
     ]}
   ]},
-  {kind:"boss",name:"Boss · Degei",tag:"on spam pour tuer · le proc (mages) ne fait pas de dégât",groups:[
+  {kind:"boss",name:"Boss · Degei",tag:"≤ 4 min · on spam pour tuer, le proc (mages) ne fait pas de dégât",groups:[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
       ln(["ALL"],"à [c:or]3:00[/c] il enrage · plus que [b][c:or]Vivisection[/c][/b], et [c:rouge]1/4[/c] des dégâts",{warn:1}),
       ln(["ALL"],"[c:or]30 s[/c] sans proc = [c:rouge]-5 % DT[/c] · ça monte à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
-      ln(["BRD"],"une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts")
+      ln(["BRD"],"une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts"),
+      ln(["ALL"],"Ra'Kaznar Metal D : bloque les status de ses TP moves")
     ]},
     {label:"",cls:"rules proc",boite:1,lines:[
       ln(["ALL"],"Flaming Kick → WATER"),
@@ -192,9 +194,10 @@ const PHASES=[
       ln(["RDM","GEO"],"MB Fire sur le SC")
     ]}
   ]},
-  {kind:"boss",name:"Boss · Skomora",tag:"SC Light à mort",groups:[
+  {kind:"boss",name:"Boss · Skomora",tag:"< 3 min, sinon Setting the Stage · SC Light à mort",groups:[
     {label:"",cls:"tank",boite:1,lines:[
-      ln(["PLD"],"[b]Holy Circle[/b] + [b]Sepulcher[/b]")
+      ln(["PLD"],"[b]Holy Circle[/b] + [b]Sepulcher[/b]"),
+      ln(["ALL"],"son ouverture est une AoE · on s'écarte au pull",{warn:1})
     ]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
@@ -202,7 +205,9 @@ const PHASES=[
       ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[b][c:fire]Valor Minuet[/c] ×2[/b]","[c:fire][b]Aria of Passion[/b][/c]"],{cond:"sans RDM : [c:thunder][b]Honor March[/b][/c] + [c:fire][b]Valor Minuet[/b][/c] ×2 + [c:thunder][b]Victory March[/b][/c]"})
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
-      ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c] [t:petit]plus dur à land (Skomora est Darkness)[/t]"])
+      ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c] [t:petit]plus dur à land (Skomora est Darkness)[/t]"]),
+      ln(["ALL"],"il est [b]Undead[/b] · [c:light][b]Dia[/b][/c] et [c:light][b]Cure[/b][/c] lui font des dégâts, et chaque hit Light compte"),
+      ln(["ALL"],"Ra'Kaznar Metal C : le [c:violet]Haunted[/c] devient un [c:dark]Curse[/c] · [b]Holy Water[/b] ou [c:light][b]Cursna[/b][/c] le retirent")
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["COR"],["spam [b]Savage Blade[/b]","Light Shot ([c:light][b]Dia III[/b][/c])"]),
@@ -228,12 +233,14 @@ const PHASES=[
       ln(["ALL"],"≥1 WS par mob",{comp:"DNC"})
     ]}
   ]},
-  {kind:"boss",name:"Boss · Leshonn",tag:"Thunder ↔ Wind · ~870k",groups:[
+  {kind:"boss",name:"Boss · Leshonn",tag:"≤ 4 min · Thunder ↔ Wind · ~870k",groups:[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"JAMAIS son élément actif (SC/nuke) → il HEAL",{warn:1}),
       ln(["ALL"],"proc opposé = retire ses stacks DT/dmg (+5%)"),
       ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
-      ln(["ALL"],"pas d'empilement (Counter 500+/hit)")
+      ln(["ALL"],"pas d'empilement (Counter 500+/hit)"),
+      ln(["ALL"],"mains Wind = gros dégâts mêlée et en-[c:wind]Silence[/c] · mains Thunder = en-[c:thunder]Stun[/c]"),
+      ln(["ALL"],"Ra'Kaznar Metal B : bloque le [c:thunder]Stun[/c] et la [c:wind]Gravity[/c] de ses auto-attaques")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
@@ -259,13 +266,15 @@ const PHASES=[
   ]}
 ]},
 {n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:"Buffs avant le dernier boss",cards:[
-  {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
+  {kind:"boss",name:"Boss · Ghatjot",tag:"1-4 min · absorbe Water · porte verrouillée à l'engage",groups:[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"absorbe Water → boost ses [b]TP moves[/b]"),
       ln(["ALL"],"aucun dégât Water : ni magie, ni WS, ni SC [b]Distortion[/b] ou [b]Darkness[/b] · un SC Darkness l'a soigné de [c:rouge]70 000[/c]",{warn:1}),
       ln(["ALL"],"chaque absorption ajoute jusqu'à [c:rouge]×3[/c] ce montant à son prochain [b]TP move[/b]",{warn:1}),
       ln(["MNK"],"Chakra retire le [c:water]Taint[/c] ([c:water]Poison[/c])"),
-      ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable")
+      ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable"),
+      ln(["ALL"],"le Metal A se ramasse en tuant les Acuex de la zone A au [c:fire][b]feu[/b][/c] mono-cible · c'est sur le chemin"),
+      ln(["ALL"],"[b][c:or]Nullifying Rain[/c][/b] ne dispel plus rien")
     ]},
     {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"tank sur place")
@@ -307,7 +316,7 @@ const PHASES_B=[
     {label:"[c:or]Slimy Proposal[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:#fb00ff][b]Charm[/b][/c] + [c:light][b]Dia[/b][/c][/t]",lines:[]},
     {label:"[c:or]Sloughy Sputum[/c]",cls:"",niv:1,note:"[t:petit][c:rouge][b]Dmg[/b][/c] + [c:wind][b]Gravity[/b][/c] + [c:water][b]Drown[/b][/c] + [c:blanc][b]Knockback[/b][/c][/t]",lines:[]}
   ]},
-  {kind:"boss",name:"Dhartok",tag:"",groups:[
+  {kind:"boss",name:"Dhartok",tag:"~4 min · ~1,6M · le poison est toute la partie",groups:[
     {label:"",cls:"tank",boite:1,lines:[
       ln(["ALL"],"le [b][c:bleu]MNK[/c][/b]/[b][c:bleu]DNC[/c][/b] tank · ne reste pas collé à eux",{comp:"DNC"})
     ]},
@@ -316,7 +325,10 @@ const PHASES_B=[
       ln(["ALL"],"les nuages de [b][c:or]Cesspool[/c][/b] le [b]soignent[/b] s'il est dedans · on le sort de la flaque",{warn:1}),
       ln(["ALL"],"[b][c:or]Cesspool[/c][/b] lui donne [c:or]3:00[/c] de double TP move · le 2e pose un nuage sous sa cible"),
       ln(["ALL"],"jamais de SC [b]Darkness[/b] · c'est du Water, il l'absorbe et le seal s'use",{warn:1}),
-      ln(["ALL"],"on varie les WS · il monte un mur de résistance sur celles qu'on répète")
+      ln(["ALL"],"on varie les WS · il monte un mur de résistance sur celles qu'on répète"),
+      ln(["ALL"],"à [c:or]18+ yalms[/c] on ne prend pas le poison · le tank garde l'aggro pour ça"),
+      ln(["ALL"],"Ra'Kaznar Metal E : le [c:water]Taint[/c] devient un [c:water]Poison[/c] normal, et le retirer reset le multiplicateur · il sort du coffre de Botulus (~1/4)"),
+      ln(["ALL"],"s'il meurt [b]non claim[/b], zéro Gallimaufry · on recover et on claim avant qu'il tombe",{warn:1})
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"toutes les WS autorisées, [b]sauf [c:rouge]Howling Fist[/c][/b]"),
@@ -357,7 +369,7 @@ const PHASES_B=[
     {label:"[c:or]Sakra Storm[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Zombie[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:violet][b]Muddle[/b][/c], [c:or][b]HATE RESET[/b][/c][/t]",lines:[]},
     {label:"[c:or]Yama's Judgment[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:rouge][b]Doom[/b][/c] (5 counts)[/t]",lines:[]}
   ]},
-  {kind:"boss",name:"Triboulex",tag:"",groups:[
+  {kind:"boss",name:"Triboulex",tag:"≤ 6 min · 1,5M · Setting the Stage toutes les 3:00",groups:[
     {label:"[c:or]Setting the Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"rules",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[
       ln(["ALL"],"chaque dégât Light lui retire [c:or]500[/c] · c'est le nombre de hits qui compte, pas leur taille"),
       ln(["COR","RDM"],"spam [c:light][b]Dia[/b][/c] entre deux [b][c:or]Setting the Stage[/c][/b] · un cast instantané vaut un gros nuke ici"),
@@ -365,6 +377,9 @@ const PHASES_B=[
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["ALL"],"[b]derrière[/b] le mob, à [c:or]5,1 yalms[/c] du tank hors des [c:or]fetters[/c], mais groupés"),
+      ln(["ALL"],"fetters : [c:fire]rouge[/c] = [c:fire]Amnesia[/c] + Burn · [c:ice]bleu[/c] = [c:ice]Paralysis[/c] + Frost · [c:water]vert[/c] = [c:water]Poison[/c] + [c:water]Drown[/c] — l'aura est étroite, il suffit de ne pas être dessus"),
+      ln(["ALL"],"il absorbe le TP des joueurs"),
+      ln(["ALL"],"Ra'Kaznar Metal G : le [c:violet]Haunted[/c] devient un [c:dark]Curse[/c] qui ne fait que ralentir · il vient du kill de Naraka"),
       ln(["PLD"],"straight tank à [b]max melee range[/b], côté [c:or]nord[/c]"),
       ln(["MNK"],"[b]Tornado Kick[/b]",{cond:"espacer les WS, sinon on se wall"}),
       ln(["DNC"],"[b]Climactic Flourish[/b] → WS → [b]Reverse Flourish[/b] → WS",{comp:"DNC"})
@@ -380,10 +395,106 @@ const PHASES_B=[
   ]}
 ]},
 {n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"boss",name:"Boss · Aïta",tag:"à définir",groups:[]}
+  {kind:"boss",name:"Aïta",tag:"≤ 6 min · Degei en Lv.145 · ~1,6M · on kite, on ne tank pas",groups:[
+    {label:"",cls:"rules",boite:1,lines:[
+      ln(["ALL"],"[b][c:or]Vivisection[/c][/b] toutes les [c:or]3:05[/c] · [c:rouge]Dmg[/c] + [b]dispel complet[/b] sur [c:or]20+ yalms[/c]",{warn:1}),
+      ln(["ALL"],"[b]Elemental Sforzo[/b] et [b]Liement[/b] ne protègent PAS du dispel · il faut [c:light][b]Perfect Defense[/b][/c], [b]Mana Wall[/b] ou un proc [b]Annuls Damage[/b]",{warn:1}),
+      ln(["ALL"],"chaque proc réduit [b][c:or]Vivisection[/c][/b] · sous un seuil ses ailes tombent et le seal s'use moins vite"),
+      ln(["ALL"],"lui faire absorber son élément l'AUGMENTE · et un SC de son élément la déclenche en avance",{warn:1}),
+      ln(["ALL"],"après un wipe le timer tourne toujours · son premier move sera [b][c:or]Vivisection[/c][/b], et le DT accumulé reste",{warn:1}),
+      ln(["ALL"],"on varie les WS · mur de résistance sur celles qu'on répète"),
+      ln(["ALL"],"Ra'Kaznar Metal H : effet [b]non confirmé[/b] · au mieux les status de ses TP moves")
+    ]},
+    {label:"",cls:"rules proc",boite:1,lines:[
+      ln(["ALL"],"Flaming Kick → WATER"),
+      ln(["ALL"],"Flashflood → THUNDER"),
+      ln(["ALL"],"Icy Grasp → FIRE"),
+      ln(["ALL"],"Eroding Flesh → WIND"),
+      ln(["ALL"],"Fulminous Smash → EARTH")
+    ]},
+    {label:"",cls:"rules",boite:1,niv:1,lines:[
+      ln(["ALL"],"on ne nuke PAS tout de suite · on attend [c:or]2-3 s[/c] après son move, puis le T1 de contre — proc à tous les coups, zéro fetter"),
+      ln(["ALL"],"n'importe quel sort du bon élément suffit · même sans faire un point de dégât")
+    ]},
+    {label:"",cls:"tank",boite:1,lines:[
+      ln(["ALL"],"loin de lui il ne sort pas de TP move et reste verrouillé sur son élément · on longe les murs, de coin en coin"),
+      ln(["PLD"],"bait le premier move, puis [c:or]20-25 yalms[/c] pour éviter les cleaves"),
+      ln(["DNC"],"[b]Super Jump[/b] après 2 WS pour lâcher l'aggro"),
+      ln(["ALL"],"sous [c:or]50 %[/c] il pose des fetters · [c:rouge]~200/tic[/c] sur [c:or]20 yalms[/c], [b]Panacea[/b] pour les retirer"),
+      ln(["PLD"],"on passe en kite si les fetters virent [c:or]orange[/c] ou dépassent [c:or]4[/c]")
+    ]},
+    {label:"",cls:"buff",boite:1,lines:[
+      ln(["GEO"],["[b]Blaze of Glory[/b] → [c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Geo-Frailty[/b][/c]"],{cond:"il court plus vite que Gartell"}),
+      ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
+    ]},
+    {label:"",cls:"debuff",boite:1,lines:[
+      ln(["RDM"],["[b]Saboteur[/b] + [b]Stymie[/b] → [c:wind][b]Gravity II[/b][/c]","[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c]"]),
+      ln(["COR"],"Light Shot ([c:light][b]Dia III[/b][/c])")
+    ]},
+    {label:"[c:or]Vivisection[/c] toutes les [b][c:or]3:05[/c][/b]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE 20+ y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]dispel complet[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Flaming Kick[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] + [c:violet][b]Attack Down[/b][/c] (-25 %)[/t]",lines:[]},
+    {label:"[c:or]Icy Grasp[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:violet][b]Magic Attack Down[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Flashflood[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:water][b]Poison[/b][/c] + [c:violet][b]Magic Def. Down[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Eroding Flesh[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:earth][b]Slow[/b][/c] + [c:violet][b]Def. Down[/b][/c] (-25 %)[/t]",lines:[]},
+    {label:"[c:or]Fulminous Smash[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:thunder][b]Stun[/b][/c] + [c:violet][b]Accuracy Down[/b][/c] (-100)[/t]",lines:[]}
+  ]}
 ]},
 {n:4,sector:"F",boss:"Gartell",title:"Secteur F · Gartell",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"boss",name:"Boss · Gartell",tag:"à définir",groups:[]}
+  {kind:"boss",name:"Gartell",tag:"≤ 6 min · Leshonn en Lv.145 · 1,6M · mains Wind ↔ Thunder",groups:[
+    {label:"",cls:"rules",boite:1,lines:[
+      ln(["ALL"],"il absorbe Wind et Thunder en permanence · jamais l'élément affiché dans ses mains, SC compris",{warn:1}),
+      ln(["ALL"],"JAMAIS de SC Light · ça proc les alignements Wind ET Thunder d'un coup",{warn:1}),
+      ln(["ALL"],"aucun DoT · mains Thunder, [b][c:or]Zap[/c][/b] renvoie ses debuffs sur toute la party et un Helix bursté one-shot",{warn:1}),
+      ln(["ALL"],"chaque attaque sans nom lui donne [c:rouge]+5 % DT[/c] et [c:rouge]+5 % dégâts[/c] · le proc les nettoie"),
+      ln(["ALL"],"s'il passe en [b]double mains[/b], bind et kite jusqu'à ce que ça tombe",{warn:1}),
+      ln(["ALL"],"[b]Counter[/b] à [c:rouge]500+[/c] · en set WS bas-DT il monte à [c:rouge]2 500-4 100[/c]",{warn:1}),
+      ln(["ALL"],"Ra'Kaznar Metal F : affaiblit ses attaques · mécanisme non documenté")
+    ]},
+    {label:"",cls:"rules",boite:1,niv:1,lines:[
+      ln(["ALL"],"[c:or]2-3 s[/c] de délai entre le move qui change les mains et le switch réel · ne pas anticiper"),
+      ln(["RDM","GEO"],"un [c:earth][b]Stoneja[/b][/c] ou [c:ice][b]Blizzaja[/b][/c] à chaque switch suffit à proc")
+    ]},
+    {label:"Mains WIND → proc Ice",cls:"tp",boite:1,lines:[
+      ln(["ALL"],"il VOLE un buff à chacun · [b][c:or]Chokehold[/c][/b] = wipe si ça passe",{warn:1}),
+      ln(["WHM","RDM"],"retirer [c:light][b]Protect[/b][/c], pas de [c:light][b]Phalanx[/b][/c] · il prend le plus fort qu'il trouve"),
+      ln(["ALL"],"remettre [c:light][b]Shell[/b][/c] I et [c:light][b]Protect[/b][/c] I avant l'engage · un Shell V volé casse les nukes"),
+      ln(["RDM","GEO"],"MB Ice sur le SC")
+    ]},
+    {label:"Mains THUNDER → proc Earth",cls:"tp",boite:1,lines:[
+      ln(["ALL"],"[b][c:or]Zap[/c][/b] copie ses debuffs sur tout le groupe à portée",{warn:1}),
+      ln(["WHM","RDM"],"[c:light][b]Protect[/b][/c] V et [c:light][b]Phalanx[/b][/c] OK ici"),
+      ln(["BRD"],"[c:earth][b]Lightning Carol[/b][/c] contre le stun"),
+      ln(["RDM","GEO"],"MB Earth sur le SC")
+    ]},
+    {label:"",cls:"tank",boite:1,lines:[
+      ln(["PLD"],"sous [c:or]24,9 yalms[/c] pour garder l'aggro, au-delà de [c:or]20[/c] pour éviter Stun et Absorb · en pratique [c:or]22-23[/c]"),
+      ln(["ALL"],"à [c:or]1:00[/c] il pose des Gyve sur le tank · [c:thunder][b]Shock[/b][/c] et [c:wind][b]Choke[/b][/c] à [c:rouge]-296[/c] chacun"),
+      ln(["PLD"],"sortir des Gyve et [c:light][b]Erase[/b][/c] ou [b]Panacea[/b] · sans ça il tape beaucoup plus fort"),
+      ln(["ALL"],"[b][c:or]Tearing Gust[/c][/b] pose un [c:violet]Magic Def. Down[/c] très fort · on le retire tout de suite",{warn:1})
+    ]},
+    {label:"",cls:"buff",boite:1,lines:[
+      ln(["GEO"],["[b]Bolster[/b] → [c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Geo-Frailty[/b][/c]"]),
+      ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]"])
+    ]},
+    {label:"",cls:"debuff",boite:1,lines:[
+      ln(["RDM"],["[b]Chainspell[/b] + [b]Saboteur[/b] → [c:wind][b]Gravity II[/b][/c]","[c:ice][b]Distract III[/b][/c]"]),
+      ln(["ALL"],"pas de [c:ice][b]Paralyze[/b][/c] ni de Helix · [b][c:or]Zap[/c][/b] vous les renvoie",{warn:1})
+    ]},
+    {label:"",cls:"dd",boite:1,lines:[
+      ln(["ALL"],"SC [b]Darkness[/b] · jamais Light ni Transfixion"),
+      ln(["ALL"],"il prend des dégâts réduits des WS pendant [c:or]10 s[/c] après un hit à pleins dégâts"),
+      ln(["COR"],"[b]Savage Blade[/b] · [b]Leaden Salute[/b] pour fermer en Darkness"),
+      ln(["DNC"],"[b]Rudra's Storm[/b] > [b]Savage Blade[/b]")
+    ]},
+    {label:"[c:or]Chokehold[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:wind][b]Silence[/b][/c] + [c:wind][b]Gravity[/b][/c] + [c:wind][b]Choke[/b][/c] + Pull-In, [c:or][b]vole un buff à chacun[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Tearing Gust[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Magic Def. Down[/b][/c] + [c:blanc][b]Knockback[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Shrieking Gale[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] gros [c:rouge][b]Dmg[/b][/c] Wind + [c:blanc][b]Knockback[/b][/c] · [c:or][b]passe en mains Thunder[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Zap[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:violet][b]Plague[/b][/c] + [c:fire][b]Amnesia[/b][/c], [c:or][b]copie ses debuffs sur la party[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Concussive Shock[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:earth][b]Slow[/b][/c] + [c:thunder][b]Stun[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Undulating Shockwave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] · [c:or][b]passe en mains Wind[/b][/c][/t]",lines:[]}
+  ]}
 ]},
 {n:5,sector:"E",boss:"Aminon",soon:true,title:"Aminon · boss final (E)"}
 ];
@@ -397,8 +508,8 @@ const PHASES_B=[
 // ---- intros de la vue d'ensemble (FR / EN) ----
 const OVINTRO_TOP_FR='<p><b>Sortie · run linéaire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu\'au dernier boss, en enchaînant Degei → Skomora → Leshonn → Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class="ovi-tip">Clique ton job dans <b>Mon rôle</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p>';
 const OVINTRO_TOP_EN='<p><b>Sortie · linear run, 4 phases.</b> Follow the <b>right wall</b> from Start to the last boss: Degei → Skomora → Leshonn → Ghatjot. Each phase: a <b>farm</b> (pop the chests) then the <b>boss</b>.</p><p class="ovi-tip">Click your job in <b>My role</b> (or <b>Solo</b> to see only your actions), pick the <b>comp</b> at the top, then scroll down the rail.</p>';
-const OVINTRO_BOT_FR='<p><b>Sous-sol · secteurs E → H.</b> 4 boss majeurs : Dhartok (E), Triboulex (G), Aïta (H), Gartell (F), puis <b>Aminon</b> en boss final.</p><p class="ovi-tip">🚧 Strat en cours d\'écriture — on la complète run après run. La carte et le placement des points arrivent bientôt.</p>';
-const OVINTRO_BOT_EN='<p><b>Basement · sectors E → H.</b> Four major NMs: Dhartok (E), Triboulex (G), Aita (H), Gartell (F), then <b>Aminon</b> as the final boss.</p><p class="ovi-tip">🚧 Strategy is being written — filled in run after run. Map and point placement coming soon.</p>';
+const OVINTRO_BOT_FR='<p><b>Sous-sol · secteurs E → H.</b> 4 boss majeurs : Dhartok (E), Triboulex (G), Aïta (H), Gartell (F), puis <b>Aminon</b> en boss final.</p><p class="ovi-tip">⏱ Ces boss sont faits pour un burst court : <b>au-delà de 60 s</b> quelqu\'un se fait blaster, <b>au-delà de 120 s</b> c\'est un désastre. Chacun a une <b>gimmick</b> qui réduit ses dégâts ou retarde son gros move — l\'ignorer rend le combat bien plus dur que prévu.</p><p class="ovi-tip">🚧 Strat en cours d\'écriture — on la complète run après run. La carte et le placement des points arrivent bientôt.</p>';
+const OVINTRO_BOT_EN='<p><b>Basement · sectors E → H.</b> Four major NMs: Dhartok (E), Triboulex (G), Aita (H), Gartell (F), then <b>Aminon</b> as the final boss.</p><p class="ovi-tip">⏱ These bosses are built for a short burst: <b>past 60 s</b> someone gets blasted, <b>past 120 s</b> it\'s a disaster. Each one has a <b>gimmick</b> that cuts its damage or delays its big move — ignoring it makes the fight far harder than intended.</p><p class="ovi-tip">🚧 Strategy is being written — filled in run after run. Map and point placement coming soon.</p>';
 
 // ---- CARTES ----
 // Une carte est un MODULE autonome : son fond, ses marqueurs, ses tracés, ses
