@@ -81,6 +81,28 @@ entrée de `CARTES`, et `sortie-map-core.js` projette ses champs sur le chapitre
 par référence. Supprimer une carte doit donc vérifier qu'aucun chapitre ne la
 désigne encore — et peut emporter son image.
 
+### Ce que les couleurs veulent dire
+
+Elles ne décorent pas, elles renseignent. Une couleur posée à la main gagne
+toujours sur celle que le guide met tout seul sur les mots `Fire`, `Water`…
+
+| Ce qu'on écrit | Sa couleur | Pourquoi |
+|---|---|---|
+| un sort, une song, un JA | son **élément**, celui de la base GearSwap | `[c:fire]Valor Minuet V[/c]` — on voit ce qui résiste |
+| un statut que le jeu rattache à un élément | ce même élément | `Stun` foudre, `Bind` glace, `Choke` vent, `Gravity` vent |
+| un statut sans élément | `[c:violet]` | `Curse`, `Amnesia`, `Muddle`, `Zombie`, `Taint` |
+| des dégâts | `[c:rouge]` · un knockback `[c:blanc]` | |
+| **le nom d'un TP move** | `[c:or]` | c'est un nom, pas un sort — « Icy Grasp » n'est pas de la glace |
+| **sauf s'il est magique** | l'**élément du move** | `[c:dark]Cruel Joke[/c]` — magical Darkness |
+
+Cette dernière ligne est la seule exception, et elle est voulue : un titre
+qui n'est pas en or dit que le move est magique et de quel élément.
+Ne pas « uniformiser » `Cruel Joke` en or.
+
+Les teintes elles-mêmes doivent rester séparables : `tests/verif-teintes.mjs`
+mesure l'écart perceptif entre voisines dans les deux thèmes et refuse qu'il
+descende sous trente. La foudre et le violet des débuffs s'y tenaient à onze.
+
 ## 5. Écriture de `data.js` — `js/data-file.js`
 
 Les deux ateliers écrivent dans les mêmes fichiers. Tant que chacun avait sa
