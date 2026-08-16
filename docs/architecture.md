@@ -54,9 +54,11 @@ Fonctions **pures**, aucune dépendance à un backend de rendu. Chargé avant to
   `green→wind`.
 - **Géométrie** — `POI_SIZE`/`poiSize`/`labelGap`, `r1`, `clamp`, parse/serialize
   des points « x,y » en %, `segDist`, `projectOnSeg`, `midpoint`, `axisLock`.
-- **Texte** — `esc`, `escAttr`, `pqHtml`, texte enrichi (`parseInline`, `parseRich`,
+- **Texte** — `esc`, `escAttr`, `htmlSur`, texte enrichi (`parseInline`, `parseRich`,
   `runsToHtml`).
-- **Sérialisation** de `data.js` (`bossesConst`…`textsConst`).
+- **Sérialisation** de `data.js` — `TABLEAUX_CARTE` associe chaque tableau d'une
+  carte à l'écrivain qui le rend en texte (`bossesConst`, `packsConst`, `midsConst`,
+  `routesConst`, `iconesConst`).
 
 ## 4. Modèle de données — `js/data.js`
 
@@ -74,7 +76,11 @@ pour ajouter une strat.
 | `PHASES`, `PHASES_B` | les étapes, par étage |
 | `CARTES` | **le registre des cartes** — chaque carte porte `fond`, `trace`, `depart`, `bosses`, ses marqueurs et ses tracés |
 | `FLOORS` | les étages ; chacun pointe une carte par son nom et un bloc de phases |
-| `OVINTRO_*` | l'intro affichée sur chaque étage, FR et EN |
+
+L'intro affichée en tête d'un étage vit dans `FLOORS[i].introFr` / `introEn`, en
+HTML. Quatre constantes `OVINTRO_*` en portaient une copie que personne ne lisait :
+on y écrivait sans que la page change. Elles ont été supprimées — s'il en réapparaît
+une, c'est qu'on a écrit au mauvais endroit.
 
 Une carte est un **module que la strat désigne** : `FLOORS[i].carte` nomme une
 entrée de `CARTES`, et `sortie-map-core.js` projette ses champs sur le chapitre
