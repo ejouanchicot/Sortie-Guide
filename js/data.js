@@ -182,7 +182,7 @@ const PHASES=[
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"[b]Victory Smite[/b] ×2 (Light)"),
-      ln(["DNC"],"[b]Ruthless Stroke[/b] ×2 = [b][c:rouge]Fusion[/c][/b]"),
+      ln(["DNC"],"[b]Ruthless Stroke[/b] ×2 = [b][c:#ff7a45]Fusion[/c][/b]"),
       ln(["ALL"],"Kill après le MB",{warn:1})
     ]},
     {label:"MB Fire",cls:"mb",boite:1,niv:1,lines:[
@@ -204,7 +204,7 @@ const PHASES=[
     {label:"",cls:"dd",boite:1,lines:[
       ln(["COR"],["spam [b]Savage Blade[/b]","Light Shot ([c:light][b]Dia III[/b][/c])"]),
       ln(["MNK"],["[b]Victory Smite[/b] ×2 (ou [b]Victory[/b] → [b]Shijin[/b])","(Light)"]),
-      ln(["DNC"],["spam [b]Ruthless Stroke[/b] x3","([b][c:rouge]Fusion[/c][/b])>(Light)"])
+      ln(["DNC"],["spam [b]Ruthless Stroke[/b] x3","([b][c:#ff7a45]Fusion[/c][/b])>(Light)"])
     ]},
     {label:"[c:or]Setting the Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[]},
     {label:"[c:dark]Cruel Joke[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE 10 y[/c][/b]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignore les Shadows[/b][/c][/t]",lines:[]},
@@ -259,9 +259,9 @@ const PHASES=[
   {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"absorbe Water → boost ses TP moves"),
-      ln(["ALL"],"SEUL danger : Howling Fist > Savage Blade = [c:#6bfdff]Distortion[/c] → à éviter",{warn:1}),
-      ln(["MNK"],"Chakra retire le Taint ([c:water]Poison[/c])"),
-      ln(["ALL"],"Taint stack → augmente Clobbering Wave · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable")
+      ln(["ALL"],"SEUL danger : [b][c:rouge]Howling Fist[/c][/b] > Savage Blade = [c:#6bfdff]Distortion[/c] → à éviter",{warn:1}),
+      ln(["MNK"],"Chakra retire le [c:water]Taint[/c] ([c:water]Poison[/c])"),
+      ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable")
     ]},
     {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"tank sur place")
@@ -275,7 +275,7 @@ const PHASES=[
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c]"])
     ]},
     {label:"",cls:"dd",boite:1,lines:[
-      ln(["MNK"],"WS libres, évite [b]Howling Fist[/b] > [b]Savage Blade[/b] = ([c:#6bfffd]Distortion[/c]) → à éviter"),
+      ln(["MNK"],"WS libres, évite [b][c:rouge]Howling Fist[/c][/b] > [b]Savage Blade[/b] = ([c:#6bfdff]Distortion[/c]) → à éviter"),
       ln(["DNC"],"[b]Ruthless Stroke[/b]"),
       ln(["COR"],["spam [b]Savage Blade[/b]","Light Shot ([c:light][b]Dia III[/b][/c])"])
     ]}
@@ -308,7 +308,7 @@ const PHASES_B=[
       ln(["ALL"],"le [b][c:bleu]MNK[/c][/b]/[b][c:bleu]DNC[/c][/b] tank · ne reste pas collé à eux",{comp:"DNC"})
     ]},
     {label:"",cls:"rules",boite:1,niv:1,lines:[
-      ln(["ALL"],"on retire le [c:water]Poison[/c] systématiquement, il multiplie les dégâts de [b][c:rouge]Clobbering Wave[/c][/b]",{warn:1})
+      ln(["ALL"],"on retire le [c:water]Poison[/c] systématiquement, il multiplie les dégâts de [b][c:or]Clobbering Wave[/c][/b]",{warn:1})
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"toutes les WS autorisées, [b]sauf [c:rouge]Howling Fist[/c][/b]"),
