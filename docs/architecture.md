@@ -193,7 +193,31 @@ dernier · ➕ = nouveau tracé · 🗑 = supprimer le tracé.
   pour polices et images (elles ne changent pas sous le même nom).
   ⚠ **Monter `VERSION` à chaque livraison**, sinon l'ancien cache reste.
 
-## 9. Ce qui reste
+## 9. Vérifier son travail
 
-Voir `docs/backlog.md`. L'essentiel : remplir la vraie strat du **sous-sol**
-(`PHASES_B`) — l'outil est prêt, c'est la connaissance de run qui manque.
+Deux familles d'outils, et elles ne voient pas la même chose.
+
+| | Quoi | Combien de temps |
+|---|---|---|
+| `node tests/lancer.mjs` | **l'écran** — 40 tests, chacun dans son navigateur | ~1 min 40, six à la fois |
+| `node tests/lancer.mjs <mot>` | un seul test | 8 s |
+| `node tools/audit/coherence.mjs` | **le texte** — marques croisées, un mot deux couleurs, couleurs vs base GearSwap, moves écrits deux fois, raccourcis | instantané |
+| `node tools/audit/traductions.mjs` | le français resté sans anglais | instantané |
+| `node tools/audit/rendu.mjs` | marques visibles, débordement, console — deux étages, deux thèmes | 14 s |
+
+Les tests regardent la page ; les audits regardent le contenu. Aucun rendu ne
+peut attraper « Minuet V » ici et « Valor Minuet V » trois lignes plus bas :
+la page s'affiche très bien dans les deux cas.
+
+**Pendant le travail**, les audits et un test ciblé suffisent. La suite entière
+une fois, à la fin.
+
+`tests/serveur.mjs` sert le site pendant les tests — `python -m http.server`
+refusait les connexions au-delà de trois navigateurs et plafonnait tout. Le
+lanceur se sert de ce qu'il trouve debout sur le port 8137 : garde ton python
+dans un terminal si tu préfères.
+
+## 10. Ce qui reste
+
+Voir `docs/backlog.md`. L'essentiel : **Aminon**, la **carte du sous-sol**, et
+valider en run les chiffres qui viennent des fiches plutôt que du terrain.

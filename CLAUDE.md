@@ -107,7 +107,10 @@ que la clé d'une traduction EST la phrase française.
 | `tools/vendor/konva.min.js` | Konva — la seule dépendance, **copiée** dans le dépôt, jamais un CDN |
 | `img/mobs/` · `img/cartes/` | les vignettes de mobs et les fonds de carte. Le reste de `img/` appartient à l'application (icônes, marque). Une strat écrite avant ce rangement retrouve ses images à l'ouverture — `BIBLIO.repriseChemin` |
 | `tools/cleanup-img.ps1` | retire de `img/` les PNG dont le `.webp` existe (vers la corbeille) |
-| `docs/` | architecture, backlog, marque · `docs/archive/` = notes datées |
+| `tools/audit/` | les contrôles du **contenu** — voir plus haut. Rien à voir avec le site |
+| `tests/serveur.mjs` | sert le site pendant les tests, sans le plafond de `python -m http.server` |
+| `Sortie-NM-Fiches/` | la recherche sur les 8 NM (FFXIAH, BG-Wiki, forums SE). **Le tableau « Abilities » fait foi ; les sections « notes » sont du témoignage** |
+| `docs/` | architecture, backlog, marque · `docs/archive/` = notes datées, on n'y revient pas |
 
 Modules exposés en global (`window.X`), chargés dans l'ordre déclaré par le HTML.
 Pas de modules ES côté navigateur : le site s'ouvre aussi depuis un `file://`.

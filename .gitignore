@@ -7,6 +7,12 @@ apercu-local.html
 preview.html
 *.zip
 
+# les brouillons d'Eric à la racine : il y colle du contenu en cours
+# d'écriture avant de le poser dans l'atelier. Ça ne se publie pas.
+/Contenu
+/Contenu*.txt
+/Text.txt
+
 # sources de travail : Photoshop, générations d'images, exports bruts.
 # Elles vivent dans sources/, à côté du dépôt mais hors de lui — trop
 # lourdes (13 Mo pour le seul .psd) pour ce qu'elles apportent versionnées.

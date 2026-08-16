@@ -49,25 +49,24 @@
 
 ---
 
+## ✅ Le sous-sol — écrit
+
+Les quatre boss ont leur strat, tirée de `Sortie-NM-Fiches/` et corrigée en
+relecture par Eric. `PHASES_B` est passé de 32 à plus de 300 lignes.
+
+- **Dhartok** (E) · **Triboulex** (G) · **Aïta** (H) · **Gartell** (F) — règles,
+  procs, tank, buffs, debuffs, DD, et la table des TP moves de chacun.
+- **Botulus** et **Naraka**, tuables sur le trajet, gardent leur table.
+- Ghatjot et Dhartok sont **le même mob** : une seule table, identique des deux
+  côtés. Idem Skomora et Triboulex.
+
 ## 🔧 En cours — le sous-sol
 
-Ce qui manque ici n'est pas du code : c'est ce qui se sait en run. L'outil est prêt.
-
-- [ ] **Dhartok** (secteur E) — le boss est déclaré, sa strat est vide.
-- [ ] **Triboulex** (G) — idem. Seul Naraka, qu'on tue sur le trajet, a sa ligne.
-- [ ] **Aïta** (H) — vide.
-- [ ] **Gartell** (F) — vide.
-- [ ] **Aminon** — boss final, pas commencé.
-- [ ] **Ordre de run à figer** — pour l'instant Dhartok → Triboulex → Aïta → Gartell.
-
-> Où on en est vraiment : le sous-sol tient en **32 lignes** de `PHASES_B` contre 175 pour
-> l'étage du haut, et ne contient en tout que **deux lignes de strat** — Botulus et Naraka,
-> tuables sur le trajet au DNC. Les quatre boss portent encore la mention « à définir ».
-
-## 📋 Ce qui reste de mon côté
-
-Rien pour l'instant. Le sous-sol attend un run, pas du code — et tout le reste de
-cette page est du contenu à écrire.
+- [ ] **Aminon** — boss final, pas commencé. Les fiches ne le couvrent pas ; il a
+      son propre guide communautaire chez SE.
+- [ ] **La carte du sous-sol** et le placement des points.
+- [ ] **Ordre de run à figer** — on suit le mur de droite ; la communauté conseille
+      D → H → A → B → C → G → F → E pour avoir les 2h sur Aïta. Pas tranché.
 
 ## 📋 Contenu à compléter
 
@@ -75,8 +74,10 @@ cette page est du contenu à écrire.
       remplacement direct, aucun code à toucher. *(Eric s'en occupe.)*
 - [ ] **Variante DNC** là où il manque encore des lignes.
 - [ ] **Actions WHM / GEO** manquantes sur certains boss.
-- [ ] **Valider les chiffres et les rôles** en conditions réelles.
-- [ ] **Relecture FR / EN** du nouveau contenu (les traductions de `TR`).
+- [ ] **Valider les chiffres et les rôles** en conditions réelles — beaucoup
+      viennent des fiches, pas encore du terrain.
+- [ ] **Les mécaniques marquées « non confirmé »** : le Metal H d'Aïta, le
+      mécanisme exact du Metal F de Gartell.
 
 ## 💡 Plus tard
 
