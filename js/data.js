@@ -127,7 +127,7 @@ const PHASES=[
 {n:1,boss:"Degei",map:"",title:"Double Farm · Acuex + Fomor → Degei",route:"Depuis le Start (centre-gauche) · mur de droite, plein SUD → coin bas-gauche.",buffs:"Buffs de départ",cards:[
   {kind:"pack",name:"Double Farm · Acuex ×3 + Fomor ×3",tag:"le PLD amène les Acuex au camp Fomor, tank tout · 3 Acuex + 3 Fomor → pop les coffres",noHeadImg:true,groups:[
     {label:"",cls:"tank",boite:1,lines:[
-      ln(["PLD"],["prend les [b]Acuex[/b] → les amène au [b]camp Fomor[/b]","tank tout ([b]Acuex[/b] + [b]Fomor[/b])"]),
+      ln(["PLD"],"Prend les [b]Acuex[/b] → les amène au [b]camp Fomor[/b]"),
       ln(["ALL"],"on buff au camp Fomor · on farm les deux en même temps")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
@@ -153,7 +153,7 @@ const PHASES=[
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
       ln(["ALL"],"à [c:or]3:00[/c] il enrage · il ne prend plus que [c:rouge]1/4[/c] des dégâts et n'utilise plus que [b][c:or]Vivisection[/c][/b]",{warn:1}),
       ln(["ALL"],"chaque [c:or]30 s[/c] sans proc lui donne du DT · ça monte jusqu'à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
-      ln(["BRD"],"une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts"),
+      ln(["BRD"],"[b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts"),
       ln(["ALL"],"Ra'Kaznar Metal D : bloque les status de ses TP moves")
     ]},
     {label:"",cls:"rules proc",boite:1,lines:[
@@ -268,14 +268,12 @@ const PHASES=[
 {n:4,boss:"Ghatjot",map:"",title:"Ghatjot (pas de farm)",route:"Mur de droite, plein OUEST → coin haut-gauche (Ghatjot). Pas de farm.",buffs:"Buffs avant le dernier boss",cards:[
   {kind:"boss",name:"Boss · Ghatjot",tag:"1-4 min · absorbe Water · porte verrouillée à l'engage",groups:[
     {label:"",cls:"rules",boite:1,lines:[
-      ln(["ALL"],"absorbe Water → boost ses [b]TP moves[/b]"),
       ln(["ALL"],"aucun dégât Water : ni magie, ni WS, ni SC [b]Distortion[/b] ou [b]Darkness[/b] · un SC Darkness l'a soigné de [c:rouge]70 000[/c]",{warn:1}),
       ln(["ALL"],"chaque absorption ajoute jusqu'à [c:rouge]×3[/c] ce montant à son prochain [b]TP move[/b]",{warn:1}),
       ln(["MNK"],"Chakra retire le [c:water]Taint[/c] ([c:water]Poison[/c])"),
       ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable"),
       ln(["ALL"],"les nuages de [b][c:or]Cesspool[/c][/b] le [b]soignent[/b] s'il est dedans · on le sort de la flaque",{warn:1}),
-      ln(["ALL"],"[b][c:or]Cesspool[/c][/b] lui donne [c:or]3:00[/c] de double TP move · le 2e pose un nuage sous sa cible"),
-      ln(["ALL"],"le Metal A se ramasse en tuant les Acuex de la zone A au [c:fire][b]feu[/b][/c] mono-cible · c'est sur le chemin")
+      ln(["ALL"],"[b][c:or]Cesspool[/c][/b] lui donne [c:or]3:00[/c] de double TP move · le 2e pose un nuage sous sa cible")
     ]},
     {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"tank sur place")
