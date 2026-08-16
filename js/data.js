@@ -151,7 +151,7 @@ const PHASES=[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
-      ln(["ALL"],"à [c:or]3:00[/c] il enrage · plus que [b][c:or]Vivisection[/c][/b], et [c:rouge]1/4[/c] des dégâts",{warn:1}),
+      ln(["ALL"],"à [c:or]3:00[/c] il enrage · il ne prend plus que [c:rouge]1/4[/c] des dégâts et n'utilise plus que [b][c:or]Vivisection[/c][/b]",{warn:1}),
       ln(["ALL"],"[c:or]30 s[/c] sans proc = [c:rouge]-5 % DT[/c] · ça monte à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
       ln(["BRD"],"une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts"),
       ln(["ALL"],"Ra'Kaznar Metal D : bloque les status de ses TP moves")
