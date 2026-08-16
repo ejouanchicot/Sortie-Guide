@@ -89,8 +89,8 @@ toujours sur celle que le guide met tout seul sur les mots `Fire`, `Water`…
 | Ce qu'on écrit | Sa couleur | Pourquoi |
 |---|---|---|
 | un sort, une song, un JA | son **élément**, celui de la base GearSwap | `[c:fire]Valor Minuet V[/c]` — on voit ce qui résiste |
-| un statut que le jeu rattache à un élément | ce même élément | `Stun` foudre, `Bind` glace, `Choke` vent, `Gravity` vent |
-| un statut sans élément | `[c:violet]` | `Curse`, `Amnesia`, `Muddle`, `Zombie`, `Taint` |
+| un statut que le jeu rattache à un élément | ce même élément | `Stun` foudre, `Bind` glace, `Choke` vent, `Gravity` vent, `Taint` eau (c'est un poison), `Curse` ténèbres, `Amnesia` feu |
+| un statut sans élément connu | `[c:violet]` | `Muddle`, `Zombie`, `Weakness`, `Haunted`, `Dispel`, les *Down |
 | des dégâts | `[c:rouge]` · un knockback `[c:blanc]` | |
 | **le nom d'un TP move** | `[c:or]` | c'est un nom, pas un sort — « Icy Grasp » n'est pas de la glace |
 | **sauf s'il est magique** | l'**élément du move** | `[c:dark]Cruel Joke[/c]` — magical Darkness |
