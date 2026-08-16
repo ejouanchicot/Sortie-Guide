@@ -37,13 +37,19 @@ const args = process.argv.slice(2);
 const enSerie = args.includes('--serie');
 const filtres = args.filter(a => !a.startsWith('--'));
 
-/* Combien à la fois : chaque test est un Chrome complet, on laisse un cœur
-   à la machine. Le plafond n'était pas le processeur mais `python -m
-   http.server`, qui refusait les connexions au-delà de trois navigateurs —
-   d'où `tests/serveur.mjs`. */
+/* Combien à la fois. Deux plafonds successifs, tous deux mesurés :
+
+   · `python -m http.server` refusait les connexions au-delà de trois
+     navigateurs — d'où `tests/serveur.mjs`, qui ne les refuse pas ;
+   · à six, ce sont les tests eux-mêmes qui lâchent. Ils attendent la page
+     avec des délais en dur, et sous cette charge les délais mentent : deux
+     tests différents sont tombés sur deux passages, chacun passant seul.
+
+   Quatre : trois passages verts d'affilée, 113 s. Un test qui rougit au
+   hasard est pire qu'une suite lente — on apprend à ignorer le rouge. */
 const demande = (args.find(a => a.startsWith('--front=')) || '').split('=')[1];
 const FRONT = enSerie ? 1
-  : Math.max(1, Math.min(+demande || 6, (cpus().length || 4) - 1));
+  : Math.max(1, Math.min(+demande || 4, (cpus().length || 4) - 1));
 
 const tests = readdirSync(ICI)
   .filter(f => f.startsWith('verif-') && f.endsWith('.mjs'))

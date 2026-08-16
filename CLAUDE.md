@@ -46,7 +46,7 @@ pour que ses jetons de couleur n'écrasent pas ceux du guide dans la même page.
 ## Tests
 
 ```bash
-node tests/lancer.mjs            # tous — 6 à la fois, ~1 min 40
+node tests/lancer.mjs            # tous — 4 à la fois, ~1 min 50
 node tests/lancer.mjs fond css   # ceux dont le nom contient — 8 s pièce
 node tests/lancer.mjs --serie    # un par un, si un test devient capricieux
 ```
