@@ -51,7 +51,7 @@
 
 ## ✅ Le sous-sol — écrit
 
-Les quatre boss ont leur strat, tirée de `Sortie-NM-Fiches/` et corrigée en
+Les quatre boss ont leur strat, tirée de `docs/fiches-nm/` et corrigée en
 relecture par Eric. `PHASES_B` est passé de 32 à plus de 300 lignes.
 
 - **Dhartok** (E) · **Triboulex** (G) · **Aïta** (H) · **Gartell** (F) — règles,
