@@ -38,6 +38,9 @@ const question = () => p.evaluate(()=>{
 const publie = () => p.evaluate(async ()=>{ await window.__STUDIO.publieFictif(); });
 
 await ouvre();
+// ce que le fichier dit avant qu'on y touche : c'est a lui qu'on doit pouvoir
+// revenir, meme des heures plus tard
+const labelDuFichier = await p.evaluate(()=>FLOORS[0].bosses[0].label);
 console.log('\n— la premiere ouverture ne demande rien —');
 dit('rien a trancher : le fichier est ce qu\'on vient d\'en tirer', !(await question()),
     JSON.stringify(await question()));
@@ -103,6 +106,30 @@ if(q){
   await ouvre();
   dit('et là non plus on ne redemande pas', !(await question()), JSON.stringify(await question()));
 }
+
+/* La question du conflit ne se pose qu'une fois. « Garder mon travail »
+   fermait donc la porte au fichier pour de bon : il faut pouvoir y revenir
+   plus tard, sans avoir a vider le navigateur a la main. */
+console.log('\n— revenir au fichier quand on veut, pas seulement quand on nous le demande —');
+await ouvre();
+await p.evaluate(()=>{ FLOORS[0].bosses[0].label = 'ÉCRIT DANS L’ATELIER'; window.__MS.blocs(); });
+await new Promise(r=>setTimeout(r,1600));
+const proposee = await p.evaluate(()=>
+  [...document.getElementById('stStratSel').options].some(o=>o.value === '__fichier__'));
+dit('la commande est dans le menu des strats', proposee);
+await p.evaluate(()=>{ const s = document.getElementById('stStratSel');
+  s.value = '__fichier__'; s.dispatchEvent(new Event('change',{bubbles:true})); });
+await new Promise(r=>setTimeout(r,500));
+const qf = await question();
+dit('elle previent avant d\'effacer', !!qf && /data\.js/.test(qf.titre), JSON.stringify(qf));
+await p.evaluate(()=>document.getElementById('ssModalYes').click());
+await new Promise(r=>setTimeout(r,1200));
+const revenu = await p.evaluate(()=>FLOORS[0].bosses[0].label);
+dit('et le fichier reprend sa place', revenu === labelDuFichier,
+    String(revenu) + ' — attendu ' + String(labelDuFichier));
+await ouvre();
+dit('ce qui tient au rechargement', (await p.evaluate(()=>FLOORS[0].bosses[0].label)) === labelDuFichier);
+dit('sans reposer la question du conflit', !(await question()), JSON.stringify(await question()));
 
 dit('rien n\'a casse', bruit.length===0, bruit.slice(0,3).join('\n       '));
 await b.close();

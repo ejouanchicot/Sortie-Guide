@@ -47,6 +47,11 @@
      fichier n'a pas bougé et l'atelier reprend ton travail sans rien dire ;
      différentes, quelqu'un d'autre a écrit, et c'est TOI qui tranches. */
   var stratId = null, dernierEcrit = '', empreintePubliee = '', duFichier = '';
+  // Ce que le fichier disait au chargement, gardé entier. Les globales, elles,
+  // seront écrasées par la strat de la bibliothèque dans la seconde qui suit :
+  // sans cette photo, « Repartir de js/data.js » n'aurait plus de fichier où
+  // repartir.
+  var stratDuFichier = null;
 
   function nomCourant(){
     var s = $('stStratSel');
@@ -215,7 +220,8 @@
       + '<option value="__renom__">✎ Renommer celle-ci</option>'
       + (l.length > 1 ? '<option value="__suppr__">✕ Supprimer celle-ci</option>' : '')
       + '<option disabled>──────────</option>'
-      + '<option value="__import__">⤓ Ouvrir un guide reçu…</option>';
+      + '<option value="__import__">⤓ Ouvrir un guide reçu…</option>'
+      + '<option value="__fichier__">↺ Repartir de js/data.js…</option>';
     var n = l.filter(function(s){ return s.id === stratId; })[0];
     $('stStratInfo').textContent = n ? (n.chapitres + ' chap · ' + n.etapes + ' étapes') : '';
   }
@@ -744,9 +750,11 @@
     // TANT QUE les globales n'ont pas été remplacées, elles décrivent le FICHIER.
     // C'est le seul moment de la vie de la page où on peut le prendre en photo.
     duFichier = empreinte();
+    var regFichier = MS && MS.reglages ? MS.reglages() : null;
+    stratDuFichier = BI.depuisGlobaux(G, (typeof NOM !== 'undefined' && NOM) ? NOM : 'Ma strat', regFichier);
     var l = await BI.liste();
     if(!l.length){
-      var reg = MS && MS.reglages ? MS.reglages() : null;
+      var reg = regFichier;
       var s = BI.depuisGlobaux(G, (typeof NOM !== 'undefined' && NOM) ? NOM : 'Ma strat', reg);
       // ce que le fichier dit aujourd'hui EST ce qu'on garde : les deux partent d'accord
       s.fichier = duFichier;
@@ -791,6 +799,34 @@
     return neuve;
   }
 
+  /* La question du conflit ne se pose qu'une fois — c'est voulu, elle serait
+     insupportable à chaque ouverture. Mais « Garder mon travail » fermait la
+     porte : plus aucun moyen de revenir au fichier. Cette commande la rouvre,
+     à n'importe quel moment.
+
+     Elle repart de js/data.js TEL QUE CETTE PAGE L'A CHARGÉ. Si le fichier a
+     bougé depuis — un `git pull` pendant que l'atelier était ouvert — il faut
+     recharger d'abord, sinon on repart d'une photo périmée. */
+  async function repartDuFichier(){
+    if(!BI || !stratId || !stratDuFichier) return;
+    var s = await BI.lis(stratId); if(!s) return;
+    if(!(await demande(
+        'On remplace « <b>' + S.esc(s.nom) + '</b> » par ce que <b>js/data.js</b> '
+      + 'contient.<br><br>'
+      + 'Tout ce que tu as écrit dans l’atelier depuis ta dernière publication '
+      + 'sera <b>perdu</b>.<br><br>'
+      + 'Le fichier est lu tel que cette page l’a chargé : si tu viens de le '
+      + 'modifier ailleurs, recharge d’abord.',
+      {titre:'Repartir de js/data.js', ok:'Repartir du fichier', danger:true}))) return;
+    var neuve = BI.copie ? BI.copie(stratDuFichier) : JSON.parse(JSON.stringify(stratDuFichier));
+    neuve.id = s.id; neuve.nom = s.nom; neuve.fichier = duFichier;
+    await BI.ecris(neuve);
+    poseStrat(neuve);
+    dernierEcrit = signature(neuve); empreintePubliee = neuve.fichier;
+    await majListeStrats();
+    toast('Repartie de js/data.js.','ok');
+  }
+
   /* Reprendre là où on en était.
 
      Enregistrer peut faire recharger la page — Live Server et consorts le font
@@ -818,6 +854,7 @@
     if(v === '__renom__') return renommeStrat();
     if(v === '__suppr__') return supprimeStrat();
     if(v === '__import__'){ majListeStrats(); return choisirFichier(); }
+    if(v === '__fichier__'){ majListeStrats(); return repartDuFichier(); }
     ouvreStrat(v);
   });
   // les ateliers démarrent sur DOMContentLoaded : on passe juste après
