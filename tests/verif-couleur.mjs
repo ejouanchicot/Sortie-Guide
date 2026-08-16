@@ -302,6 +302,38 @@ dit('et sa couleur est bien celle qu\'on a demandée',
     /color:var\(--e-thunder\)/.test(condMarquee.html) && /<b>/.test(condMarquee.html),
     condMarquee.html);
 
+/* Un nom de sort porte UNE couleur, pas deux. « Light Threnody II » sortait
+   avec « Light » en lumière et le reste en ténèbres : les noms d'élément se
+   colorent tout seuls, et ils repeignaient par-dessus ce que le lead avait
+   écrit. La couleur qu'on pose à la main gagne. */
+console.log('\n— la couleur écrite à la main gagne sur celle des mots-éléments —');
+const impose = await p.evaluate(()=>{
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:-9999px;top:0;width:600px';
+  document.body.appendChild(h);
+  const rendu = (txt)=>{
+    const bloc = STRATCORE.textToBloc('DEBUFFBOX\n' + txt, {});
+    h.innerHTML = STRATR.groupsHtml(bloc.groups, []);
+    const zone = h.querySelector('.line .txt');
+    // TOUT ce qui porte une couleur là-dedans, imbriqué compris : c'est
+    // justement le morceau repeint au milieu du nom qu'on cherche
+    const dedans = [...zone.querySelectorAll('*')];
+    return {html: zone.innerHTML,
+            mots: dedans.map(e=>e.textContent.trim() + '=' + getComputedStyle(e).color),
+            teintes: [...new Set(dedans.map(e=>getComputedStyle(e).color))]};
+  };
+  const impose = rendu('BRD : [c:dark]Light Threnody II[/c]');
+  const libre  = rendu('ALL : MB Fire sur le SC');
+  h.remove();
+  return {impose, libre};
+});
+dit('« Light Threnody II » n\'est pas repeint en deux morceaux',
+    !/class="el /.test(impose.impose.html), impose.impose.html);
+dit('le nom entier porte une seule couleur',
+    impose.impose.teintes.length === 1, JSON.stringify(impose.impose.mots));
+dit('et un mot-élément laissé libre se colore toujours tout seul',
+    /class="el fire"/.test(impose.libre.html), impose.libre.html);
+
 console.log('\n— le gras suit la couleur qui l\'entoure —');
 const gras = await p.evaluate(()=>{
   const h = document.createElement('div');

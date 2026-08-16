@@ -112,9 +112,28 @@
     return out;
   }
 
-  function colorize(s){
-    s = esc(s);
+  function peintElements(s){
     ELS.forEach(function(e){ s = s.replace(new RegExp("\\b("+e[0]+")\\b","g"), '<span class="el '+e[1]+'">$1</span>'); });
+    return s;
+  }
+  /* Un nom de sort porte UNE couleur, pas deux. « [c:dark]Light Threnody II[/c] »
+     sortait avec « Light » en lumière et le reste en ténèbres : les noms
+     d'élément se colorent tout seuls, et ils repeignaient par-dessus ce que le
+     lead avait écrit. Dès qu'il pose la couleur lui-même, c'est la sienne —
+     ailleurs, « MB Fire sur le SC » se colore toujours sans qu'il demande. */
+  function elementsHorsCouleur(s){
+    var RE = new RegExp(RE_MARQUE.source, 'g'), out = '', vu = 0, prof = 0, m;
+    while((m = RE.exec(s))){
+      var avant = s.slice(vu, m.index);
+      out += (prof ? avant : peintElements(avant)) + m[0];
+      if(m[1] && m[1].charAt(0) === 'c') prof++;
+      else if(m[2] === 'c' && prof) prof--;
+      vu = m.index + m[0].length;
+    }
+    return out + (prof ? s.slice(vu) : peintElements(s.slice(vu)));
+  }
+  function colorize(s){
+    s = elementsHorsCouleur(esc(s));
     s = s.replace(/→/g, '<span style="color:var(--dim)">→</span>');
     return marques(s);
   }

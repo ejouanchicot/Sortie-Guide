@@ -14,8 +14,12 @@
      douze : sous dichromatie il ne reste qu'un axe bleu↔jaune, et douze couleurs
      séparables y sont hors d'atteinte. Ce qui sauve le reste, c'est que le nom du
      mob est écrit à côté. */
-  --e-water:#4aa3e0; --e-fire:#f2564d; --e-thunder:#b07cff; --e-wind:#43c463;
-  --e-earth:#96633a; --e-ice:#5fd0d0; --e-light:#ffffff; --e-dark:#d94fb8;
+  /* Foudre, ténèbres et le violet des débuffs se tenaient à onze points d'écart
+     perceptif : « Stun » et « Paralysis » côte à côte, c'était la même couleur.
+     La foudre part vers le lavande clair, les ténèbres vers le magenta franc,
+     et aucune paire ne descend plus sous trente. */
+  --e-water:#4aa3e0; --e-fire:#f2564d; --e-thunder:#c9a7ff; --e-wind:#43c463;
+  --e-earth:#96633a; --e-ice:#5fd0d0; --e-light:#ffffff; --e-dark:#e0479f;
 
   --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
@@ -47,7 +51,9 @@
   --panel:#ffffff; --panel2:#f6f8fc; --panel3:#eef2f8;
   --line:#e0e5ee; --line2:#ccd4e0; --hair:rgba(15,23,42,.06);
   --txt:#111823; --txt2:#38455a; --dim:#657085;
-  --accent:#2c78c8; --accent2:#1f6fbf; --violet:#6a5bd6;
+  /* le violet des débuffs s'écarte de la foudre : en plein soleil, dix-sept
+     points d'écart ne suffisaient pas à séparer « Stun » de « Paralysis » */
+  --accent:#2c78c8; --accent2:#1f6fbf; --violet:#4a41a8;
   --glass:rgba(255,255,255,.8);
   --shadow:0 14px 34px -16px rgba(20,30,50,.26);
   --shadow-lg:0 28px 64px -26px rgba(20,30,50,.3);
@@ -63,8 +69,8 @@
      dehors, en plein run. */
   --e-light:#d99a1a; --r-buff:#c99a12;
   --r-heal:#12854e; --r-tank:#1668c4; --r-dd:#c0261d; --r-all:#5c6577;
-  --e-wind:#12854e; --e-water:#1f6fbf; --e-ice:#0f7a84; --e-thunder:#6a3fd0;
-  --e-dark:#8f2ea6; --e-earth:#8a5a28; --e-fire:#c0261d;
+  --e-wind:#12854e; --e-water:#1f6fbf; --e-ice:#0f7a84; --e-thunder:#7d34dd;
+  --e-dark:#b0177a; --e-earth:#8a5a28; --e-fire:#c0261d;
   --warn:#8a5200; --gc-mb:#0e7c92; --gc-proc:#0f7361; --gc-tp:#b02a72;
 }
 :root[data-theme="light"] .ckind.boss{color:var(--violet)}
