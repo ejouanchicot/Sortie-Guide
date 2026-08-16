@@ -326,11 +326,11 @@ const PHASES_B=[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
-    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (5 min)[/t]",lines:[]},
-    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:wind]Silence[/c] + [c:violet]Taint[/c] (-40 HP/tic, 5 min)[/t]",lines:[]},
-    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (5 min)[/t]",lines:[]},
+    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:water]Taint[/c] (5 min)[/t]",lines:[]},
+    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:wind]Silence[/c] + [c:water]Taint[/c] (-40 HP/tic, 5 min)[/t]",lines:[]},
+    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:water]Taint[/c] (5 min)[/t]",lines:[]},
     {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:blanc]Knockback[/c][/t]",lines:[]},
-    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (-30 HP/tic, 5 min)[/t]",lines:[]}
+    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:water]Taint[/c] (-30 HP/tic, 5 min)[/t]",lines:[]}
   ]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
@@ -339,8 +339,8 @@ const PHASES_B=[
       ln(["ALL"],"[c:thunder]Stun[/c] chacun de ses [b]TP moves[/b] au [b]Flat Blade[/b]")
     ]},
     {label:"[c:or]Raksha Stance[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:or][b]Magic Dmg −50 %[/b][/c] + [c:or][b]Erase self[/b][/c] + [c:violet][b]Dispel ×3[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Raksha: Judgment[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] + [c:violet][b]Amnesia[/b][/c] + [c:ice][b]Bind[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Raksha: Illusion[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:violet][b]Curse[/b][/c] (-50 % HP/MP)[/t]",lines:[]},
+    {label:"[c:or]Raksha: Judgment[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] + [c:fire][b]Amnesia[/b][/c] + [c:ice][b]Bind[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Raksha: Illusion[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:dark][b]Curse[/b][/c] (-50 % HP/MP)[/t]",lines:[]},
     {label:"[c:or]Raksha: Vengeance[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Muddle[/b][/c] + [c:violet][b]Weakness[/b][/c] (1 min)[/t]",lines:[]},
     {label:"[c:or]Yaksha Stance[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:or][b]Physical Dmg −50 %[/b][/c] + [c:or][b]Erase self[/b][/c] + [c:violet][b]Dispel ×3[/b][/c][/t]",lines:[]},
     {label:"[c:or]Yaksha: Damnation[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Magic Def. Down[/b][/c] + [c:violet][b]Def. Down[/b][/c][/t]",lines:[]},
