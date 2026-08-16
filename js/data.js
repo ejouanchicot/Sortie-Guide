@@ -291,11 +291,11 @@ const PHASES=[
       ln(["DNC"],"[b]Ruthless Stroke[/b]"),
       ln(["COR"],["spam [b]Savage Blade[/b]","Light Shot ([c:light][b]Dia III[/b][/c])"])
     ]},
-    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Dispel multiple[/b][/c] + [c:blanc][b]Max HP Down[/b][/c] (-25 %)[/t]",lines:[]},
-    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] · [c:or][b]lui donne une aura de poison[/b][/c] ([c:rouge]-117/tic[/c])[/t]",lines:[]},
-    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] (-50 TP, -10 MP/tic) + [c:blanc][b]Knockback[/b][/c] · [c:or][b]aura de poison[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Gravity[/b][/c] · [c:or][b]aura de poison[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:blanc][b]Knockback[/b][/c] · [c:rouge][b]monte avec tes stacks de Taint[/b][/c][/t]",lines:[]}
+    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Dispel multiple[/b][/c] + [c:blanc][b]Max HP Down[/b][/c] (-25 %) + [c:water][b]Taint[/b][/c] (5 min)[/t]",lines:[]},
+    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] + [c:water][b]Taint[/b][/c] ([c:rouge]-40/tic[/c], 5 min) · [c:or][b]lui donne une aura de poison[/b][/c] ([c:rouge]-117/tic[/c])[/t]",lines:[]},
+    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] (-50 TP, -10 MP/tic) + [c:blanc][b]Knockback[/b][/c] + [c:water][b]Taint[/b][/c] (5 min) · [c:or][b]aura de poison[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:blanc][b]Knockback[/b][/c] · [c:rouge][b]monte avec tes stacks de Taint[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Gravity[/b][/c] + [c:water][b]Taint[/b][/c] ([c:rouge]-30/tic[/c], 5 min) · [c:or][b]aura de poison[/b][/c][/t]",lines:[]}
   ]}
 ]}
 ];
@@ -350,11 +350,11 @@ const PHASES_B=[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
-    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:water][b]Taint[/b][/c] (5 min)[/t]",lines:[]},
-    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] + [c:water][b]Taint[/b][/c] (-40 HP/tic, 5 min)[/t]",lines:[]},
-    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:water][b]Taint[/b][/c] (5 min)[/t]",lines:[]},
-    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:blanc][b]Knockback[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:water][b]Taint[/b][/c] (-30 HP/tic, 5 min)[/t]",lines:[]}
+    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Dispel multiple[/b][/c] + [c:blanc][b]Max HP Down[/b][/c] (-25 %) + [c:water][b]Taint[/b][/c] (5 min)[/t]",lines:[]},
+    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] + [c:water][b]Taint[/b][/c] ([c:rouge]-40/tic[/c], 5 min) · [c:or][b]lui donne une aura de poison[/b][/c] ([c:rouge]-117/tic[/c])[/t]",lines:[]},
+    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] (-50 TP, -10 MP/tic) + [c:blanc][b]Knockback[/b][/c] + [c:water][b]Taint[/b][/c] (5 min) · [c:or][b]aura de poison[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:blanc][b]Knockback[/b][/c] · [c:rouge][b]monte avec tes stacks de Taint[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Gravity[/b][/c] + [c:water][b]Taint[/b][/c] ([c:rouge]-30/tic[/c], 5 min) · [c:or][b]aura de poison[/b][/c][/t]",lines:[]}
   ]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
@@ -390,6 +390,11 @@ const PHASES_B=[
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[b]Saboteur[/b], [c:dark][b]Frazzle III[/b][/c], [c:ice][b]Distract III[/b][/c]"])
+    ]},
+    {label:"",cls:"buff",boite:1,lines:[
+      ln(["GEO"],["[c:wind][b]Geo-Frailty[/b][/c]","[c:fire][b]Indi-Fury[/b][/c]"]),
+      ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
     {label:"[c:dark]Cruel Joke[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignore les Shadows[/b][/c][/t]",lines:[]},
     {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c], [c:or][b]TP RESET[/b][/c][/t]",lines:[]},
@@ -428,7 +433,7 @@ const PHASES_B=[
       ln(["PLD"],"on passe en kite si les fetters virent [c:or]orange[/c] ou dépassent [c:or]4[/c]")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
-      ln(["GEO"],["[b]Blaze of Glory[/b] → [c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Geo-Frailty[/b][/c]"],{cond:"il court plus vite que Gartell"}),
+      ln(["GEO"],["[b]Blaze of Glory[/b] → [c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Indi-Frailty[/b][/c]"],{cond:"il court plus vite que Gartell"}),
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
@@ -478,7 +483,7 @@ const PHASES_B=[
       ln(["ALL"],"[b][c:or]Tearing Gust[/c][/b] pose un [c:violet]Magic Def. Down[/c] très fort · on le retire tout de suite",{warn:1})
     ]},
     {label:"",cls:"buff",boite:1,lines:[
-      ln(["GEO"],["[b]Bolster[/b] → [c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Geo-Frailty[/b][/c]"]),
+      ln(["GEO"],["[b]Bolster[/b] → [c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Indi-Frailty[/b][/c]"]),
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]"])
     ]},
