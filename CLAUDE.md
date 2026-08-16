@@ -72,6 +72,7 @@ node tools/audit/coherence.mjs     # instantané — marques croisées, un mot d
                                    # couleurs, couleurs vs base GearSwap, moves
                                    # écrits deux fois, raccourcis de noms
 node tools/audit/traductions.mjs   # instantané — le français resté sans anglais
+node tools/audit/mort.mjs          # instantané — ce que plus personne n'appelle
 node tools/audit/rendu.mjs         # 14 s — marques visibles, débordement,
                                    # console, deux étages, deux thèmes
 ```

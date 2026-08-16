@@ -50,7 +50,7 @@ try{var _ms=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1, _lm=(typeof LB
     document.documentElement.style.setProperty('--poi-pack',_pc(_P.pack));
     document.documentElement.style.setProperty('--poi-mid',_pc(_P.mid));
     document.documentElement.style.setProperty('--poi-ico',_pc(_P.ico));}catch(e){}
-// (SORTIE.pqHtml n'est plus utilisé ici : la quantité suit le nom en ligne, comme dans Map Studio)
+// La quantité d'un pack suit son nom en ligne, comme dans l'atelier Carte.
 
 let curFloor=null;      // descripteur d'étage courant
 let curBossN={};        // boss par n° pour l'étage courant

@@ -64,7 +64,6 @@
     '<input type="color" id="'+p+'_col" title="Couleur du texte sélectionné" value="#ffffff">'+
     ['#ffffff','#ffd76a','#5bd6ef','#ff8f6a','#8affc0','#c58bff','#ff6f9c'].map(function(c){return '<span class="rsw" data-col="'+c+'" style="background:'+c+'" title="'+c+'"></span>';}).join('')+
     '</div>';}
-  function richEditorHtml(p,ph){return '<div class="reditor" id="'+p+'" contenteditable="true" spellcheck="false" data-ph="'+esc(ph||'')+'"></div>';}
   function wireRich(p,obj,field,onChange){const ed=document.getElementById(p);if(!ed)return null;
     ed.innerHTML=richToEditableHtml(obj[field]||'');
     const tb=document.getElementById(p+'_tb');let raf=null;
@@ -120,8 +119,6 @@
     o[field]=lines.join('\n');ed.innerHTML=richToEditableHtml(o[field]);if(onDone)onDone();ed.focus();_setCaretLine(ed,idx);}
 
   global.RICH={
-    toolbarHtml:richToolbarHtml, editorHtml:richEditorHtml, toEditableHtml:richToEditableHtml,
-    normalize:normalizeRich, wire:wireRich, transformCase:transformCase,
-    applyList:applyListRich, caretLine:_caretLineIndex, setCaretLine:_setCaretLine
+    toolbarHtml:richToolbarHtml, normalize:normalizeRich, wire:wireRich, applyList:applyListRich
   };
 })(typeof window!=="undefined"?window:this);

@@ -255,6 +255,6 @@
     courante:courante, noteCourante:noteCourante, persiste:persiste,
     // la reprise des chemins d'avant le rangement de img/ — utile a qui relit
     // une strat d'ailleurs (un export recu, par exemple)
-    repriseImages:repriseImages, repriseChemin:repriseChemin
+    repriseChemin:repriseChemin
   };
 })(typeof window!=='undefined'?window:this);

@@ -171,16 +171,6 @@
     return racine.innerHTML;
   }
 
-  // ---- quantité de pack « ×12 » / « WHM/BLM/RDM ×5 » → HTML (guide + éditeur DOM) ----
-  function pqHtml(q){
-    var m=q.match(/×\d+/), count=m?m[0]:'', rest=q.replace(/×\d+/,'').trim();
-    if(rest.indexOf('/')>=0){
-      var jobs=rest.split('/').map(function(s){ return s.trim(); }).filter(Boolean);
-      return '<span class="pq pqlist">'+(count?'<b>'+count+'</b>':'')+jobs.map(function(j){ return '<span>'+j+'</span>'; }).join('')+'</span>';
-    }
-    return '<span class="pq">'+q+'</span>';
-  }
-
   // ---- bande des tracés (3 couches : liseré sombre + couleur du boss + flux pointillé blanc) ----
   // Konva (map-studio, unités canvas px) — largeurs de base, à multiplier par fs
   var BAND_KONVA = {CASW:20, CORW:14, FLW:5.5, FDA:9.5, FDB:15, ALPHA:0.82, CASE:'rgba(9,13,18,.5)', INK:'#0d1218', CREAM:'#f6ead0', FALLBACK:'#e5342b'};
@@ -352,11 +342,7 @@
   // avance moyenne d'un glyphe (× taille) pour estimer largeur de boîte / ancrage
   function textAdv(o){ var f=(o&&o.f)||'mono'; return f==='mono'?0.62:(f==='serif'?0.5:0.54); }
   function textAlign(o){ var a=o&&o.al; return (a==='l'||a==='r')?a:'c'; }
-  function textBold(o){ return !o || o.b!==0; }              // gras par défaut
-  function textItalic(o){ return !!(o&&o.i); }
   function textOutline(o){ return (o&&o.ol!=null) ? !!o.ol : !(o&&o.bg); } // auto : contour si pas de bg
-  // décoration (souligné / barré) — chaîne partagée : 'underline', 'line-through', ou les deux
-  function textDeco(o){ var d=[]; if(o&&o.u)d.push('underline'); if(o&&o.st)d.push('line-through'); return d.join(' '); }
   /* ---- TEXTE ENRICHI (inline) — partagé outil Texte + labels de pastilles ----
      Le texte est stocké avec un petit HTML restreint inline : <b> <i> <u> <s>
      et <span style="color:#hex">. Les lignes sont séparées par \n. Un marqueur
@@ -417,8 +403,6 @@
       out.push({list:list,align:align,prefix:prefix,runs:mlen?stripRuns(runs,mlen):runs});});
     return out;}
   // compat : anciennes lignes en texte simple (préfixes • / 1.) sans style
-  function textParse(o){return parseRich(o).map(function(ln){return {t:ln.prefix+ln.runs.map(function(r){return r.t;}).join(''),list:ln.list};});}
-  function textLines(o){ return textParse(o).map(function(x){return x.t;}); }
   function escJs(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');}
   // gras/italique/souligné/barré/couleur sont désormais INLINE (dans t) → non sérialisés au niveau bloc
   function textsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(t){
@@ -641,32 +625,27 @@
   global.SORTIE = {
     groupesBuffs:groupesBuffs,
     resoudreCartes:resoudreCartes, deposeCartes:deposeCartes,
-    carteConst:carteConst, cartesConst:cartesConst,
-    chapitresConst:chapitresConst, corpsTableau:corpsTableau,
-    ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
+    cartesConst:cartesConst,
+    chapitresConst:chapitresConst, ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
     TAILLES:TAILLES, compoCreneaux:compoCreneaux, compoJobs:compoJobs, compoConst:compoConst,
     compoVariantes:compoVariantes, variante:variante,
-    jobsDeLaVariante:jobsDeLaVariante, jobDiscrimine:jobDiscrimine, jobExclu:jobExclu,
+    jobExclu:jobExclu,
     EL_KEYS:EL_KEYS, EL_HEX:EL_HEX, EL_VAR:EL_VAR, EL_ZC2:EL_ZC2,
     elHex:elHex,
     POI_SIZE:POI_SIZE, poiSize:poiSize, labelGap:labelGap,
     r1:r1, clamp:clamp,
     parsePts:parsePts, ptsStr:ptsStr,
     segDist:segDist, projectOnSeg:projectOnSeg, midpoint:midpoint, axisLock:axisLock,
-    esc:esc, escAttr:escAttr, couleurSure:couleurSure, nombreSur:nombreSur, htmlSur:htmlSur, pqHtml:pqHtml,
+    esc:esc, escAttr:escAttr, couleurSure:couleurSure, nombreSur:nombreSur, htmlSur:htmlSur,
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
-    pinMeta:pinMeta, bossesConst:bossesConst, packsConst:packsConst, midsConst:midsConst, routesConst:routesConst,
-    ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,
+    bossesConst:bossesConst, ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,
     icoEmbarque:icoEmbarque,
     ICO_PART:ICO_PART, ICO_BORD:ICO_BORD, ICO_OMBRE:ICO_OMBRE,
     ICO_CONTOURS:ICO_CONTOURS, ICO_CONTOUR_DEF:ICO_CONTOUR_DEF,
     icoBord:icoBord, icoBordHex:icoBordHex,
     icoFiltre:icoFiltre, icoFiltreId:icoFiltreId, ICO_T:ICO_T, icoT:icoT,
-    ROLE_HEX:ROLE_HEX, ICO_HEX:ICO_HEX, iconesConst:iconesConst,
-    SHAPE_DEF:SHAPE_DEF, shapeAlpha:shapeAlpha, shapeStroke:shapeStroke, shapesConst:shapesConst,
-    TEXT_FONT:TEXT_FONT, textFont:textFont, textAdv:textAdv, textAlign:textAlign, textBold:textBold, textItalic:textItalic, textOutline:textOutline, textDeco:textDeco,
-    parseInline:parseInline, parseRich:parseRich, runsToHtml:runsToHtml, stripRuns:stripRuns,
-    textParse:textParse, textLines:textLines, textsConst:textsConst
+    ROLE_HEX:ROLE_HEX, iconesConst:iconesConst,
+    SHAPE_DEF:SHAPE_DEF, shapeAlpha:shapeAlpha, shapeStroke:shapeStroke, textFont:textFont, textAdv:textAdv, textAlign:textAlign, textOutline:textOutline, parseInline:parseInline, parseRich:parseRich, runsToHtml:runsToHtml, stripRuns:stripRuns
   };
 
   // data.js est chargé AVANT ce fichier partout : on branche les chapitres sur

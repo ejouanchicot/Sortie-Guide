@@ -86,17 +86,6 @@
     return {texte: m[1].replace(/\s+$/,''), cond: m[2].trim()};
   }
 
-  /* ---------------- LIGNES -> TEXTE ---------------- */
-  function linesToText(lines){
-    return (lines||[]).map(function(l){
-      var tete = (l.r||['ALL']).join(',') + (l.warn?'!':'') + (l.comp?'@'+l.comp:'');
-      var actions = Array.isArray(l.t) ? l.t.slice() : [l.t];
-      var premiere = tete + '  ' + actions[0] + (l.cond?'  ?'+l.cond:'');
-      var suite = actions.slice(1).map(function(a){ return '-  ' + a; });
-      return [premiere].concat(suite).join('\n');
-    }).join('\n');
-  }
-
   var THEMES = {'':'neutre', tank:'tank', buff:'buffs', debuff:'débuffs', dd:'dégâts',
                 heal:'soin', tp:'TP moves', rules:'règles', 'rules proc':'procs',
                 mb:'magic burst'};
@@ -464,10 +453,10 @@
   }
 
   global.STRATCORE = {
-    parseLines: parseLines, linesToText: linesToText,
+    parseLines: parseLines,
     THEMES: THEMES,
     blocToText: blocToText, textToBloc: textToBloc, themeDevine: themeDevine, ligneNaturelle: ligneNaturelle,
     phasesConst: phasesConst, buffsConst: buffsConst, trConst: trConst, mobConst: mobConst,
-    collecteTextes: collecteTextes, manquantes: manquantes
+    manquantes: manquantes
   };
 })(typeof window!=='undefined'?window:this);

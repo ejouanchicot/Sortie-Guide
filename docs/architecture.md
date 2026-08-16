@@ -203,6 +203,7 @@ Deux familles d'outils, et elles ne voient pas la même chose.
 | `node tests/lancer.mjs <mot>` | un seul test | 8 s |
 | `node tools/audit/coherence.mjs` | **le texte** — marques croisées, un mot deux couleurs, couleurs vs base GearSwap, moves écrits deux fois, raccourcis | instantané |
 | `node tools/audit/traductions.mjs` | le français resté sans anglais | instantané |
+| `node tools/audit/mort.mjs` | ce que plus personne n'appelle : API publiée sans preneur, constante jamais relue, fonction orpheline | instantané |
 | `node tools/audit/rendu.mjs` | marques visibles, débordement, console — deux étages, deux thèmes | 14 s |
 
 Les tests regardent la page ; les audits regardent le contenu. Aucun rendu ne

@@ -916,14 +916,6 @@
     if(hidx < hist.length-1){ hidx++; restaure(hist[hidx]); touche(); toast('Rétabli.'); } else toast('Rien à rétablir.'); }
 
   /* ---------------- jeux de buffs (blocs de préparation) ---------------- */
-  // Le nom est le titre affiché : créer, c'est nommer. Renommer met à jour
-  // toutes les étapes qui pointaient dessus — sinon elles se retrouveraient
-  // à désigner un bloc qui n'existe plus.
-  function nomLibre(propose){
-    var n = propose, i = 2;
-    while(JEUX[n] !== undefined) n = propose + ' ' + (i++);
-    return n;
-  }
   async function nouveauBuff(ph){
     var nom = await saisie('Ce nom sera le titre affiché en tête du bloc, dans le guide.',
       {titre:'Nouvelle préparation', valeur:'Buffs', ok:'Créer'});
