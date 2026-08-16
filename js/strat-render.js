@@ -36,6 +36,14 @@
   var ELS = [["WATER|Water|Eau","water"],["THUNDER|Thunder|Foudre","thunder"],["FIRE|Fire|Feu","fire"],
              ["WIND|Wind|Vent","wind"],["EARTH|Earth|Terre","earth"],["ICE|Ice|Glace","ice"],
              ["LIGHT|Light|Lumière","light"],["DARK|Darkness|Dark|Ténèbres","dark"]];
+  /* ---- les skillchains ----
+     Light et Darkness s'allumaient déjà : ce sont aussi des éléments. Les
+     autres n'avaient rien, et il fallait écrire leur code couleur à la main —
+     un chiffre de travers, et « Distortion » sortait de deux teintes selon la
+     ligne. On écrit son nom, le guide s'occupe de la teinte et du halo.
+     En ajouter un = une ligne ici et une dans la feuille de style. */
+  var SCS = [["Fusion","fusion"],["Gravitation","gravitation"],
+             ["Distortion","distortion"],["Induration","induration"]];
   /* ---- la couleur qu'on pose soi-même ----
      Les noms d'élément se colorent tout seuls, mais un lead veut souvent
      détacher autre chose : le nom d'un TP move devant sa description, un mot
@@ -113,6 +121,9 @@
   }
 
   function peintElements(s){
+    // les skillchains d'abord : « Induration » contient « Ice » en aucun point,
+    // mais autant ne pas dépendre de l'ordre pour le prochain qu'on ajoutera
+    SCS.forEach(function(e){ s = s.replace(new RegExp("\\b("+e[0]+")\\b","g"), '<span class="sc '+e[1]+'">$1</span>'); });
     ELS.forEach(function(e){ s = s.replace(new RegExp("\\b("+e[0]+")\\b","g"), '<span class="el '+e[1]+'">$1</span>'); });
     return s;
   }

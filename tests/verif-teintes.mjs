@@ -50,7 +50,9 @@ const lis = (theme) => p.evaluate((theme)=>{
     return getComputedStyle(sonde).color.match(/\d+/g).slice(0,3).map(Number); };
   const out = {};
   ['--e-thunder','--e-dark','--violet','--e-fire','--e-ice','--e-wind',
-   '--e-earth','--e-water','--e-light'].forEach(v => { out[v] = prends(v); });
+   '--e-earth','--e-water','--e-light',
+   '--sc-fusion','--sc-gravitation','--sc-distortion','--sc-induration']
+    .forEach(v => { out[v] = prends(v); });
   out.fond = getComputedStyle(document.body).backgroundColor.match(/\d+/g).slice(0,3).map(Number);
   sonde.remove();
   return out;
@@ -87,6 +89,20 @@ for(const theme of ['dark','light']){
   }
   dit('les huit éléments restent séparables entre eux', pire >= 25,
       'le pire : ' + quoi + ' à ' + pire);
+
+  /* Les skillchains ne servent a rien s'ils ne se lisent pas. On ne leur
+     demande pas de s'ecarter les uns des autres autant que les elements :
+     Induration et Distortion sont deux bleus glaces dans le jeu aussi, et
+     ils ne tombent jamais sur la meme page. Mais lisibles, oui. */
+  const SC = ['--sc-fusion','--sc-gravitation','--sc-distortion','--sc-induration'];
+  for(const v of SC){
+    const c = contraste(t[v], t.fond);
+    dit(v.replace('--sc-','le skillchain ') + ' se lit sur le fond', c >= LISIBLE,
+        'contraste ' + c);
+  }
+  dit('Fusion et Gravitation ne se confondent pas',
+      ecart(t['--sc-fusion'], t['--sc-gravitation']) >= PLANCHER,
+      'écart ' + ecart(t['--sc-fusion'], t['--sc-gravitation']));
 }
 
 dit('rien n\'a cassé', bruit.length === 0, bruit.slice(0,3).join('\n       '));

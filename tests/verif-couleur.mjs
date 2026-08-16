@@ -334,6 +334,46 @@ dit('le nom entier porte une seule couleur',
 dit('et un mot-élément laissé libre se colore toujours tout seul',
     /class="el fire"/.test(impose.libre.html), impose.libre.html);
 
+/* Un skillchain se repère au milieu d'une ligne comme Light le fait déjà :
+   sa teinte ET son halo. On écrit son nom, le guide s'occupe du reste — il
+   n'y a pas de code couleur à retenir. */
+console.log('\n— les skillchains s\'allument, comme Light —');
+const sc = await p.evaluate(()=>{
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px';
+  document.body.appendChild(h);
+  const bloc = STRATCORE.textToBloc('DDBOX\n'
+    + 'DNC : Ruthless Stroke ×2 = Fusion\n'
+    + 'MNK : Shijin Spiral > Tornado Kick (Induration)\n'
+    + 'ALL : Savage Blade > Last Stand (Light)\n'
+    + 'COR : Howling Fist > Savage Blade = Distortion\n'
+    + 'RDM : Rudra\'s Storm ×2 = Darkness\n'
+    + 'BRD : Shijin Spiral > Asuran Fists (Gravitation)', {});
+  h.innerHTML = STRATR.groupsHtml(bloc.groups, []);
+  const pris = {};
+  h.querySelectorAll('.line .txt *').forEach(e=>{
+    const t = e.textContent.trim();
+    if(!/^(Fusion|Induration|Light|Distortion|Darkness|Gravitation)$/.test(t)) return;
+    const s = getComputedStyle(e);
+    pris[t] = {halo: s.textShadow, teinte: s.color, cls: e.className};
+  });
+  h.remove();
+  return pris;
+});
+const SC = ['Fusion','Gravitation','Induration','Distortion'];
+for(const n of SC){
+  dit(n + ' est reconnu sans qu\'on écrive sa couleur',
+      !!sc[n] && /sc/.test(sc[n].cls || ''), JSON.stringify(sc[n] || null));
+  dit(n + ' a son halo', !!sc[n] && sc[n].halo && sc[n].halo !== 'none',
+      sc[n] ? sc[n].halo : '(absent)');
+}
+dit('Light et Darkness gardent le leur',
+    sc.Light && sc.Light.halo !== 'none' && sc.Darkness && sc.Darkness.halo !== 'none',
+    JSON.stringify({Light: sc.Light, Darkness: sc.Darkness}));
+dit('et les quatre ne se ressemblent pas entre eux',
+    new Set(SC.map(n=>sc[n] && sc[n].teinte)).size === 4,
+    JSON.stringify(SC.map(n=>n + '=' + (sc[n] ? sc[n].teinte : '?'))));
+
 console.log('\n— le gras suit la couleur qui l\'entoure —');
 const gras = await p.evaluate(()=>{
   const h = document.createElement('div');

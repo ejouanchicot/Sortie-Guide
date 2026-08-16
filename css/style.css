@@ -20,6 +20,10 @@
      et aucune paire ne descend plus sous trente. */
   --e-water:#4aa3e0; --e-fire:#f2564d; --e-thunder:#c9a7ff; --e-wind:#43c463;
   --e-earth:#96633a; --e-ice:#5fd0d0; --e-light:#ffffff; --e-dark:#e0479f;
+  /* les skillchains ont leurs teintes à eux : ce ne sont ni des éléments ni
+     des sorts, et on les reconnaît à leur halo */
+  --sc-fusion:#ff7a45; --sc-gravitation:#b67a25;
+  --sc-distortion:#6bfdff; --sc-induration:#6be1ff;
 
   --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
@@ -71,6 +75,8 @@
   --r-heal:#12854e; --r-tank:#1668c4; --r-dd:#c0261d; --r-all:#5c6577;
   --e-wind:#12854e; --e-water:#1f6fbf; --e-ice:#0f7a84; --e-thunder:#7d34dd;
   --e-dark:#b0177a; --e-earth:#8a5a28; --e-fire:#c0261d;
+  --sc-fusion:#b8390a; --sc-gravitation:#7a4e1f;
+  --sc-distortion:#0b6472; --sc-induration:#1a5f9e;
   --warn:#8a5200; --gc-mb:#0e7c92; --gc-proc:#0f7361; --gc-tp:#b02a72;
 }
 :root[data-theme="light"] .ckind.boss{color:var(--violet)}
@@ -473,6 +479,21 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .light{color:var(--e-light);text-shadow:0 0 7px rgba(255,255,255,.6),0 0 2px rgba(255,255,255,.5)} .dark{color:var(--e-dark)}
 :root[data-theme="light"] .light{text-shadow:0 0 6px color-mix(in srgb,var(--e-light) 40%,transparent)}
 .dark{text-shadow:0 0 5px rgba(0,0,0,.95),0 0 10px color-mix(in srgb,var(--e-dark) 40%,transparent)}
+/* le halo noir des ténèbres a été pensé sur fond sombre : sur du blanc il
+   salit le mot au lieu de le détacher. Comme pour Light, il se prend sur sa
+   propre teinte. */
+:root[data-theme="light"] .dark{text-shadow:0 0 5px color-mix(in srgb,var(--e-dark) 30%,transparent)}
+
+/* skillchains — Light et Darkness s'allumaient déjà parce qu'ils sont aussi
+   des éléments ; les autres portent le même halo, chacun sa teinte. Le halo
+   se prend sur la couleur du mot, donc en ajouter un ne demande qu'une ligne. */
+.sc{font-weight:800;
+    text-shadow:0 0 7px color-mix(in srgb,currentColor 55%,transparent),
+                0 0 2px color-mix(in srgb,currentColor 45%,transparent)}
+.sc.fusion{color:var(--sc-fusion)} .sc.gravitation{color:var(--sc-gravitation)}
+.sc.distortion{color:var(--sc-distortion)} .sc.induration{color:var(--sc-induration)}
+/* en plein soleil, un halo large bave sur le blanc : on le resserre */
+:root[data-theme="light"] .sc{text-shadow:0 0 5px color-mix(in srgb,currentColor 28%,transparent)}
 
 /* ==========================================================================
    POINTS D'INTÉRÊT
