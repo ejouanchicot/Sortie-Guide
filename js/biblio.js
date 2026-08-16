@@ -253,8 +253,13 @@
     depuisGlobaux:depuisGlobaux, versGlobaux:versGlobaux,
     nouvelle:nouvelle, duplique:duplique, copie:copie, id:id,
     courante:courante, noteCourante:noteCourante, persiste:persiste,
-    // la reprise des chemins d'avant le rangement de img/ — utile a qui relit
-    // une strat d'ailleurs (un export recu, par exemple)
+    /* La reprise des chemins d'avant le rangement de img/. Elle tourne deja
+       toute seule a chaque ouverture — versGlobaux appelle repriseImages, qui
+       l'applique a chaque vignette, fond, zone et forme. Si elle est publiee
+       ici, c'est UNIQUEMENT pour que verif-rangement puisse l'interroger cas
+       par cas : le chemin deja range, l'icone d'application, le data-uri, le
+       null. La faire passer par versGlobaux demanderait huit fausses strats.
+       Ne pas la retirer en la croyant morte. */
     repriseChemin:repriseChemin
   };
 })(typeof window!=='undefined'?window:this);

@@ -160,8 +160,10 @@ console.log('\n— les fonctions que rien n\'appelle —');
 if(parLesTests.length){
   console.log('\n— vivants uniquement par les tests —');
   parLesTests.forEach(x => console.log('  ' + x.nom.padEnd(22) + x.ou));
-  console.log('  Ce n\'est pas mort, mais c\'est maintenu pour soi-même :');
-  console.log('  soit le site devrait s\'en servir, soit le test teste du vide.');
+  console.log('  Ce n\'est pas mort : la fonction tourne, mais depuis SON fichier.');
+  console.log('  Publiée pour qu\'un test l\'interroge cas par cas — vérifie que');
+  console.log('  l\'export porte un commentaire qui le dit, sinon quelqu\'un la');
+  console.log('  supprimera en la croyant morte. C\'est arrivé.');
 }
 
 /* ---- la limite de l'outil, dite à voix haute ---- */

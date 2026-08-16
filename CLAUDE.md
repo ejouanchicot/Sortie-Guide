@@ -106,7 +106,7 @@ que la clé d'une traduction EST la phrase française.
 | `tools/map-studio.*` | atelier Carte (Konva) |
 | `tools/strat-studio.*` | atelier Stratégie |
 | `tools/vendor/konva.min.js` | Konva — la seule dépendance, **copiée** dans le dépôt, jamais un CDN |
-| `img/mobs/` · `img/cartes/` | les vignettes de mobs et les fonds de carte. Le reste de `img/` appartient à l'application (icônes, marque). Une strat écrite avant ce rangement retrouve ses images à l'ouverture — `BIBLIO.repriseChemin` |
+| `img/mobs/` · `img/cartes/` | les vignettes de mobs et les fonds de carte. Le reste de `img/` appartient à l'application (icônes, marque). Une strat gardée **avant** ce rangement retrouve ses images à l'ouverture : `BIBLIO.versGlobaux` → `repriseImages` → `repriseChemin`. Le guide n'y touche pas — il lit `data.js`, déjà rangé ; c'est l'atelier qui rouvre les vieilles strats |
 | `tools/cleanup-img.ps1` | retire de `img/` les PNG dont le `.webp` existe (vers la corbeille) |
 | `tools/audit/` | les contrôles du **contenu** — voir plus haut. Rien à voir avec le site |
 | `tests/serveur.mjs` | sert le site pendant les tests, sans le plafond de `python -m http.server` |

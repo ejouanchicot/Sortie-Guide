@@ -638,6 +638,10 @@
     segDist:segDist, projectOnSeg:projectOnSeg, midpoint:midpoint, axisLock:axisLock,
     esc:esc, escAttr:escAttr, couleurSure:couleurSure, nombreSur:nombreSur, htmlSur:htmlSur,
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
+    /* bossesConst et iconesConst servent en interne, via TABLEAUX_CARTE : ce
+       sont les tests qui les appellent nommement, pour verifier ce qu'une
+       carte ecrit dans data.js sans passer par un enregistrement complet.
+       Publiees pour eux, pas mortes. */
     bossesConst:bossesConst, ICO_JOBS:ICO_JOBS, ICO_MARQUEURS:ICO_MARQUEURS, icoSrc:icoSrc, icoNom:icoNom, icoCouleur:icoCouleur,
     icoEmbarque:icoEmbarque,
     ICO_PART:ICO_PART, ICO_BORD:ICO_BORD, ICO_OMBRE:ICO_OMBRE,
