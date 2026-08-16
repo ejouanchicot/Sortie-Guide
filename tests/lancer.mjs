@@ -6,27 +6,44 @@
    l'intention de faire. Trois pannes ont déjà survécu à un test
    qui passait au vert sans regarder la page.
 
-   Ce lanceur monte le serveur local s'il n'est pas déjà là, passe
-   les tests un par un, et rend un bilan. Un par un et pas en
-   parallèle : ils partagent le même navigateur, le même port et
-   la même base IndexedDB — lancés ensemble, ils se marchent dessus
-   et le rouge devient impossible à lire.
+   Ils tournaient un par un, par crainte qu'ils se marchent dessus.
+   La crainte ne tient plus : chaque test ouvre SON navigateur, avec
+   son profil et sa propre IndexedDB, et ceux qui « écrivent » un
+   fichier utilisent un faux handle qui ne touche jamais le disque.
+   Le serveur, lui, ne fait que servir des fichiers. Ils tournent
+   donc à plusieurs — cinq minutes d'attente sont devenues une.
+
+   Ce qu'on ne sacrifie pas, c'est la lecture du bilan : les blocs
+   sortent dans l'ordre des fichiers, jamais entremêlés, même si
+   le troisième finit avant le premier.
 
      node tests/lancer.mjs              tous
      node tests/lancer.mjs fond css     seulement ceux dont le nom contient
+     node tests/lancer.mjs --serie      un par un (si un test devient capricieux)
 
    Sortie 0 si tout passe, 1 sinon — de quoi l'enchaîner à autre chose.
    ============================================================ */
 import {spawn} from 'child_process';
 import {readdirSync} from 'fs';
 import {fileURLToPath} from 'url';
+import {cpus} from 'os';
 import path from 'path';
 
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE = path.join(ICI, '..');
 const PORT = 8137;
 
-const filtres = process.argv.slice(2);
+const args = process.argv.slice(2);
+const enSerie = args.includes('--serie');
+const filtres = args.filter(a => !a.startsWith('--'));
+
+/* Combien à la fois. Ce n'est pas le processeur qui limite, c'est
+   `python -m http.server` : sa file d'attente déborde et il refuse les
+   connexions dès qu'on lui envoie six navigateurs. Trois tiennent. */
+const demande = (args.find(a => a.startsWith('--front=')) || '').split('=')[1];
+const FRONT = enSerie ? 1
+  : Math.max(1, Math.min(+demande || 3, (cpus().length || 4) - 1));
+
 const tests = readdirSync(ICI)
   .filter(f => f.startsWith('verif-') && f.endsWith('.mjs'))
   .filter(f => !filtres.length || filtres.some(m => f.includes(m)))
@@ -64,21 +81,42 @@ if (await debout()) {
     process.exit(1);
   }
 }
+console.log(FRONT > 1 ? `${tests.length} tests, ${FRONT} à la fois.`
+                      : `${tests.length} tests, un par un.`);
 
+/* On capture la sortie au lieu de la laisser couler : à plusieurs, elle
+   s'entremêlerait et le rouge deviendrait illisible. */
 const passe = t => new Promise(res => {
-  const p = spawn(process.execPath, [path.join(ICI, t)], {cwd: RACINE, stdio: 'inherit'});
-  p.on('close', code => res(code === 0));
-  p.on('error', () => res(false));
+  const p = spawn(process.execPath, [path.join(ICI, t)], {cwd: RACINE});
+  let sortie = '';
+  p.stdout.on('data', d => { sortie += d; });
+  p.stderr.on('data', d => { sortie += d; });
+  p.on('close', code => res({ok: code === 0, sortie}));
+  p.on('error', e => res({ok: false, sortie: String(e)}));
 });
 
-const echecs = [];
-for (const t of tests) {
-  console.log(`\n\x1b[1m━━ ${t} ━━\x1b[0m`);
-  if (!(await passe(t))) echecs.push(t);
+const fini = new Array(tests.length).fill(null);
+let aEcrire = 0;                       // le prochain bloc à sortir, dans l'ordre
+function vide() {
+  while (aEcrire < tests.length && fini[aEcrire]) {
+    process.stdout.write(`\n\x1b[1m━━ ${tests[aEcrire]} ━━\x1b[0m\n` + fini[aEcrire].sortie);
+    aEcrire++;
+  }
 }
+
+let suivant = 0;
+async function ouvrier() {
+  while (suivant < tests.length) {
+    const i = suivant++;
+    fini[i] = await passe(tests[i]);
+    vide();
+  }
+}
+await Promise.all(Array.from({length: Math.min(FRONT, tests.length)}, ouvrier));
 
 if (serveur) serveur.kill();
 
+const echecs = tests.filter((t, i) => !fini[i].ok);
 console.log('\n' + '═'.repeat(52));
 if (echecs.length) {
   console.log(`\x1b[31m${echecs.length} test(s) en échec :\x1b[0m ` + echecs.join(', '));
