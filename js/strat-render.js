@@ -194,7 +194,9 @@
     // gestionnaire d'evenement. Cette ligne sert au guide comme a l'atelier.
     return '<div class="line'+(l.warn?' warn':'')+(isProc?' proc':'')+(Array.isArray(l.t)?' stack':'')+'" data-r="'+escAttr(roles.join(" "))+'"'+(l.comp?' data-comp="'+escAttr(l.comp)+'"':'')+'>'
       +'<span class="roles" style="display:flex;gap:3px;flex:none">'+chips+'</span>'
-      +'<span class="txt">'+body+(l.cond?' <span class="cond">'+esc(H.tr(l.cond))+'</span>':'')+'</span></div>';
+      // la condition est du texte de strat, pas une étiquette : ce qu'on y met
+      // en forme s'affichait avec ses crochets, en plein milieu d'une boîte
+      +'<span class="txt">'+body+(l.cond?' <span class="cond">'+colorize(H.tr(l.cond))+'</span>':'')+'</span></div>';
   }
   /* Une ligne écrite = un badge. Deux lignes du même job à la suite étaient
      réunies sous un seul badge, et devenaient des puces : on écrivait

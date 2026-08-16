@@ -282,6 +282,26 @@ dit('une condition longue reste DANS le cadre',
 dit('et pour ça, elle passe à la ligne',
     cond.longue && cond.longue.lignes > 1, JSON.stringify(cond.longue));
 
+/* La condition est du texte de strat comme le reste : ce qu'on y met en forme
+   doit sortir en forme, pas en toutes lettres. « sans RDM : [c:thunder]Honor
+   March[/c] » s'affichait avec ses crochets, au milieu d'une boîte de buffs. */
+const condMarquee = await p.evaluate(()=>{
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:-9999px;top:0;width:600px';
+  document.body.appendChild(h);
+  const bloc = STRATCORE.textToBloc('BUFFBOX\nBRD : Honor March  ?sans RDM : [c:thunder]Honor March[/c] + [b]Valor Minuet[/b] ×2', {});
+  h.innerHTML = STRATR.groupsHtml(bloc.groups, []);
+  const c = h.querySelector('.cond');
+  const r = {html: c ? c.innerHTML : '(pas de condition)', texte: c ? c.textContent : ''};
+  h.remove();
+  return r;
+});
+dit('la mise en forme d\'une condition est rendue, pas écrite en toutes lettres',
+    !/\[c:|\[b\]|\[\/c\]|\[\/b\]/.test(condMarquee.texte), condMarquee.texte);
+dit('et sa couleur est bien celle qu\'on a demandée',
+    /color:var\(--e-thunder\)/.test(condMarquee.html) && /<b>/.test(condMarquee.html),
+    condMarquee.html);
+
 console.log('\n— le gras suit la couleur qui l\'entoure —');
 const gras = await p.evaluate(()=>{
   const h = document.createElement('div');
