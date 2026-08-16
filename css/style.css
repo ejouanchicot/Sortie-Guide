@@ -356,8 +356,22 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
    l'etait, la couleur disparaissait sans que rien ne l'explique. */
 /* Deux regles et non une seule liste : un selecteur invalide fait tomber TOUTE
    la regle qui le contient. Groupees, les rubriques d'un boss et les boites
-   explicites perdaient cadre et fond partout ou :has() n'est pas connu. */
-.card.boss .grp,
+   explicites perdaient cadre et fond partout ou :has() n'est pas connu.
+
+   ── SAUF CE QUI N'EST QU'UN TITRE ──
+   Une carte de boss encadre ses rubriques : c'est ce qui la distingue, et ca
+   reste vrai. Mais elle les encadrait TOUTES, y compris celles qui ne portent
+   pas une seule ligne.
+
+   Or une liste de TP moves s'ecrit exactement comme ca : une boite, puis une
+   sous-rubrique par move — son nom, ses effets dessous, aucune ligne. Sur une
+   carte de boss, chacune recuperait donc son propre cadre : cinq cadres dans
+   un cadre, alors que la meme liste etait propre sur une carte de farm.
+
+   `seultitre` dit deja « cette rubrique n'est que son titre et sa remarque ».
+   Mesure sur la strat entiere : 8 rubriques perdent leur cadre, et ce sont
+   exactement les 8 TP moves ; les 29 autres le gardent. */
+.card.boss .grp:not(.seultitre),
 .grp.boite
   {padding:13px 12px;border-radius:12px;margin-top:10px;background:color-mix(in srgb,var(--gc,var(--line)) 7%,transparent);border:1px solid color-mix(in srgb,var(--gc,var(--line)) 16%,transparent)}
 .grp:is(.tank,.heal,.buff,.dd,.mb,.rules):not(:has(.glabel:not(:empty)))
