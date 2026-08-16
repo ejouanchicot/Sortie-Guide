@@ -46,17 +46,19 @@ pour que ses jetons de couleur n'écrasent pas ceux du guide dans la même page.
 ## Tests
 
 ```bash
-node tests/lancer.mjs            # tous — 3 à la fois, ~2 min, serveur monté tout seul
+node tests/lancer.mjs            # tous — 6 à la fois, ~1 min 40
 node tests/lancer.mjs fond css   # ceux dont le nom contient — 8 s pièce
 node tests/lancer.mjs --serie    # un par un, si un test devient capricieux
 ```
 
-Chaque test ouvre son propre Chrome. **Trois à la fois, pas plus** :
-`python -m http.server` refuse les connexions au-delà. Pendant le travail,
-lancer les tests **ciblés** ; la suite entière une fois, à la fin.
+Chaque test ouvre son propre Chrome. **Pendant le travail, lancer les tests
+ciblés** ; la suite entière une fois, à la fin. Le lanceur monte
+`tests/serveur.mjs` s'il ne trouve rien sur le port — `python -m http.server`
+plafonnait le parallélisme à trois en refusant les connexions.
 
 Puppeteer est **headless, `--no-sandbox`**, son chemin vit uniquement dans
-`tests/navigateur.mjs`. Serveur : `python -m http.server 8137` à la racine.
+`tests/navigateur.mjs`. Serveur pour travailler à la main :
+`python -m http.server 8137` à la racine, le lanceur s'en sert s'il le trouve.
 Après une modif de `sw.js`, monter `VERSION` — sinon l'ancien cache reste.
 
 ## Contrôles du contenu — `tools/audit/`
@@ -66,11 +68,17 @@ le **texte** de la strat, ce qu'aucun rendu ne peut attraper — la page s'affic
 très bien avec « Minuet V » ici et « Valor Minuet V » trois lignes plus bas.
 
 ```bash
-node tools/audit/coherence.mjs     # marques croisées, un mot deux couleurs,
-                                   # couleurs vs base GearSwap, moves écrits
-                                   # deux fois, raccourcis de noms
-node tools/audit/traductions.mjs   # le français resté sans anglais
+node tools/audit/coherence.mjs     # instantané — marques croisées, un mot deux
+                                   # couleurs, couleurs vs base GearSwap, moves
+                                   # écrits deux fois, raccourcis de noms
+node tools/audit/traductions.mjs   # instantané — le français resté sans anglais
+node tools/audit/rendu.mjs         # 14 s — marques visibles, débordement,
+                                   # console, deux étages, deux thèmes
 ```
+
+`rendu.mjs` répond en un seul navigateur aux quatre questions qu'on se pose
+après chaque retouche. Il ne remplace pas la suite de tests : il évite d'y
+aller pour rien.
 
 **Les lancer après toute retouche de `js/data.js`.** Chaque contrôle est né
 d'une vraie erreur ; `traductions` en trouve une à chaque reformulation, parce

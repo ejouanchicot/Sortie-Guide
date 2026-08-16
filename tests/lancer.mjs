@@ -37,12 +37,13 @@ const args = process.argv.slice(2);
 const enSerie = args.includes('--serie');
 const filtres = args.filter(a => !a.startsWith('--'));
 
-/* Combien à la fois. Ce n'est pas le processeur qui limite, c'est
-   `python -m http.server` : sa file d'attente déborde et il refuse les
-   connexions dès qu'on lui envoie six navigateurs. Trois tiennent. */
+/* Combien à la fois : chaque test est un Chrome complet, on laisse un cœur
+   à la machine. Le plafond n'était pas le processeur mais `python -m
+   http.server`, qui refusait les connexions au-delà de trois navigateurs —
+   d'où `tests/serveur.mjs`. */
 const demande = (args.find(a => a.startsWith('--front=')) || '').split('=')[1];
 const FRONT = enSerie ? 1
-  : Math.max(1, Math.min(+demande || 3, (cpus().length || 4) - 1));
+  : Math.max(1, Math.min(+demande || 6, (cpus().length || 4) - 1));
 
 const tests = readdirSync(ICI)
   .filter(f => f.startsWith('verif-') && f.endsWith('.mjs'))
@@ -72,11 +73,11 @@ if (await debout()) {
   console.log(`Serveur déjà debout sur :${PORT} — on s'en sert.`);
 } else {
   console.log(`Serveur monté sur :${PORT} pour la durée des tests.`);
-  serveur = spawn('python', ['-m', 'http.server', String(PORT)],
+  serveur = spawn(process.execPath, [path.join(ICI, 'serveur.mjs')],
                   {cwd: RACINE, stdio: 'ignore'});
   for (let i = 0; i < 25 && !(await debout()); i++) await new Promise(r => setTimeout(r, 200));
   if (!(await debout())) {
-    console.log('Le serveur ne répond pas. Python est-il dans le PATH ?');
+    console.log('Le serveur ne répond pas.');
     serveur.kill();
     process.exit(1);
   }
