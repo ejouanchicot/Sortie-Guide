@@ -94,29 +94,29 @@ const LBLMARGIN=0;
 const BUFFS={
  "Buffs de départ":[
   {label:"",cls:"",lines:[
-    ln(["ALL"],"Au Start : on attend [c:wind][b]Mazurka[/b][/c] (BRD) et/ou [b]Bolter's[/b] (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
-    ln(["ALL"],"Au Start : on attend [c:wind][b]Mazurka[/b][/c] (BRD), [b]Bolter's[/b] (COR) et/ou [b]Chocobo Jig[/b] (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
-    ln(["COR"],"[b]Bolter's + Tactician's[/b]"),
-    ln(["BRD"],"[c:wind][b]Mazurka[/b][/c]"),
+    ln(["ALL"],"Au Start : on attend [c:wind][b]Chocobo Mazurka[/b][/c] (BRD) et/ou [b]Bolter's Roll[/b] (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
+    ln(["ALL"],"Au Start : on attend [c:wind][b]Chocobo Mazurka[/b][/c] (BRD), [b]Bolter's Roll[/b] (COR) et/ou [b]Chocobo Jig[/b] (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
+    ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
+    ln(["BRD"],"[c:wind][b]Chocobo Mazurka[/b][/c]"),
     ln(["DNC"],"[b]Chocobo Jig[/b]")
   ]}
  ],
  "Buffs de trajet":[
   {label:"",cls:"",lines:[
-    ln(["COR"],"[b]Bolter[/b]/[b]Tactician[/b]"),
+    ln(["COR"],"[b]Bolter's Roll[/b] / [b]Tactician's Roll[/b]"),
     ln(["ALL"],"[b]Chocobo Jig[/b]",{comp:"DNC"})
   ]}
  ],
  "Buffs avant le dernier boss":[
   {label:"",cls:"",lines:[
-    ln(["COR"],"Bolter's + Tactician's"),
+    ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
     ln(["DNC"],"Chocobo Jig")
   ]}
  ],
  "Buffs de trajet · sous-sol":[
   {label:"",cls:"",lines:[
-    ln(["ALL"],["[b]Sneak[/b]","[b]Invisible[/b]"]),
-    ln(["COR"],["[b]Bolter's[/b]","[b]Tactician's[/b]"])
+    ln(["ALL"],["[c:wind][b]Sneak[/b][/c]","[c:wind][b]Invisible[/b][/c]"]),
+    ln(["COR"],["[b]Bolter's Roll[/b]","[b]Tactician's Roll[/b]"])
   ]}
  ]
 };
@@ -164,7 +164,7 @@ const PHASES=[
     {label:"",cls:"buff",boite:1,lines:[
       ln(["GEO"],["[c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Indi-Frailty[/b][/c]"]),
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
-      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:thunder][b]Victory March[/b][/c]","[c:fire][b]Minuet V[/b][/c]","[c:fire][b]Aria[/b][/c]"])
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:thunder][b]Victory March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"WS libres (spam)"),
@@ -196,7 +196,7 @@ const PHASES=[
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["GEO"],["[c:wind][b]Geo-Frailty[/b][/c]","[c:fire][b]Indi-Fury[/b][/c]"]),
-      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[b][c:fire]Minuet[/c] ×2[/b]","[c:fire][b]Aria[/b][/c]"],{cond:"sans RDM : [c:thunder]Honor March[/c] + [c:fire]Minuet[/c] ×2 + [c:thunder]Victory March[/c]"})
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[b][c:fire]Valor Minuet[/c] ×2[/b]","[c:fire][b]Aria of Passion[/b][/c]"],{cond:"sans RDM : [c:thunder]Honor March[/c] + [c:fire]Valor Minuet[/c] ×2 + [c:thunder]Victory March[/c]"})
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c] [t:petit]plus dur à land (Skomora est Darkness)[/t]"])
@@ -209,7 +209,7 @@ const PHASES=[
     {label:"[c:or]Setting the Stage[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[]},
     {label:"[c:dark]Cruel Joke[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE 10 y[/c][/b]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignore les Shadows[/b][/c][/t]",lines:[]},
     {label:"[c:or]Last Laugh[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]1 cible[/c][/b]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
-    {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Paralysis[/b][/c], [c:or]TP À ZÉRO[/c][/t]",lines:[]},
+    {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c], [c:or]TP RESET[/c][/t]",lines:[]},
     {label:"[c:or]Feast of Arrows[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE 10 y[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Bind[/b][/c] + [c:dark][b]Bio[/b][/c][/t]",lines:[]},
     {label:"[c:or]Curtain Call[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:dark][b]Bio[/b][/c][/t]",lines:[]}
   ]}
@@ -235,10 +235,10 @@ const PHASES=[
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["GEO"],["[c:wind][b]Geo-Gravity[/b][/c]","[c:wind][b]Indi-Frailty[/b][/c]"]),
-      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Minuet V[/b][/c]","[c:fire][b]Minuet IV[/b][/c]","[c:fire][b]Aria[/b][/c]"])
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
-      ln(["RDM"],["[b]Saboteur[/b] → [c:wind][b]Gravity II[/b][/c]","[c:ice][b]Distract III[/b][/c]","[b]Zap[/b] copie un debuff → pas de [b]Paralyze[/b]"])
+      ln(["RDM"],["[b]Saboteur[/b] → [c:wind][b]Gravity II[/b][/c]","[c:ice][b]Distract III[/b][/c]","[b]Zap[/b] copie un debuff → pas de [c:ice][b]Paralyze[/b][/c]"])
     ]},
     {label:"Mains THUNDER → proc Earth",cls:"tp",boite:1,lines:[
       ln(["MNK"],"[b]Shijin Spiral[/b] > [b]Asuran Fists[/b] ([c:#b67a25]Gravitation[/c])"),
@@ -269,7 +269,7 @@ const PHASES=[
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
       ln(["GEO"],["[c:wind][b]Geo-Frailty[/b][/c]","[c:fire][b]Indi-Fury[/b][/c]"]),
-      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Minuet V[/b][/c]","[c:fire][b]Minuet IV[/b][/c]","[c:fire][b]Aria[/b][/c]"])
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c]"])
@@ -293,19 +293,19 @@ const PHASES_B=[
 {n:1,sector:"E",boss:"Dhartok",title:"Secteur E · Dhartok",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"pack",name:"Botulus",tag:"",groups:[
     {label:"",cls:"dd",boite:1,lines:[
-      ln(["ALL"],["Battez l'Esurient Botulus en infligeant la majorité des dégâts par des Weapon Skills exécutées dans son dos.","Les dégâts de Skillchain ne comptent pas.","[c:thunder]Stun[/c] chacun de ses TP Moves ([b]Flat Blade[/b])"])
+      ln(["ALL"],["majorité des dégâts en [b]WS[/b], dans son [b]dos[/b]","les dégâts de [b]SC[/b] ne comptent pas","[c:thunder]Stun[/c] chacun de ses [b]TP moves[/b] au [b]Flat Blade[/b]"])
     ]},
     {label:"[c:or]Chymous Reek[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:thunder]Stun[/c] + [c:wind]Choke[/c][/t]",lines:[]},
-    {label:"[c:or]Crowning Flatus[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:thunder]Stun[/c] + [c:blanc]Knock[/c][/t]",lines:[]},
+    {label:"[c:or]Crowning Flatus[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:thunder]Stun[/c] + [c:blanc]Knockback[/c][/t]",lines:[]},
     {label:"[c:or]Gnash 'n Guttle[/c]",cls:"",niv:1,note:"[t:petit][c:blanc]Max HP Down[/c] (-50%)[/t]",lines:[]},
     {label:"[c:or]Just Desserts[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:thunder]Stun[/c] + [c:water]Drown[/c][/t]",lines:[]},
-    {label:"[c:or]Rancid Reflux[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:#9d4c01]Gravi[/c] + [c:blanc]Knock[/c][/t]",lines:[]},
+    {label:"[c:or]Rancid Reflux[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:wind]Gravity[/c] + [c:blanc]Knockback[/c][/t]",lines:[]},
     {label:"[c:or]Slimy Proposal[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:#fb00ff]Charm[/c] + [c:light]Dia[/c][/t]",lines:[]},
-    {label:"[c:or]Sloughy Sputum[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:#9d4c01]Gravi[/c] + [c:water]Drown[/c] + [c:blanc]Knock[/c][/t]",lines:[]}
+    {label:"[c:or]Sloughy Sputum[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:wind]Gravity[/c] + [c:water]Drown[/c] + [c:blanc]Knockback[/c][/t]",lines:[]}
   ]},
   {kind:"boss",name:"Dhartok",tag:"",groups:[
     {label:"",cls:"tank",boite:1,lines:[
-      ln(["ALL"],"le [b][c:bleu]MNK[/c][/b]/[b][c:bleu]DNC[/c][/b] tank ne restez pas Coller a eux",{comp:"DNC"})
+      ln(["ALL"],"le [b][c:bleu]MNK[/c][/b]/[b][c:bleu]DNC[/c][/b] tank · ne reste pas collé à eux",{comp:"DNC"})
     ]},
     {label:"",cls:"rules",boite:1,niv:1,lines:[
       ln(["ALL"],"on retire le [c:water]Poison[/c] systématiquement, il multiplie les dégâts de [b][c:rouge]Clobbering Wave[/c][/b]",{warn:1})
@@ -317,19 +317,19 @@ const PHASES_B=[
       ln(["COR","BRD"],"[b]Savage Blade[/b]")
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
-      ln(["BRD"],["[b]Elegy[/b]","[b]Requiem[/b]","[c:dark][b]Light Threnody[/b][/c]"]),
+      ln(["BRD"],["[c:earth][b]Carnage Elegy[/b][/c]","[c:light][b]Foe Requiem VII[/b][/c]","[c:dark][b]Light Threnody[/b][/c]"]),
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c]"]),
       ln(["COR"],"Light Shot ([c:light][b]Dia III[/b][/c])")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["GEO"],["[c:wind][b]Geo-Frailty[/b][/c]","[c:fire][b]Indi-Fury[/b][/c]"]),
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
-      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Minuet V[/b][/c]","[c:fire][b]Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
+      ln(["BRD"],["[c:thunder][b]Honor March[/b][/c]","[c:fire][b]Valor Minuet V[/b][/c]","[c:fire][b]Valor Minuet IV[/b][/c]","[c:thunder][b]Blade Madrigal[/b][/c]","[c:fire][b]Aria of Passion[/b][/c]"])
     ]},
     {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (5 min)[/t]",lines:[]},
     {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge]Dmg[/c] + [c:wind]Silence[/c] + [c:violet]Taint[/c] (-40 HP/tic, 5 min)[/t]",lines:[]},
     {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]AoE[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (5 min)[/t]",lines:[]},
-    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:blanc]Knock[/c][/t]",lines:[]},
+    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:blanc]Knockback[/c][/t]",lines:[]},
     {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu]Conal[/c]] [c:rouge]Dmg[/c] + [c:violet]Taint[/c] (-30 HP/tic, 5 min)[/t]",lines:[]}
   ]}
 ]},
@@ -340,17 +340,17 @@ const PHASES_B=[
     ]},
     {label:"[c:or]Raksha Stance[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:or][b]Magic Dmg −50 %[/b][/c] + [c:or][b]Erase self[/b][/c] + [c:violet][b]Dispel ×3[/b][/c][/t]",lines:[]},
     {label:"[c:or]Raksha: Judgment[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] + [c:violet][b]Amnesia[/b][/c] + [c:ice][b]Bind[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Raksha: Illusion[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Paralysis[/b][/c] + [c:violet][b]Curse[/b][/c] (-50 % HP/MP)[/t]",lines:[]},
+    {label:"[c:or]Raksha: Illusion[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:violet][b]Curse[/b][/c] (-50 % HP/MP)[/t]",lines:[]},
     {label:"[c:or]Raksha: Vengeance[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Muddle[/b][/c] + [c:violet][b]Weakness[/b][/c] (1 min)[/t]",lines:[]},
     {label:"[c:or]Yaksha Stance[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:or][b]Physical Dmg −50 %[/b][/c] + [c:or][b]Erase self[/b][/c] + [c:violet][b]Dispel ×3[/b][/c][/t]",lines:[]},
     {label:"[c:or]Yaksha: Damnation[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Magic Def. Down[/b][/c] + [c:violet][b]Def. Down[/b][/c][/t]",lines:[]},
     {label:"[c:or]Yaksha: Bliss[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Attack Down[/b][/c] (-25 %) + [c:violet][b]Magic Attack Down[/b][/c][/t]",lines:[]},
     {label:"[c:or]Yaksha: Oblivion[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]All Stats Down[/b][/c] (-50 %), [c:or]HATE RESET[/c][/t]",lines:[]},
-    {label:"[c:or]Sakra Storm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Zombie[/b][/c] + [c:violet][b]Paralysis[/b][/c] + [c:violet][b]Muddle[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
+    {label:"[c:or]Sakra Storm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]Conal[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Zombie[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:violet][b]Muddle[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
     {label:"[c:or]Yama's Judgment[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:rouge][b]Doom[/b][/c] (5 counts)[/t]",lines:[]}
   ]},
   {kind:"boss",name:"Triboulex",tag:"",groups:[
-    {label:"[c:or]Setting The Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"rules",boite:1,note:"[t:petit]~[b]30 000[/b] dégâts divisés par le nombre de cibles à portée[/t]",lines:[]},
+    {label:"[c:or]Setting the Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"rules",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["ALL"],"[b]derrière[/b] le mob, à [c:or]5,1 yalms[/c] du tank hors des [c:or]fetters[/c], mais groupés"),
       ln(["PLD"],"straight tank à [b]max melee range[/b], côté [c:or]nord[/c]"),
@@ -360,11 +360,11 @@ const PHASES_B=[
     {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[b]Saboteur[/b], [c:dark][b]Frazzle III[/b][/c], [c:ice][b]Distract III[/b][/c]"])
     ]},
-    {label:"[c:dark]Cruel Joke[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:violet][b]Haunted[/b][/c] un [c:violet][b]Curse[/b][/c] renforcé[/t]",lines:[]},
-    {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Paralysis[/b][/c], [c:or]RESET TP[/c][/t]",lines:[]},
-    {label:"[c:or]Last Laugh[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Critical damage[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
-    {label:"[c:or]Feast of Arrows[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Bind[/b][/c], [c:dark][b]Bio[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Curtain Call[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c], [c:dark][b]Bio[/b][/c][/t]",lines:[]}
+    {label:"[c:dark]Cruel Joke[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE 10 y[/c][/b]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignore les Shadows[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c], [c:or]TP RESET[/c][/t]",lines:[]},
+    {label:"[c:or]Last Laugh[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]1 cible[/c][/b]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
+    {label:"[c:or]Feast of Arrows[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE 10 y[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Bind[/b][/c] + [c:dark][b]Bio[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Curtain Call[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:dark][b]Bio[/b][/c][/t]",lines:[]}
   ]}
 ]},
 {n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
