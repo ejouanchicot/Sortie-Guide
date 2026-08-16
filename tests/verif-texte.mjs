@@ -139,8 +139,12 @@ const source = await p.evaluate(() =>
 const ecritsParLAuteur = new Set(source.match(EMO) || []);
 const ajoutes = [...new Set(md.match(EMO) || [])]
   .filter(e => !ecritsParLAuteur.has(e));
-dit('le rendu n\'ajoute qu\'un emoji, celui qui alerte',
-    ajoutes.length === 1 && ajoutes[0] === '⚠', JSON.stringify(ajoutes));
+// « ajoutes » se vide le jour ou l'auteur ecrit lui-meme un ⚠ quelque part —
+// et c'est arrive. Ce qu'on tient vraiment : le rendu n'en invente aucun
+// AUTRE, et il pose bien celui qui alerte.
+dit('le rendu n\'invente aucun emoji',
+    ajoutes.every(e => e === '⚠'), JSON.stringify(ajoutes));
+dit('et il pose bien celui qui alerte', /⚠/.test(md));
 console.log('       ecrits par l\'auteur, laisses tels quels : '
   + (ecritsParLAuteur.size ? [...ecritsParLAuteur].join(' ') : '(aucun)'));
 

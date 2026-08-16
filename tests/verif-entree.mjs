@@ -35,14 +35,26 @@ await p.waitForSelector('#ssTree .ss-step', {timeout:5000});
 await p.evaluate(() => document.querySelector('#ssTree .ss-step').click());
 await p.waitForSelector('.ss-bloc .ss-btxt', {timeout:5000});
 
+/* On ECRIT le cas au lieu de le chercher dans la strat. Il y vivait, et le
+   jour ou Eric a ramene la ligne du PLD a une seule action, le test est
+   tombe sans qu'aucune panne n'existe. Ce qu'on verifie, c'est le moteur —
+   pas ce qu'il y a ecrit dedans aujourd'hui. */
 const trouve = await p.evaluate(() => {
   const els = [...document.querySelectorAll('.ss-bloc')];
   const i = els.findIndex(e => /Acuex/i.test((e.querySelector('.ss-bname')||{}).value || ''));
   if (i < 0) return -1;
   els[i].dataset.essai = '1';
+  // et on y ECRIT le cas au lieu de compter dessus : il vivait dans la strat,
+  // et le jour ou la ligne du PLD est passee a une seule action, le test est
+  // tombe sans qu'aucune panne n'existe
+  const ta = els[i].querySelector('.ss-btxt');
+  ta.value = 'PLD : prend les mobs → les amène au camp\n'
+           + '      tank tout (les deux packs)';
+  ta.dispatchEvent(new Event('input', {bubbles:true}));
   return i;
 });
 if (trouve < 0) { console.log('le farm Acuex est introuvable dans l\'etape 1'); await b.close(); process.exit(1); }
+await new Promise(r => setTimeout(r, 500));
 
 /* On pose le curseur EN BOUT de la ligne du PLD, puis on tape vraiment. */
 await p.evaluate(() => {

@@ -99,7 +99,7 @@ const BUFFS={
     ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
     ln(["BRD"],"[c:wind][b]Chocobo Mazurka[/b][/c]"),
     ln(["DNC"],"[b]Chocobo Jig II[/b]"),
-    ln(["ALL"],["[b][c:or]Remedy[/c][/b] x12 · [b][c:or]Panacea[/c][/b] ×12 · [b][c:or]Silent Oil[/c][/b] / [b][c:or]Prism Powder[/c][/b] ×12","[b][c:or]Antidotes[/c][/b] (Dhartok) · [b][c:or]Holy Water[/c][/b](Triboulex)","on ramasse les Ra'Kaznar Metals au passage · un par secteur, il disparaît à la mort du boss"])
+    ln(["ALL"],["[b][c:or]Remedy[/c][/b] x12 · [b][c:or]Panacea[/c][/b] ×12 · [b][c:or]Silent Oil[/c][/b] / [b][c:or]Prism Powder[/c][/b] ×12","[b][c:or]Antidotes[/c][/b] (Dhartok) · [b][c:or]Holy Water[/c][/b](Triboulex)","les seuls Metals qu'on va chercher : [b]Botulus[/b] (E, pour Dhartok) et [b]Naraka[/b] (G, pour Triboulex)"])
   ]}
  ],
  "Buffs de trajet":[
@@ -153,8 +153,7 @@ const PHASES=[
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
       ln(["ALL"],"à [c:or]3:00[/c] il enrage · il ne prend plus que [c:rouge]1/4[/c] des dégâts et n'utilise plus que [b][c:or]Vivisection[/c][/b]",{warn:1}),
       ln(["ALL"],"chaque [c:or]30 s[/c] sans proc lui donne du DT · ça monte jusqu'à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
-      ln(["BRD"],"[b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts"),
-      ln(["ALL"],"Ra'Kaznar Metal D : bloque les status de ses TP moves")
+      ln(["BRD"],"[b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts")
     ]},
     {label:"",cls:"rules proc",boite:1,lines:[
       ln(["ALL"],"Flaming Kick → WATER"),
@@ -206,8 +205,7 @@ const PHASES=[
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c] [t:petit]plus dur à land (Skomora est Darkness)[/t]"]),
-      ln(["ALL"],"il est [b]Undead[/b] · [c:light][b]Dia[/b][/c] et [c:light][b]Cure[/b][/c] lui font des dégâts, et chaque hit Light compte"),
-      ln(["ALL"],"Ra'Kaznar Metal C : le [c:violet]Haunted[/c] devient un [c:dark]Curse[/c] · [b]Holy Water[/b] ou [c:light][b]Cursna[/b][/c] le retirent")
+      ln(["ALL"],"il est [b]Undead[/b] · [c:light][b]Dia[/b][/c] et [c:light][b]Cure[/b][/c] lui font des dégâts, et chaque hit Light compte")
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["COR"],["spam [b]Savage Blade[/b]","Light Shot ([c:light][b]Dia III[/b][/c])"]),
@@ -239,8 +237,7 @@ const PHASES=[
       ln(["ALL"],"proc opposé = retire ses stacks DT/dmg (+5%)"),
       ln(["ALL"],"alterne SC > MB, varie la source (anti-résist)"),
       ln(["ALL"],"pas d'empilement (Counter 500+/hit)"),
-      ln(["ALL"],"mains Wind = gros dégâts mêlée et en-[c:wind]Silence[/c] · mains Thunder = en-[c:thunder]Stun[/c]"),
-      ln(["ALL"],"Ra'Kaznar Metal B : bloque le [c:thunder]Stun[/c] et la [c:wind]Gravity[/c] de ses auto-attaques")
+      ln(["ALL"],"mains Wind = gros dégâts mêlée et en-[c:wind]Silence[/c] · mains Thunder = en-[c:thunder]Stun[/c]")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
       ln(["COR"],["[b]Chaos Roll[/b]","[b]Samurai Roll[/b]"]),
@@ -271,7 +268,7 @@ const PHASES=[
       ln(["ALL"],"aucun dégât Water : ni magie, ni WS, ni SC [b]Distortion[/b] ou [b]Darkness[/b] · un SC Darkness l'a soigné de [c:rouge]70 000[/c]",{warn:1}),
       ln(["ALL"],"chaque absorption ajoute jusqu'à [c:rouge]×3[/c] ce montant à son prochain [b]TP move[/b]",{warn:1}),
       ln(["MNK"],"Chakra retire le [c:water]Taint[/c] ([c:water]Poison[/c])"),
-      ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable"),
+      ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b]"),
       ln(["ALL"],"les nuages de [b][c:or]Cesspool[/c][/b] le [b]soignent[/b] s'il est dedans · on le sort de la flaque",{warn:1}),
       ln(["ALL"],"[b][c:or]Cesspool[/c][/b] lui donne [c:or]3:00[/c] de double TP move · le 2e pose un nuage sous sa cible")
     ]},
@@ -331,8 +328,7 @@ const PHASES_B=[
       ln(["ALL"],"jamais de SC [b]Darkness[/b] · c'est du Water, il l'absorbe et le seal s'use",{warn:1}),
       ln(["ALL"],"on varie les WS · il monte un mur de résistance sur celles qu'on répète"),
       ln(["ALL"],"à [c:or]18+ yalms[/c] on ne prend pas le poison · le tank garde l'aggro pour ça"),
-      ln(["ALL"],"Ra'Kaznar Metal E : le [c:water]Taint[/c] devient un [c:water]Poison[/c] normal, et le retirer reset le multiplicateur · il sort du coffre de Botulus (~1/4)"),
-      ln(["ALL"],"s'il meurt [b]non claim[/b], zéro Gallimaufry · on recover et on claim avant qu'il tombe",{warn:1})
+      ln(["ALL"],"Ra'Kaznar Metal E : le [c:water]Taint[/c] devient un [c:water]Poison[/c] normal, et le retirer reset le multiplicateur · il sort du coffre de Botulus (~1/4)")
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"toutes les WS autorisées, [b]sauf [c:rouge]Howling Fist[/c][/b]"),
@@ -411,8 +407,7 @@ const PHASES_B=[
       ln(["ALL"],"chaque proc réduit [b][c:or]Vivisection[/c][/b] · sous un seuil ses ailes tombent et le seal s'use moins vite"),
       ln(["ALL"],"lui faire absorber son élément l'AUGMENTE · et un SC de son élément la déclenche en avance",{warn:1}),
       ln(["ALL"],"après un wipe le timer tourne toujours · son premier move sera [b][c:or]Vivisection[/c][/b], et le DT accumulé reste",{warn:1}),
-      ln(["ALL"],"on varie les WS · mur de résistance sur celles qu'on répète"),
-      ln(["ALL"],"Ra'Kaznar Metal H : effet [b]non confirmé[/b] · au mieux les status de ses TP moves")
+      ln(["ALL"],"on varie les WS · mur de résistance sur celles qu'on répète")
     ]},
     {label:"",cls:"rules proc",boite:1,lines:[
       ln(["ALL"],"Flaming Kick → WATER"),
@@ -457,8 +452,7 @@ const PHASES_B=[
       ln(["ALL"],"aucun DoT · mains Thunder, [b][c:or]Zap[/c][/b] renvoie ses debuffs sur toute la party et un Helix bursté one-shot",{warn:1}),
       ln(["ALL"],"chaque attaque sans nom lui donne [c:rouge]+5 % DT[/c] et [c:rouge]+5 % dégâts[/c] · le proc les nettoie"),
       ln(["ALL"],"s'il passe en [b]double mains[/b], bind et kite jusqu'à ce que ça tombe",{warn:1}),
-      ln(["ALL"],"[b]Counter[/b] à [c:rouge]500+[/c] · en set WS bas-DT il monte à [c:rouge]2 500-4 100[/c]",{warn:1}),
-      ln(["ALL"],"Ra'Kaznar Metal F : affaiblit ses attaques · mécanisme non documenté")
+      ln(["ALL"],"[b]Counter[/b] à [c:rouge]500+[/c] · en set WS bas-DT il monte à [c:rouge]2 500-4 100[/c]",{warn:1})
     ]},
     {label:"",cls:"rules",boite:1,niv:1,lines:[
       ln(["ALL"],"[c:or]2-3 s[/c] de délai entre le move qui change les mains et le switch réel · ne pas anticiper"),
@@ -514,11 +508,6 @@ const PHASES_B=[
 // zones du rez-de-chaussée : PAS de carte par zone (la carte générale reste entière),
 // on filtre juste le contenu affiché. A=Ghatjot, B=Leshonn, C=Skomora, D=Degei.
 
-// ---- intros de la vue d'ensemble (FR / EN) ----
-const OVINTRO_TOP_FR='<p><b>Sortie · run linéaire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu\'au dernier boss, en enchaînant Degei → Skomora → Leshonn → Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class="ovi-tip">Clique ton job dans <b>Mon rôle</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p>';
-const OVINTRO_TOP_EN='<p><b>Sortie · linear run, 4 phases.</b> Follow the <b>right wall</b> from Start to the last boss: Degei → Skomora → Leshonn → Ghatjot. Each phase: a <b>farm</b> (pop the chests) then the <b>boss</b>.</p><p class="ovi-tip">Click your job in <b>My role</b> (or <b>Solo</b> to see only your actions), pick the <b>comp</b> at the top, then scroll down the rail.</p>';
-const OVINTRO_BOT_FR='<p><b>Sous-sol · secteurs E → H.</b> 4 boss majeurs : Dhartok (E), Triboulex (G), Aïta (H), Gartell (F), puis <b>Aminon</b> en boss final.</p><p class="ovi-tip">⏱ Ces boss sont faits pour un burst court : <b>au-delà de 60 s</b> quelqu\'un se fait blaster, <b>au-delà de 120 s</b> c\'est un désastre. Chacun a une <b>gimmick</b> qui réduit ses dégâts ou retarde son gros move — l\'ignorer rend le combat bien plus dur que prévu.</p><p class="ovi-tip">🚧 Strat en cours d\'écriture — on la complète run après run. La carte et le placement des points arrivent bientôt.</p>';
-const OVINTRO_BOT_EN='<p><b>Basement · sectors E → H.</b> Four major NMs: Dhartok (E), Triboulex (G), Aita (H), Gartell (F), then <b>Aminon</b> as the final boss.</p><p class="ovi-tip">⏱ These bosses are built for a short burst: <b>past 60 s</b> someone gets blasted, <b>past 120 s</b> it\'s a disaster. Each one has a <b>gimmick</b> that cuts its damage or delays its big move — ignoring it makes the fight far harder than intended.</p><p class="ovi-tip">🚧 Strategy is being written — filled in run after run. Map and point placement coming soon.</p>';
 
 // ---- CARTES ----
 // Une carte est un MODULE autonome : son fond, ses marqueurs, ses tracés, ses
@@ -604,10 +593,10 @@ const CARTES={
 const FLOORS=[
  {id:"top", fr:"Rez-de-chaussée", en:"Top Floor", sub:"A–D",
   carte:"Sortie · rez-de-chaussée",
-  introFr:"<p><b>Sortie · run linéaire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu'au dernier boss, en enchaînant Degei → Skomora → Leshonn → Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class=\"ovi-tip\">Clique ton job dans <b>Mon rôle</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p>", introEn:"<p><b>Sortie · linear run, 4 phases.</b> Follow the <b>right wall</b> from Start to the last boss: Degei → Skomora → Leshonn → Ghatjot. Each phase: a <b>farm</b> (pop the chests) then the <b>boss</b>.</p><p class=\"ovi-tip\">Click your job in <b>My role</b> (or <b>Solo</b> to see only your actions), pick the <b>comp</b> at the top, then scroll down the rail.</p>",
+  introFr:"<p><b>Sortie · run linéaire en 4 phases.</b> On suit le <b>mur de droite</b> depuis le Start jusqu'au dernier boss, en enchaînant Degei → Skomora → Leshonn → Ghatjot. Chaque phase : un <b>farm</b> (pop des coffres) puis le <b>boss</b>.</p><p class=\"ovi-tip\">Clique ton job dans <b>Mon rôle</b> (ou <b>Solo</b> pour ne voir que tes actions), choisis la <b>comp</b> en haut, puis descends le long du rail.</p><p class=\"ovi-tip\">⚠ Un boss qui meurt <b>non claim</b> ne donne <b>aucun Gallimaufry</b> — après un wipe, on recover et on claim avant qu'il tombe.</p>", introEn:"<p><b>Sortie · linear run, 4 phases.</b> Follow the <b>right wall</b> from Start to the last boss: Degei → Skomora → Leshonn → Ghatjot. Each phase: a <b>farm</b> (pop the chests) then the <b>boss</b>.</p><p class=\"ovi-tip\">Click your job in <b>My role</b> (or <b>Solo</b> to see only your actions), pick the <b>comp</b> at the top, then scroll down the rail.</p><p class=\"ovi-tip\">⚠ A boss that dies <b>unclaimed</b> gives <b>no Gallimaufry</b> — after a wipe, recover and claim before it drops.</p>",
   phases:PHASES, phasesNom:"PHASES"},
  {id:"bottom", fr:"Sous-sol", en:"Basement", sub:"E–H",
   carte:"Sortie · sous-sol",
-  introFr:"<p><b>Sous-sol · secteurs E → H.</b> 4 boss majeurs : Dhartok (E), Triboulex (G), Aïta (H), Gartell (F), puis <b>Aminon</b> en boss final.</p><p class=\"ovi-tip\">🚧 Strat en cours d'écriture — on la complète run après run. La carte et le placement des points arrivent bientôt.</p>", introEn:"<p><b>Basement · sectors E → H.</b> Four major NMs: Dhartok (E), Triboulex (G), Aita (H), Gartell (F), then <b>Aminon</b> as the final boss.</p><p class=\"ovi-tip\">🚧 Strategy is being written — filled in run after run. Map and point placement coming soon.</p>",
+  introFr:"<p><b>Sous-sol · secteurs E → H.</b> 4 boss majeurs : Dhartok (E), Triboulex (G), Aïta (H), Gartell (F), puis <b>Aminon</b> en boss final.</p><p class=\"ovi-tip\">⏱ Ces boss sont faits pour un burst court : <b>au-delà de 60 s</b> quelqu'un se fait blaster, <b>au-delà de 120 s</b> c'est un désastre. Chacun a une <b>gimmick</b> qui réduit ses dégâts ou retarde son gros move — l'ignorer rend le combat bien plus dur que prévu.</p><p class=\"ovi-tip\">🚧 Strat en cours d'écriture — on la complète run après run. La carte et le placement des points arrivent bientôt.</p><p class=\"ovi-tip\">⚠ Un boss qui meurt <b>non claim</b> ne donne <b>aucun Gallimaufry</b> — après un wipe, on recover et on claim avant qu'il tombe.</p>", introEn:"<p><b>Basement · sectors E → H.</b> Four major NMs: Dhartok (E), Triboulex (G), Aita (H), Gartell (F), then <b>Aminon</b> as the final boss.</p><p class=\"ovi-tip\">⏱ These bosses are built for a short burst: <b>past 60 s</b> someone gets blasted, <b>past 120 s</b> it's a disaster. Each one has a <b>gimmick</b> that cuts its damage or delays its big move — ignoring it makes the fight far harder than intended.</p><p class=\"ovi-tip\">🚧 Strategy is being written — filled in run after run. Map and point placement coming soon.</p><p class=\"ovi-tip\">⚠ A boss that dies <b>unclaimed</b> gives <b>no Gallimaufry</b> — after a wipe, recover and claim before it drops.</p>",
   phases:PHASES_B, phasesNom:"PHASES_B"}
 ];

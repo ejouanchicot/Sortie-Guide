@@ -18,7 +18,7 @@
    ⚠ Monter VERSION à chaque livraison : c'est ce qui purge
      l'ancien cache chez tout le monde.
    ============================================================ */
-const VERSION = 'strat-studio-v30';
+const VERSION = 'strat-studio-v31';
 const COQUILLE = [
   // le GUIDE : c'est lui que le linkshell ouvre, et il manquait a cette liste.
   // Les images qu'il affiche (fonds de carte, vignettes, icones) entrent au
