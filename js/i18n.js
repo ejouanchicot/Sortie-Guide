@@ -296,5 +296,17 @@ const TR={
  "[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c], [c:dark][b]Bio[/b][/c][/t]":"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c], [c:dark][b]Bio[/b][/c][/t]",
  "[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]":"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]~30 000 Dmg[/b][/c] split between targets in range[/t]",
  "[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignore les Shadows[/b][/c][/t]":"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignores Shadows[/b][/c][/t]",
- "[t:petit][[c:bleu][b]1 cible[/b][/c]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or][b]HATE RESET[/b][/c][/t]":"[t:petit][[c:bleu][b]1 target[/b][/c]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or][b]HATE RESET[/b][/c][/t]"
+ "[t:petit][[c:bleu][b]1 cible[/b][/c]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or][b]HATE RESET[/b][/c][/t]":"[t:petit][[c:bleu][b]1 target[/b][/c]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or][b]HATE RESET[/b][/c][/t]",
+ "à [c:or]3:00[/c] il enrage · plus que [b][c:or]Vivisection[/c][/b], et [c:rouge]1/4[/c] des dégâts":"at [c:or]3:00[/c] he enrages · nothing but [b][c:or]Vivisection[/c][/b], and [c:rouge]1/4[/c] damage",
+ "[c:or]30 s[/c] sans proc = [c:rouge]-5 % DT[/c] · ça monte à [c:rouge]-90 %[/c] et ça ne redescend jamais":"[c:or]30 s[/c] without a proc = [c:rouge]-5 % DT[/c] · it climbs to [c:rouge]-90 %[/c] and never comes back down",
+ "une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts":"a [b]Threnody[/b] is enough to proc · the spell doesn't need to deal damage",
+ "aucun dégât Water : ni magie, ni WS, ni SC [b]Distortion[/b] ou [b]Darkness[/b] · un SC Darkness l'a soigné de [c:rouge]70 000[/c]":"no Water damage at all: no magic, no WS, no [b]Distortion[/b] or [b]Darkness[/b] SC · a Darkness SC healed him for [c:rouge]70 000[/c]",
+ "chaque absorption ajoute jusqu'à [c:rouge]×3[/c] ce montant à son prochain [b]TP move[/b]":"each absorption adds up to [c:rouge]×3[/c] that amount to his next [b]TP move[/b]",
+ "les nuages de [b][c:or]Cesspool[/c][/b] le [b]soignent[/b] s'il est dedans · on le sort de la flaque":"the [b][c:or]Cesspool[/c][/b] clouds [b]heal[/b] him if he stands in them · pull him out of the pool",
+ "[b][c:or]Cesspool[/c][/b] lui donne [c:or]3:00[/c] de double TP move · le 2e pose un nuage sous sa cible":"[b][c:or]Cesspool[/c][/b] gives him [c:or]3:00[/c] of double TP moves · the 2nd drops a cloud under his target",
+ "jamais de SC [b]Darkness[/b] · c'est du Water, il l'absorbe et le seal s'use":"never a [b]Darkness[/b] SC · that's Water, he absorbs it and the seal wears down",
+ "on varie les WS · il monte un mur de résistance sur celles qu'on répète":"vary the WS · he builds a resistance wall against repeats",
+ "chaque dégât Light lui retire [c:or]500[/c] · c'est le nombre de hits qui compte, pas leur taille":"every Light hit takes [c:or]500[/c] off it · the number of hits is what counts, not their size",
+ "spam [c:light][b]Dia[/b][/c] entre deux [b][c:or]Setting the Stage[/c][/b] · un cast instantané vaut un gros nuke ici":"spam [c:light][b]Dia[/b][/c] between two [b][c:or]Setting the Stage[/c][/b] · an instant cast is worth a big nuke here",
+ "le timer part du [b]claim[/b] et survit au wipe · le compteur Light, lui, repart à zéro et le move gagne [c:rouge]+1000[/c]":"the timer starts on the [b]claim[/b] and survives a wipe · the Light counter does not — it resets, and the move gains [c:rouge]+1000[/c]"
 };

@@ -149,7 +149,10 @@ const PHASES=[
   {kind:"boss",name:"Boss · Degei",tag:"on spam pour tuer · le proc (mages) ne fait pas de dégât",groups:[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
-      ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1})
+      ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
+      ln(["ALL"],"à [c:or]3:00[/c] il enrage · plus que [b][c:or]Vivisection[/c][/b], et [c:rouge]1/4[/c] des dégâts",{warn:1}),
+      ln(["ALL"],"[c:or]30 s[/c] sans proc = [c:rouge]-5 % DT[/c] · ça monte à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
+      ln(["BRD"],"une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts")
     ]},
     {label:"",cls:"rules proc",boite:1,lines:[
       ln(["ALL"],"Flaming Kick → WATER"),
@@ -259,7 +262,8 @@ const PHASES=[
   {kind:"boss",name:"Boss · Ghatjot",tag:"absorbe Water · porte verrouillée à l'engage",groups:[
     {label:"",cls:"rules",boite:1,lines:[
       ln(["ALL"],"absorbe Water → boost ses [b]TP moves[/b]"),
-      ln(["ALL"],"SEUL danger : [b][c:rouge]Howling Fist[/c][/b] > [b]Savage Blade[/b] = Distortion → à éviter",{warn:1}),
+      ln(["ALL"],"aucun dégât Water : ni magie, ni WS, ni SC [b]Distortion[/b] ou [b]Darkness[/b] · un SC Darkness l'a soigné de [c:rouge]70 000[/c]",{warn:1}),
+      ln(["ALL"],"chaque absorption ajoute jusqu'à [c:rouge]×3[/c] ce montant à son prochain [b]TP move[/b]",{warn:1}),
       ln(["MNK"],"Chakra retire le [c:water]Taint[/c] ([c:water]Poison[/c])"),
       ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable")
     ]},
@@ -308,7 +312,11 @@ const PHASES_B=[
       ln(["ALL"],"le [b][c:bleu]MNK[/c][/b]/[b][c:bleu]DNC[/c][/b] tank · ne reste pas collé à eux",{comp:"DNC"})
     ]},
     {label:"",cls:"rules",boite:1,niv:1,lines:[
-      ln(["ALL"],"on retire le [c:water]Poison[/c] systématiquement, il multiplie les dégâts de [b][c:or]Clobbering Wave[/c][/b]",{warn:1})
+      ln(["ALL"],"on retire le [c:water]Poison[/c] systématiquement, il multiplie les dégâts de [b][c:or]Clobbering Wave[/c][/b]",{warn:1}),
+      ln(["ALL"],"les nuages de [b][c:or]Cesspool[/c][/b] le [b]soignent[/b] s'il est dedans · on le sort de la flaque",{warn:1}),
+      ln(["ALL"],"[b][c:or]Cesspool[/c][/b] lui donne [c:or]3:00[/c] de double TP move · le 2e pose un nuage sous sa cible"),
+      ln(["ALL"],"jamais de SC [b]Darkness[/b] · c'est du Water, il l'absorbe et le seal s'use",{warn:1}),
+      ln(["ALL"],"on varie les WS · il monte un mur de résistance sur celles qu'on répète")
     ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["MNK"],"toutes les WS autorisées, [b]sauf [c:rouge]Howling Fist[/c][/b]"),
@@ -350,7 +358,11 @@ const PHASES_B=[
     {label:"[c:or]Yama's Judgment[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:rouge][b]Doom[/b][/c] (5 counts)[/t]",lines:[]}
   ]},
   {kind:"boss",name:"Triboulex",tag:"",groups:[
-    {label:"[c:or]Setting the Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"rules",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[]},
+    {label:"[c:or]Setting the Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"rules",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[
+      ln(["ALL"],"chaque dégât Light lui retire [c:or]500[/c] · c'est le nombre de hits qui compte, pas leur taille"),
+      ln(["COR","RDM"],"spam [c:light][b]Dia[/b][/c] entre deux [b][c:or]Setting the Stage[/c][/b] · un cast instantané vaut un gros nuke ici"),
+      ln(["ALL"],"le timer part du [b]claim[/b] et survit au wipe · le compteur Light, lui, repart à zéro et le move gagne [c:rouge]+1000[/c]",{warn:1})
+    ]},
     {label:"",cls:"dd",boite:1,lines:[
       ln(["ALL"],"[b]derrière[/b] le mob, à [c:or]5,1 yalms[/c] du tank hors des [c:or]fetters[/c], mais groupés"),
       ln(["PLD"],"straight tank à [b]max melee range[/b], côté [c:or]nord[/c]"),
