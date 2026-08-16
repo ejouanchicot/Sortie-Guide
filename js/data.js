@@ -99,7 +99,7 @@ const BUFFS={
     ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
     ln(["BRD"],"[c:wind][b]Chocobo Mazurka[/b][/c]"),
     ln(["DNC"],"[b]Chocobo Jig II[/b]"),
-    ln(["ALL"],["[b]Remedy[/b] ×3-12 · [b]Panacea[/b] ×3-12 · [b]Sneak Oil[/b] ×6-12","[b]Antidotes[/b] (Ghatjot, Dhartok) · [b]Holy Water[/b] (Skomora, Triboulex)","on ramasse les Ra'Kaznar Metals au passage · un par secteur, il disparaît à la mort du boss"])
+    ln(["ALL"],["[b][c:or]Remedy[/c][/b] x12 · [b][c:or]Panacea[/c][/b] ×12 · [b][c:or]Silent Oil[/c][/b] / [b][c:or]Prism Powder[/c][/b] ×12","[b][c:or]Antidotes[/c][/b] (Dhartok) · [b][c:or]Holy Water[/c][/b](Triboulex)","on ramasse les Ra'Kaznar Metals au passage · un par secteur, il disparaît à la mort du boss"])
   ]}
  ],
  "Buffs de trajet":[
