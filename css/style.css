@@ -513,6 +513,24 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .poi.lp-top .plabel{top:auto;bottom:100%;margin:0 0 var(--lblmargin,4px)}
 .poi.lp-left .plabel{top:50%;left:auto;right:100%;transform:translateY(-50%);margin:0 var(--lblmargin,4px) 0 0}
 .poi.lp-right .plabel{top:50%;left:100%;transform:translateY(-50%);margin:0 0 0 var(--lblmargin,4px)}
+/* ─── le cadre d'un boss epouse la creature ───
+   Il etait CARRE, et l'image y tenait en « contain » : une creature large et
+   basse — Dhartok fait 91×59 — n'en remplissait que le bas, et laissait une
+   bande vide en haut. Deux choses en decoulaient, toutes deux visibles :
+
+   · le libelle se pose contre le bord du CADRE. Ecrit au-dessus, il flottait
+     loin de la bete, alors qu'il la touchait dessous ;
+   · et la bete, calee en bas, ne tombait pas sur son point d'ancrage.
+
+   L'atelier, lui, dessine l'image a ses proportions : les deux rendus ne
+   montraient pas la meme carte. On enleve donc le carre plutot que de deplacer
+   l'image dedans — le cadre prend la hauteur de la creature, elle retombe sur
+   son point, et le libelle la touche de tous les cotes.
+
+   Les mid et les icones gardent leur carre : leur cercle en pointilles fait
+   210 % du cadre, et deviendrait une ellipse. */
+.poi.boss{aspect-ratio:auto}
+.poi.boss img{height:auto}
 .poi.pack .plabel{font-size:9.5px;padding:1px 6px}
 /* quantité d'un pack : dans le flux du nom, sans style propre — même rendu que Map Studio */
 .poi .pq{display:inline;font:inherit;color:inherit;text-shadow:inherit}
