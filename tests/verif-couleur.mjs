@@ -55,10 +55,13 @@ dit('et il reste sélectionné, pour enchaîner', pose.selection === 'Chymous Re
 console.log('\n— le rendu le colore vraiment —');
 await new Promise(r=>setTimeout(r,500));
 const rendu = await p.evaluate(()=>{
-  const html = document.getElementById('ssPreview').innerHTML;
-  const m = html.match(/<span style="color:var\(--r-buff\)[^"]*">([^<]*)<\/span>/);
-  return {trouve: !!m, dedans: m ? m[1] : null, marqueVisible: /\[c:or\]/.test(
-    document.getElementById('ssPreview').textContent)};
+  // on cherche NOTRE mot, pas le premier mot doré de la page : la strat en
+  // contient d'autres, et le test tombait dès qu'un s'ajoutait plus haut
+  const zone = document.getElementById('ssPreview');
+  const mot = [...zone.querySelectorAll('span[style*="--r-buff"]')]
+    .find(e => e.textContent.trim() === 'Chymous Reek');
+  return {trouve: !!mot, dedans: mot ? mot.textContent.trim() : null,
+          marqueVisible: /\[c:or\]/.test(zone.textContent)};
 });
 dit('le mot sort en couleur', rendu.trouve && rendu.dedans === 'Chymous Reek', JSON.stringify(rendu));
 dit('et la marque ne se lit plus à l\'écran', !rendu.marqueVisible);

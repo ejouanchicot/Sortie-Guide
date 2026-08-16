@@ -152,7 +152,7 @@ const PHASES=[
       ln(["ALL"],"NE PAS fermer de SC Light si Degei est Fire / Wind / Thunder…",{warn:1}),
       ln(["ALL"],"NE PAS fermer de SC Dark si Degei est Ice / Earth / Water…",{warn:1}),
       ln(["ALL"],"à [c:or]3:00[/c] il enrage · il ne prend plus que [c:rouge]1/4[/c] des dégâts et n'utilise plus que [b][c:or]Vivisection[/c][/b]",{warn:1}),
-      ln(["ALL"],"[c:or]30 s[/c] sans proc = [c:rouge]-5 % DT[/c] · ça monte à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
+      ln(["ALL"],"chaque [c:or]30 s[/c] sans proc lui donne du DT · ça monte jusqu'à [c:rouge]-90 %[/c] et ça ne redescend jamais",{warn:1}),
       ln(["BRD"],"une [b]Threnody[/b] suffit à proc · le sort n'a pas besoin de faire des dégâts"),
       ln(["ALL"],"Ra'Kaznar Metal D : bloque les status de ses TP moves")
     ]},
@@ -273,8 +273,7 @@ const PHASES=[
       ln(["ALL"],"chaque absorption ajoute jusqu'à [c:rouge]×3[/c] ce montant à son prochain [b]TP move[/b]",{warn:1}),
       ln(["MNK"],"Chakra retire le [c:water]Taint[/c] ([c:water]Poison[/c])"),
       ln(["ALL"],"[c:water]Taint[/c] stack → augmente [b][c:or]Clobbering Wave[/c][/b] · Ra'Kaznar Metal A = [c:water]Poison[/c] retirable"),
-      ln(["ALL"],"le Metal A se ramasse en tuant les Acuex de la zone A au [c:fire][b]feu[/b][/c] mono-cible · c'est sur le chemin"),
-      ln(["ALL"],"[b][c:or]Nullifying Rain[/c][/b] ne dispel plus rien")
+      ln(["ALL"],"le Metal A se ramasse en tuant les Acuex de la zone A au [c:fire][b]feu[/b][/c] mono-cible · c'est sur le chemin")
     ]},
     {label:"",cls:"tank",boite:1,lines:[
       ln(["PLD"],"tank sur place")
@@ -291,7 +290,12 @@ const PHASES=[
       ln(["MNK"],"WS libres, évite [b][c:rouge]Howling Fist[/c][/b] > [b]Savage Blade[/b] = (Distortion) → à éviter"),
       ln(["DNC"],"[b]Ruthless Stroke[/b]"),
       ln(["COR"],["spam [b]Savage Blade[/b]","Light Shot ([c:light][b]Dia III[/b][/c])"])
-    ]}
+    ]},
+    {label:"[c:or]Nullifying Rain[/c]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Dispel multiple[/b][/c] + [c:blanc][b]Max HP Down[/b][/c] (-25 %)[/t]",lines:[]},
+    {label:"[c:or]Noyade[/c]",cls:"",niv:1,note:"[t:petit][c:rouge][b]Dmg[/b][/c] + [c:wind][b]Silence[/b][/c] · [c:or][b]lui donne une aura de poison[/b][/c] ([c:rouge]-117/tic[/c])[/t]",lines:[]},
+    {label:"[c:or]Cesspool[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] (-50 TP, -10 MP/tic) + [c:blanc][b]Knockback[/b][/c] · [c:or][b]aura de poison[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Fetid Eddies[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:wind][b]Gravity[/b][/c] · [c:or][b]aura de poison[/b][/c][/t]",lines:[]},
+    {label:"[c:or]Clobbering Wave[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:blanc][b]Knockback[/b][/c] · [c:rouge][b]monte avec tes stacks de Taint[/b][/c][/t]",lines:[]}
   ]}
 ]}
 ];
@@ -420,7 +424,7 @@ const PHASES_B=[
       ln(["ALL"],"loin de lui il ne sort pas de TP move et reste verrouillé sur son élément · on longe les murs, de coin en coin"),
       ln(["PLD"],"bait le premier move, puis [c:or]20-25 yalms[/c] pour éviter les cleaves"),
       ln(["DNC"],"[b]Super Jump[/b] après 2 WS pour lâcher l'aggro"),
-      ln(["ALL"],"sous [c:or]50 %[/c] il pose des fetters · [c:rouge]~200/tic[/c] sur [c:or]20 yalms[/c], [b]Panacea[/b] pour les retirer"),
+      ln(["ALL"],"il pose des fetters dès son [c:or]2e[/c] TP move, de plus en plus bas en HP · [c:rouge]~200/tic[/c] sur [c:or]20 yalms[/c], [b]Panacea[/b] pour les retirer"),
       ln(["PLD"],"on passe en kite si les fetters virent [c:or]orange[/c] ou dépassent [c:or]4[/c]")
     ]},
     {label:"",cls:"buff",boite:1,lines:[
@@ -433,10 +437,10 @@ const PHASES_B=[
       ln(["COR"],"Light Shot ([c:light][b]Dia III[/b][/c])")
     ]},
     {label:"[c:or]Vivisection[/c] toutes les [b][c:or]3:05[/c][/b]",cls:"tp",boite:1,note:"[t:petit][[c:bleu][b]AoE 20+ y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]dispel complet[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Flaming Kick[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] + [c:violet][b]Attack Down[/b][/c] (-25 %)[/t]",lines:[]},
+    {label:"[c:or]Flaming Kick[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:violet][b]Plague[/b][/c] + [c:violet][b]Physical Attack Down[/b][/c] (-25 %)[/t]",lines:[]},
     {label:"[c:or]Icy Grasp[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]Conal[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c] + [c:violet][b]Magic Attack Down[/b][/c][/t]",lines:[]},
     {label:"[c:or]Flashflood[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:water][b]Poison[/b][/c] + [c:violet][b]Magic Def. Down[/b][/c][/t]",lines:[]},
-    {label:"[c:or]Eroding Flesh[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:earth][b]Slow[/b][/c] + [c:violet][b]Def. Down[/b][/c] (-25 %)[/t]",lines:[]},
+    {label:"[c:or]Eroding Flesh[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:earth][b]Slow[/b][/c] + [c:violet][b]Physical Def. Down[/b][/c] (-25 %)[/t]",lines:[]},
     {label:"[c:or]Fulminous Smash[/c]",cls:"",niv:1,note:"[t:petit][[c:bleu][b]AoE 10 y[/b][/c]] [c:rouge][b]Dmg[/b][/c] + [c:thunder][b]Stun[/b][/c] + [c:violet][b]Accuracy Down[/b][/c] (-100)[/t]",lines:[]}
   ]}
 ]},
