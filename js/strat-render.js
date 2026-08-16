@@ -46,8 +46,16 @@
 
      Les noms renvoient aux jetons du thème : la même strat reste lisible en
      clair comme en sombre. Une teinte libre reste possible, passée au filtre. */
+  /* Sept teintes de thème, plus les huit ÉLÉMENTS. Un sort porte un élément, et
+     c'est une donnée du jeu, pas un goût : « Honor March » est Thunder, point.
+     L'écrire `[c:thunder]Honor March[/c]` dit donc ce que la ligne veut dire, au
+     lieu de choisir une couleur au hasard — et ce sont exactement les teintes
+     que le guide pose déjà tout seul sur les noms d'élément dans le texte. */
   var COULEURS = {or:'--r-buff', bleu:'--r-tank', rouge:'--r-dd', vert:'--r-heal',
-                  violet:'--violet', gris:'--dim', blanc:'--txt'};
+                  violet:'--violet', gris:'--dim', blanc:'--txt',
+                  fire:'--e-fire', ice:'--e-ice', wind:'--e-wind', earth:'--e-earth',
+                  thunder:'--e-thunder', water:'--e-water', light:'--e-light',
+                  dark:'--e-dark'};
   // Deux tailles, et pas un nombre : une strat reçue ne fera pas un titre de
   // 90 px au milieu d'une ligne, et l'écart reste le même partout.
   var TAILLES = {petit:'.86em', grand:'1.18em'};
@@ -72,7 +80,10 @@
     if(f === 'b') return '<b>';
     if(f === 'i') return '<i>';
     var v = m.slice(2);
-    if(f === 'c') return '<span style="color:' + teinte(v) + '">';
+    /* On pose AUSSI `--gras` : dans une ligne, le <b> est peint plus clair que
+       le texte autour pour ressortir, et sa couleur propre écrasait celle de la
+       marque. La variable le laisse suivre la teinte quand il y en a une. */
+    if(f === 'c'){ var t = teinte(v); return '<span style="color:' + t + ';--gras:' + t + '">'; }
     var px = TAILLES[v.toLowerCase()];
     return px ? '<span style="font-size:' + px + '">' : '<span>';
   }

@@ -56,7 +56,7 @@ console.log('\n— le rendu le colore vraiment —');
 await new Promise(r=>setTimeout(r,500));
 const rendu = await p.evaluate(()=>{
   const html = document.getElementById('ssPreview').innerHTML;
-  const m = html.match(/<span style="color:var\(--r-buff\)">([^<]*)<\/span>/);
+  const m = html.match(/<span style="color:var\(--r-buff\)[^"]*">([^<]*)<\/span>/);
   return {trouve: !!m, dedans: m ? m[1] : null, marqueVisible: /\[c:or\]/.test(
     document.getElementById('ssPreview').textContent)};
 });
@@ -147,7 +147,7 @@ dit('l\'italique devient de l\'italique', /<i>wipe<\/i>/.test(rendu2.ital), rend
 dit('grand et petit ont leur corps',
     /font-size:1\.18em/.test(rendu2.grand) && /font-size:\.86em/.test(rendu2.petit),
     rendu2.grand + ' · ' + rendu2.petit);
-dit('les marques s\'emboîtent', /<b><span style="color:var\(--r-buff\)">/.test(rendu2.melange),
+dit('les marques s\'emboîtent', /<b><span style="color:var\(--r-buff\)[^"]*">/.test(rendu2.melange),
     rendu2.melange);
 dit('une taille inventée ne passe pas', !/font-size/.test(rendu2.taillePipee), rendu2.taillePipee);
 
@@ -202,7 +202,7 @@ const proc = await p.evaluate(()=>{
   };
 });
 dit('la mise en forme de l’action est rendue, pas écrite en toutes lettres',
-    !/\[b\]|\[c:or\]/.test(proc.eric) && /<b><span style="color:var\(--r-buff\)">Cesspool/.test(proc.eric),
+    !/\[b\]|\[c:or\]/.test(proc.eric) && /<b><span style="color:var\(--r-buff\)[^"]*">Cesspool/.test(proc.eric),
     proc.eric);
 dit('l’effet, à droite, garde la sienne',
     /pcel/.test(proc.eric) && /double-TP/.test(proc.eric), proc.eric);
@@ -210,8 +210,8 @@ dit('les procs d’avant se lisent comme avant',
     /pcja">Flaming Kick<\/span>/.test(proc.ancienne) && /el water/.test(proc.ancienne),
     proc.ancienne);
 dit('une flèche écrite DANS une marque ne coupe pas la ligne',
-    /pcja">[^<]*<span style="color:var\(--r-buff\)">A → B<\/span>/.test(proc.flecheDansUneMarque)
-      || /<span style="color:var\(--r-buff\)">A → B<\/span>/.test(proc.flecheDansUneMarque),
+    /pcja">[^<]*<span style="color:var\(--r-buff\)[^"]*">A → B<\/span>/.test(proc.flecheDansUneMarque)
+      || /<span style="color:var\(--r-buff\)[^"]*">A → B<\/span>/.test(proc.flecheDansUneMarque),
     proc.flecheDansUneMarque);
 
 console.log('\n— le nom d\'un TP move en titre, ses effets dessous, sans « ALL : » —');
@@ -236,7 +236,7 @@ dit('le deuxième move reste DANS la boîte', rub.groupes[1].niv === 1,
 dit('aucune ligne, donc aucun badge « ALL »',
     rub.groupes.every(g => !(g.lines||[]).length) && !/class="role"/.test(rub.html));
 dit('le titre sort en gras et en or',
-    /<b><span style="color:var\(--r-buff\)">Nullifying Rain<\/span><\/b>/.test(rub.html),
+    /<b><span style="color:var\(--r-buff\)[^"]*">Nullifying Rain<\/span><\/b>/.test(rub.html),
     rub.html.slice(0, 200));
 dit('la remarque sort en petit et en couleurs',
     /gnote[^>]*><span style="font-size:\.86em">/.test(rub.html)
@@ -255,6 +255,63 @@ const meta = await p.evaluate(()=>{
 });
 dit('les deux vraies consignes du titre marchent toujours',
     meta.label === 'Fomor ×3' && meta.cls === 'dd' && meta.img === 'Fomor', JSON.stringify(meta));
+
+console.log('\n— une condition qui explique passe à la ligne, elle ne déborde pas —');
+const cond = await p.evaluate(()=>{
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:0;top:0;width:420px;z-index:9999';
+  document.body.appendChild(h);
+  const rendu = (txt)=>{
+    const bloc = STRATCORE.textToBloc('REGLEBOX\n' + txt, {});
+    h.innerHTML = STRATR.groupsHtml(bloc.groups, []);
+    const cadre = h.querySelector('.grp'), c = h.querySelector('.cond');
+    if(!c) return null;
+    const rc = c.getBoundingClientRect(), rg = cadre.getBoundingClientRect();
+    return {deborde: Math.round(rc.right - rg.right), lignes: c.getClientRects().length};
+  };
+  const courte = rendu('ALL : Honor March  ?sans RDM');
+  const longue = rendu('ALL : chaque proc bleu lui retire ses stacks'
+    + '  ?alterner SC et MB, il résiste aux procs répétés de la même source');
+  h.remove();
+  return {courte, longue};
+});
+dit('une condition courte tient sur une ligne, sans déborder',
+    cond.courte && cond.courte.deborde <= 0, JSON.stringify(cond.courte));
+dit('une condition longue reste DANS le cadre',
+    cond.longue && cond.longue.deborde <= 0, JSON.stringify(cond.longue));
+dit('et pour ça, elle passe à la ligne',
+    cond.longue && cond.longue.lignes > 1, JSON.stringify(cond.longue));
+
+console.log('\n— le gras suit la couleur qui l\'entoure —');
+const gras = await p.evaluate(()=>{
+  const h = document.createElement('div');
+  h.style.cssText = 'position:fixed;left:0;top:0;width:600px;z-index:9999';
+  document.body.appendChild(h);
+  // on mesure l'element le plus PROFOND : c'est lui qui peint le texte a l'ecran,
+  // quel que soit l'ordre dans lequel les deux marques ont ete posees
+  const rendu = (txt)=>{
+    const bloc = STRATCORE.textToBloc('REGLEBOX\n' + txt, {});
+    h.innerHTML = STRATR.groupsHtml(bloc.groups, []);
+    let el = h.querySelector('.line .txt b');
+    if(!el) return {texte:null, attendu:null};
+    while(el.firstElementChild) el = el.firstElementChild;
+    const s = h.querySelector('.line .txt span[style*="color"]');
+    return {texte: getComputedStyle(el).color,
+            attendu: s ? getComputedStyle(s).color : null};
+  };
+  // le mot est un nom d'élément connu du guide, donc sa teinte est verifiable
+  const colore = rendu('BRD : [c:thunder][b]Honor March[/b][/c]');
+  const nu = rendu('COR : [b]Chaos Roll[/b]');
+  const dehors = rendu('BRD : [b][c:thunder]Honor March[/c][/b]');
+  h.remove();
+  return {colore, nu, dehors};
+});
+dit('un gras DANS une couleur prend cette couleur',
+    gras.colore.texte === gras.colore.attendu, JSON.stringify(gras.colore));
+dit('et une couleur DANS un gras marche aussi',
+    gras.dehors.texte === gras.dehors.attendu, JSON.stringify(gras.dehors));
+dit('un gras sans couleur reste plus clair que le texte',
+    !!gras.nu.texte && gras.nu.texte !== gras.colore.texte, JSON.stringify(gras.nu));
 
 console.log('\n— Discord reçoit le texte, pas les marques —');
 const disco = await p.evaluate(()=>{
