@@ -93,7 +93,7 @@ toujours sur celle que le guide met tout seul sur les mots `Fire`, `Water`…
 | un statut sans élément connu | `[c:violet]` | `Muddle`, `Zombie`, `Weakness`, `Haunted`, `Dispel`, les *Down |
 | des dégâts, ou ce qu'on ne sort pas | `[c:rouge]` | `Dmg`, `Doom`, et `Howling Fist` qui ouvre le Distortion à éviter |
 | un knockback | `[c:blanc]` | |
-| un nom de **skillchain** | sa teinte à lui | `Fusion` `#ff7a45`, `Gravitation` `#b67a25`, `Induration` `#6be1ff`, `Distortion` `#6bfdff` |
+| un nom de **skillchain** | rien à écrire — teinte **et halo** automatiques | `Fusion`, `Gravitation`, `Induration`, `Distortion` · `Light` et `Darkness` passent par les éléments |
 | ce qui doit sauter aux yeux | `[c:or]` | `HATE RESET`, `TP RESET`, un repère de position, une durée |
 | **le nom d'un TP move** | `[c:or]` | c'est un nom, pas un sort — « Icy Grasp » n'est pas de la glace |
 | **sauf s'il est magique** | l'**élément du move** | `[c:dark]Cruel Joke[/c]` — magical Darkness |
@@ -101,6 +101,21 @@ toujours sur celle que le guide met tout seul sur les mots `Fire`, `Water`…
 Cette dernière ligne est la seule exception, et elle est voulue : un titre
 qui n'est pas en or dit que le move est magique et de quel élément.
 Ne pas « uniformiser » `Cruel Joke` en or.
+
+Ajouter un skillchain : une ligne dans `SCS` (`js/strat-render.js`) et une
+teinte `--sc-<nom>` dans les deux thèmes. Le halo se prend sur la couleur du
+mot, il n'y a rien d'autre à écrire.
+
+### Le gras
+
+Un **nom propre du jeu** est en gras : un sort, une song, un JA, une WS, un
+TP move. Un **statut** ne l'est pas dans une phrase — `[c:water]Poison[/c]`
+au milieu d'une ligne se lit très bien — mais l'est dans une **fiche de TP
+move**, où tout est jeton et où une moitié en gras et l'autre pas se voit
+tout de suite.
+
+Dans une fiche, la forme est toujours `[c:teinte][b]mot[/b][/c]` : la couleur
+porte le gras, jamais l'inverse.
 
 Les teintes elles-mêmes doivent rester séparables : `tests/verif-teintes.mjs`
 mesure l'écart perceptif entre voisines dans les deux thèmes et refuse qu'il
