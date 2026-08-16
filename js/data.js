@@ -95,22 +95,22 @@ const BUFFS={
  "Buffs de départ":[
   {label:"",cls:"",lines:[
     ln(["ALL"],"Au Start : on attend [c:wind][b]Chocobo Mazurka[/b][/c] (BRD) et/ou [b]Bolter's Roll[/b] (COR) · on passe PAS la porte tant qu'on n'a pas l'un ou l'autre",{warn:1,comp:"PLD"}),
-    ln(["ALL"],"Au Start : on attend [c:wind][b]Chocobo Mazurka[/b][/c] (BRD), [b]Bolter's Roll[/b] (COR) et/ou [b]Chocobo Jig[/b] (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
+    ln(["ALL"],"Au Start : on attend [c:wind][b]Chocobo Mazurka[/b][/c] (BRD), [b]Bolter's Roll[/b] (COR) et/ou [b]Chocobo Jig II[/b] (DNC) · on passe PAS la porte tant qu'on n'a pas de move speed",{warn:1,comp:"DNC"}),
     ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
     ln(["BRD"],"[c:wind][b]Chocobo Mazurka[/b][/c]"),
-    ln(["DNC"],"[b]Chocobo Jig[/b]")
+    ln(["DNC"],"[b]Chocobo Jig II[/b]")
   ]}
  ],
  "Buffs de trajet":[
   {label:"",cls:"",lines:[
     ln(["COR"],"[b]Bolter's Roll[/b] / [b]Tactician's Roll[/b]"),
-    ln(["ALL"],"[b]Chocobo Jig[/b]",{comp:"DNC"})
+    ln(["ALL"],"[b]Chocobo Jig II[/b]",{comp:"DNC"})
   ]}
  ],
  "Buffs avant le dernier boss":[
   {label:"",cls:"",lines:[
     ln(["COR"],"[b]Bolter's Roll[/b] + [b]Tactician's Roll[/b]"),
-    ln(["DNC"],"Chocobo Jig")
+    ln(["DNC"],"Chocobo Jig II")
   ]}
  ],
  "Buffs de trajet · sous-sol":[
@@ -206,7 +206,7 @@ const PHASES=[
       ln(["MNK"],["[b]Victory Smite[/b] ×2 (ou [b]Victory[/b] → [b]Shijin[/b])","(Light)"]),
       ln(["DNC"],["spam [b]Ruthless Stroke[/b] x3","([b][c:rouge]Fusion[/c][/b])>(Light)"])
     ]},
-    {label:"[c:or]Setting the Stage[/c]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[]},
+    {label:"[c:or]Setting the Stage[/c] toutes les [b][c:or]3:00[/c][/b]",cls:"tp",boite:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]~30 000 Dmg[/b][/c] divisés entre les cibles à portée[/t]",lines:[]},
     {label:"[c:dark]Cruel Joke[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE 10 y[/c][/b]] [c:violet][b]Haunted[/b][/c] + [c:or][b]ignore les Shadows[/b][/c][/t]",lines:[]},
     {label:"[c:or]Last Laugh[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]1 cible[/c][/b]] [c:rouge][b]Critical Dmg[/b][/c] + [c:dark][b]Drain[/b][/c], [c:or]HATE RESET[/c][/t]",lines:[]},
     {label:"[c:or]Regurgitated Swarm[/c]",cls:"",niv:1,note:"[t:petit][[b][c:bleu]AoE[/c][/b]] [c:rouge][b]Dmg[/b][/c] + [c:ice][b]Paralysis[/b][/c], [c:or]TP RESET[/c][/t]",lines:[]},
@@ -317,7 +317,7 @@ const PHASES_B=[
       ln(["COR","BRD"],"[b]Savage Blade[/b]")
     ]},
     {label:"",cls:"debuff",boite:1,lines:[
-      ln(["BRD"],["[c:earth][b]Carnage Elegy[/b][/c]","[c:light][b]Foe Requiem VII[/b][/c]","[c:dark][b]Light Threnody[/b][/c]"]),
+      ln(["BRD"],["[c:earth][b]Carnage Elegy[/b][/c]","[c:light][b]Foe Requiem VII[/b][/c]","[c:dark][b]Light Threnody II[/b][/c]"]),
       ln(["RDM"],["[c:light][b]Dia III[/b][/c]","[c:ice][b]Distract III[/b][/c]"]),
       ln(["COR"],"Light Shot ([c:light][b]Dia III[/b][/c])")
     ]},
