@@ -328,12 +328,12 @@ const PHASES_B=[
   ]}
 ]},
 {n:2,sector:"G",boss:"Triboulex",title:"Secteur G · Triboulex",route:"",buffs:"Buffs de trajet · sous-sol",cards:[
-  {kind:"pack",klabel:"MIDBOSS",name:"Sur le trajet",tag:"comp DNC",noHeadImg:true,groups:[
-    {label:"Naraka",cls:"",lines:[
-      ln(["ALL"],"On tue Naraka sur le trajet : Stun chacun de ses [b]TP moves[/b] au [b]Flat Blade[/b]")
+  {kind:"pack",name:"Naraka",tag:"",groups:[
+    {label:"",cls:"",lines:[
+      ln(["ALL"],"Stun chacun de ses [b]TP moves[/b] au [b]Flat Blade[/b]")
     ]}
   ]},
-  {kind:"boss",name:"Triboulex",tag:"à définir",groups:[]}
+  {kind:"boss",name:"Triboulex",tag:"",groups:[]}
 ]},
 {n:3,sector:"H",boss:"Aita",title:"Secteur H · Aïta",route:"On file directement au boss.",buffs:"Buffs de trajet · sous-sol",cards:[
   {kind:"boss",name:"Boss · Aïta",tag:"à définir",groups:[]}
