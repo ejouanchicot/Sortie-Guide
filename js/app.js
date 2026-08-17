@@ -497,10 +497,10 @@ function lineHidden(el){
    La règle sépare donc les deux cas : s'il y a des lignes, c'est le filtre qui
    décide, comme avant. S'il n'y en a aucune, il n'y a rien à filtrer — le bloc
    se montre s'il a quelque chose à dire. */
-function plusRienAMontrer(el){
+function plusRienAMontrer(el, aussi){
   const lignes = [...el.querySelectorAll(".line")];
   if(lignes.length) return !lignes.some(l => !lineHidden(l));
-  return !el.querySelector(".glabel:not(:empty), .gnote");
+  return !el.querySelector(".glabel:not(:empty), .gnote" + (aussi ? ", " + aussi : ""));
 }
 function applyFilter(){
   const solo=document.body.classList.contains("solo") && !!curJob;
@@ -515,7 +515,16 @@ function applyFilter(){
   document.querySelectorAll(".card").forEach(c=>{
     // les cartes boss restent toujours visibles (marqueur de fin de secteur, même sans strat encore écrite)
     if(c.classList.contains("boss")){ c.classList.remove("emptyhide"); return; }
-    c.classList.toggle("emptyhide", plusRienAMontrer(c));
+    /* Une carte porte AUSSI son nom et son résumé — « Double Farm · Acuex ×3 +
+       Fomor ×3 », puis « le PLD amène les Acuex au camp Fomor ». Seules ses
+       rubriques comptaient : une ferme dont les actions ne sont pas encore
+       écrites disparaissait donc en ENTIER du guide, nom et résumé compris,
+       alors que l'atelier l'affichait. C'est le geste normal — on nomme la
+       carte et on pose le principe avant d'écrire les actions — et le lead
+       publiait sans rien voir sortir.
+       Quand elle a des lignes, rien ne change : c'est le filtre qui décide. */
+    c.classList.toggle("emptyhide",
+      plusRienAMontrer(c, ".cname:not(:empty), .ctag:not(:empty)"));
   });
   // la préparation est un bloc comme les autres : ses lignes sont déjà passées
   // dans la boucle du dessus, il ne reste qu'à masquer le bloc s'il ne montre plus rien

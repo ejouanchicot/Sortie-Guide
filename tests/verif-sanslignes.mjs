@@ -13,7 +13,10 @@
    Ce qui compte ici, et les deux ensemble :
    · un bloc sans ligne se montre, s'il a quelque chose a dire ;
    · un bloc AVEC des lignes, toutes filtrees, disparait comme avant. */
-import {puppeteer, GUIDE, rapport} from './navigateur.mjs';
+import {puppeteer, GUIDE, STUDIO, rapport} from './navigateur.mjs';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const {dit, bilan} = rapport();
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
@@ -105,6 +108,62 @@ if (!filtre.possible) {
       filtre.apres < filtre.avant,
       filtre.apres + ' rubriques visibles contre ' + filtre.avant + ' avant');
 }
+
+/* ---------- une CARTE porte aussi son nom et son résumé ----------
+   Même règle, un cran au-dessus. Seules les rubriques d'une carte comptaient :
+   une ferme dont les actions ne sont pas encore écrites disparaissait en
+   ENTIER du guide — nom et résumé compris — alors que l'atelier l'affichait.
+   C'est pourtant le geste normal : on nomme la carte, on pose le principe en
+   une ligne, et on écrit les actions ensuite. Le lead publiait sans rien voir
+   sortir, et rien ne le lui disait. La carte boss, elle, avait déjà son
+   exemption ; la ferme, non.
+   On l'ouvre depuis le disque : c'est le vrai moteur, et la forme sous
+   laquelle une strat voyage. */
+console.log('\n— une ferme nommée dont les actions ne sont pas encore écrites —');
+const dossier = fs.mkdtempSync(path.join(os.tmpdir(), 'sanslignes-'));
+const s = await b.newPage();
+await s.goto(STUDIO, {waitUntil:'networkidle0'});
+await s.waitForFunction(() => window.BIBLIO && window.EXPORTHTML, {timeout:9000});
+const doc = await s.evaluate(async () => {
+  const st = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Essai', window.__MS.reglages());
+  const ph = st.chapitres[0].phases[0];
+  ph.cards.unshift({kind:'pack', name:'FERME NOMMEE', tag:'le principe en une ligne', groups:[]});
+  ph.cards.unshift({kind:'pack', name:'FERME SANS RESUME', tag:'', groups:[]});
+  // le témoin : ni nom, ni résumé, ni rubrique — celle-là n'a rien à dire
+  ph.cards.unshift({kind:'pack', name:'', tag:'', groups:[]});
+  return await window.EXPORTHTML.fabrique(st, {base:'../'});
+});
+await s.close();
+const f = path.join(dossier, 'ferme.html');
+fs.writeFileSync(f, doc, 'utf8');
+const g2 = await b.newPage();
+const errF = [];
+g2.on('pageerror', e => errF.push(String(e).slice(0, 110)));
+await g2.goto('file:///' + f.replace(/\\/g, '/'), {waitUntil:'networkidle0'});
+await g2.waitForFunction(() => document.querySelectorAll('.card').length > 0, {timeout:15000});
+const fermes = await g2.evaluate(() => {
+  const etat = n => {
+    const c = [...document.querySelectorAll('.card')]
+      .find(e => (e.querySelector('.cname')?.textContent || '').trim() === n);
+    return c ? (c.offsetParent !== null ? 'vue' : 'masquée') : 'absente';
+  };
+  const muette = [...document.querySelectorAll('.card')]
+    .find(e => !(e.querySelector('.cname')?.textContent || '').trim()
+            && !(e.querySelector('.ctag')?.textContent || '').trim()
+            && !e.querySelector('.grp'));
+  return {nommee: etat('FERME NOMMEE'), sansResume: etat('FERME SANS RESUME'),
+          muette: muette ? (muette.offsetParent !== null ? 'vue' : 'masquée') : 'absente'};
+});
+await g2.close();
+fs.rmSync(dossier, {recursive:true, force:true});
+dit('la ferme nommée et résumée s\'affiche', fermes.nommee === 'vue', fermes.nommee);
+dit('  celle qui n\'a que son nom aussi', fermes.sansResume === 'vue', fermes.sansResume);
+/* Le témoin est ce qui empêche de « corriger » en montrant tout : une carte
+   qui n'a ni nom, ni résumé, ni rubrique n'a rien à dire, et reste masquée. */
+dit('  mais une carte qui n\'a rien à dire reste masquée',
+    fermes.muette !== 'vue', fermes.muette);
+dit('  rien ne casse à l\'ouverture', errF.length === 0, errF.slice(0, 2).join('\n       '));
 
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 await b.close();
