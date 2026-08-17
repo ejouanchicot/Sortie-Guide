@@ -10,9 +10,9 @@
    téléphone, en donjon. Une seule liste lui faisait précharger
    Konva, map-studio et strat-studio — 211 Ko compressés d'outil
    d'écriture qu'il n'ouvrira jamais — pendant que la carte du run,
-   elle, se chargeait encore. L'atelier n'entre au cache qu'à la
-   première visite de tools/studio.html, c'est-à-dire quand on s'en
-   sert vraiment.
+   elle, se chargeait encore. L'atelier n'entre au cache que quand on
+   s'en sert : à l'installation si c'est de lui qu'on vient, sinon au
+   premier passage par tools/studio.html.
 
    RÉSEAU D'ABORD pour le code, mais AVEC UN DÉLAI ; cache d'abord
    pour les polices et les images :
@@ -36,7 +36,7 @@
    ⚠ Monter VERSION à chaque livraison : c'est ce qui purge
      l'ancien cache chez tout le monde.
    ============================================================ */
-const VERSION = 'strat-studio-v32';
+const VERSION = 'strat-studio-v33';
 // Le préfixe sert à la purge : caches.keys() est à l'échelle de l'ORIGINE,
 // pas du dossier. Sur ejouanchicot.github.io, tous les dépôts publiés en
 // Pages la partagent — sans ce filtre, monter VERSION effaçait le cache des
@@ -89,6 +89,8 @@ const ATELIER = [
 // assez court pour qu'on ne regarde pas une page blanche en donjon.
 const DELAI_RESEAU = 1200;
 
+let atelierGarde = false;   // déclaré ici : install() s'en sert aussi
+
 // addAll échoue en bloc si UN fichier manque : on les prend un par un pour
 // qu'un renommage oublié ne prive pas tout le monde du hors-ligne.
 async function garde(liste) {
@@ -99,6 +101,21 @@ async function garde(liste) {
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     await garde(GUIDE);
+    /* Et l'atelier si celui qui installe est DÉJÀ dans l'atelier. Sans ça,
+       scinder la coquille en deux avait cassé son hors-ligne : le déclencheur
+       ci-dessous attend un `fetch`, or à la PREMIÈRE visite le worker n'est pas
+       encore aux commandes — l'événement n'arrive jamais. Mesuré : après une
+       seule visite, 13 entrées en cache et pas de tools/studio.html ; le lead
+       installait l'application, fermait, partait en donjon, et la page ne
+       s'ouvrait pas du tout. C'était une régression sur la liste unique, où
+       install() prenait tout.
+       On regarde donc qui nous a amenés ici plutôt que d'attendre un second
+       passage : le lecteur du guide ne paie toujours rien. */
+    const ouverts = await self.clients.matchAll({includeUncontrolled: true, type: 'window'});
+    if (ouverts.some(c => /\/tools\/studio\.html$/.test(new URL(c.url).pathname))) {
+      atelierGarde = true;
+      await garde(ATELIER);
+    }
     self.skipWaiting();
   })());
 });
@@ -114,8 +131,6 @@ self.addEventListener('activate', e => {
 });
 
 const DURABLE = /\.(woff2?|png|jpe?g|webp|svg|gif)$/i;
-
-let atelierGarde = false;
 
 self.addEventListener('fetch', e => {
   const r = e.request;

@@ -8,9 +8,16 @@
    donc rien — reseau coupe, rechargement, plus rien a l'ecran.
    C'est le public le plus nombreux, celui qui ne fait que lire.
 
-   Ce test coupe vraiment le reseau et recharge. Il ne regarde pas
-   si le code « prevoit » le hors-ligne : il regarde si la strat
-   s'affiche encore.
+   Ce test recharge reseau coupe, et regarde si la strat s'affiche
+   encore — pas si le code « prevoit » le hors-ligne.
+
+   UNE LIMITE, ET IL FAUT LA CONNAITRE : couper le reseau du test ne
+   coupe pas celui du service worker, qui a le sien. Une requete
+   relayee par lui est revenue du serveur bien vivant pendant qu'on se
+   croyait hors ligne. Les deux essais ci-dessous prouvent donc que la
+   page tient sans reseau DIRECT, pas dans l'avion. Ce qui decide de
+   l'avion, c'est ce qui est reellement range dans le cache — mesure
+   plus bas, profil neuf, entree par entree.
    ============================================================ */
 import {puppeteer, RACINE, rapport} from './navigateur.mjs';
 
@@ -111,6 +118,53 @@ await essaie('le guide', RACINE + '/index.html', (v, en) => v.cartes === en.cart
 // normal : lui appliquer le seuil d'un document le ferait rougir à tort.
 await essaie('l\'atelier', RACINE + '/tools/studio.html',
              (v, en) => v.canvas >= en.canvas && v.canvas > 0, 500);
+
+/* ---------- ce que la PREMIÈRE visite met de côté ----------
+   Les deux essais ci-dessus partagent un profil : le second trouve déjà
+   dans le cache ce que le premier y a mis, et ne prouve donc rien sur ce
+   qu'il aurait su faire seul. Or c'est exactement le cas qui a cassé —
+   le drapeau qui décide de précharger l'atelier était lu par l'install
+   AVANT d'être déclaré, si bien qu'un lead ouvrant l'atelier en premier
+   repartait sans sa coquille : Konva absent, atelier blanc dans l'avion.
+   On rouvre donc chacun dans un profil NEUF, et on regarde ce qui est
+   réellement rangé. Compter les entrées est ici la seule mesure honnête :
+   couper le réseau depuis le test ne coupe pas celui du service worker. */
+console.log('\n— une première visite, dans un profil neuf —');
+
+async function range(quoi, chemin){
+  const ctx = await b.createBrowserContext();
+  const p = await ctx.newPage();
+  await p.goto(RACINE + chemin, {waitUntil:'networkidle0'});
+  await p.evaluate(() => navigator.serviceWorker.ready);
+  // la coquille se range entrée par entrée : on attend qu'elle ne bouge plus
+  await p.waitForFunction(async () => {
+    const noms = await caches.keys(); if(!noms.length) return false;
+    const n = (await (await caches.open(noms[0])).keys()).length;
+    const stable = window.__n === n && n > 5; window.__n = n; return stable;
+  }, {polling:300, timeout:20000}).catch(() => {});
+  const dedans = await p.evaluate(async () => {
+    const noms = await caches.keys();
+    const urls = [];
+    for(const n of noms) for(const r of await (await caches.open(n)).keys()) urls.push(r.url);
+    return urls;
+  });
+  await ctx.close();
+  const a = f => dedans.some(u => u.endsWith(f));
+  return {a, n:dedans.length, quoi};
+}
+
+const at = await range('l\'atelier', '/tools/studio.html');
+dit('l\'atelier seul range sa propre page', at.a('/tools/studio.html'), at.n + ' entrées');
+dit('  et Konva avec, sans quoi il s\'ouvre blanc', at.a('/tools/vendor/konva.min.js'),
+    at.n + ' entrées');
+
+const gu = await range('le guide', '/index.html');
+dit('le guide seul range sa page et son moteur',
+    gu.a('/index.html') && gu.a('/js/app.js'), gu.n + ' entrées');
+dit('  et le socle partagé', gu.a('/js/sortie-map-core.js'), gu.n + ' entrées');
+// Il n'a rien à faire de Konva : le lire coûte 300 ko à un membre qui ne fait que lire.
+dit('  sans emporter Konva, qu\'il n\'ouvre jamais', !gu.a('/tools/vendor/konva.min.js'),
+    gu.n + ' entrées');
 
 /* La liste prechargee doit citer la coquille du GUIDE, pas seulement celle de
    l'atelier — sans quoi le guide dependait d'une visite prealable reussie. */
