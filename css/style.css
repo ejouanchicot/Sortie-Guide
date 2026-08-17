@@ -7,7 +7,7 @@
   /* jetons de ces trois couleurs, jusqu'ici ecrites en dur plus bas : sans eux,
      le theme clair ne pouvait pas les rejouer. */
   --warn:#f2c98a; --gc-mb:#22d3ee; --gc-proc:#3fbfae; --gc-tp:#f06fb0;
-  --r-dd:#f2564d; --r-tank:#4c9df0; --r-buff:#e9c23e; --r-heal:#3fca6a; --r-all:#8a94a6;
+  --r-dd:#ff827a; --r-tank:#4c9df0; --r-buff:#e9c23e; --r-heal:#3fca6a; --r-all:#8a94a6;
   /* Ténèbres et Eau étaient LE MÊME pixel pour un œil deutéranope : un boss dark
      et un pack water portaient la même pastille, le même nœud de timeline. Terre
      et Vent se confondaient aussi. Ces deux teintes-là sont retouchées, pas les
@@ -18,10 +18,16 @@
      perceptif : « Stun » et « Paralysis » côte à côte, c'était la même couleur.
      La foudre part vers le lavande clair, les ténèbres vers le magenta franc,
      et aucune paire ne descend plus sous trente. */
-  --e-water:#4aa3e0; --e-fire:#f2564d; --e-thunder:#c9a7ff; --e-wind:#43c463;
-  --e-earth:#96633a; --e-ice:#5fd0d0; --e-light:#ffffff; --e-dark:#e0479f;
+  /* Le feu, l'eau, la terre et le gris ont été ÉCLAIRCIS : posés sur un cadre
+     déjà teinté de leur propre couleur — l'étiquette d'une phase, le titre
+     d'une carte — ils tombaient entre 2,97 et 4,22 contre 1, sous les 4,5
+     qu'il faut. Le fond d'une étiquette PHASE n'est pas le fond de la page :
+     il porte 12 % de la couleur du boss, donc plus l'élément est sombre,
+     moins il se détache de son propre cadre. */
+  --e-water:#5cb0ea; --e-fire:#ff827a; --e-thunder:#c9a7ff; --e-wind:#43c463;
+  --e-earth:#c08a55; --e-ice:#5fd0d0; --e-light:#ffffff; --e-dark:#e0479f;
   /* l'élément « aucun » : une phase sans élément, un mob neutre */
-  --e-gray:#8b93a0;
+  --e-gray:#a6adb9;
   /* les skillchains ont leurs teintes à eux : ce ne sont ni des éléments ni
      des sorts, et on les reconnaît à leur halo */
   --sc-fusion:#ff7a45; --sc-gravitation:#b67a25;
@@ -179,13 +185,13 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .chip:active{transform:scale(.95)}
 .nav .chip{padding:6px 12px}
 .nav .chip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:6px}
-#nav .chip.navactive{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 14px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
-#nav .chip.navactive b{color:rgba(255,255,255,.85)}
+#nav .chip.navactive{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 14px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+#nav .chip.navactive b{color:var(--badge-ink,#0b0e12);opacity:.72}
 .jobchip{border-color:transparent;background:color-mix(in srgb,var(--jc) 15%,var(--chip))}
 .jobchip[data-j]{color:var(--jc)}
 .jobrow .jobchip.on{background:var(--jc);color:var(--badge-ink,#0b0e12);border-color:var(--jc);box-shadow:0 4px 14px -4px var(--jc)}
 #jobAll{font-weight:800}
-#jobAll.on{background:var(--accent);color:#fff;border-color:transparent}
+#jobAll.on{background:var(--accent);color:var(--badge-ink,#0b0e12);border-color:transparent}
 .compchip{color:var(--jc)}
 .compchip.on{background:var(--jc);color:var(--badge-ink,#0b0e12);border-color:var(--jc);box-shadow:0 4px 14px -4px var(--jc)}
 #soloToggle{border-color:var(--line2);color:var(--dim)}
@@ -680,7 +686,7 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .zonetab{flex:1;min-height:46px;border:1px solid var(--line2);background:var(--panel);color:var(--dim);border-radius:10px;font:800 19px/1 var(--mono);cursor:pointer;transition:background .12s,color .12s,border-color .12s}
 .zonetab.all{font-size:11.5px;letter-spacing:.02em}
 .zonetab:hover{border-color:var(--accent);color:var(--txt)}
-.zonetab.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 14px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+.zonetab.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 14px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
 
 /* ==== cartes / sections "à venir" (Aminon, etc.) ==== */
 .phase.soon{opacity:.72}
