@@ -203,12 +203,24 @@
      35 lignes disparues, BUFFS et MOB avec, un fichier resté syntaxiquement
      VALIDE, et « absents » vide — donc pas un mot, et l'écriture sur le disque.
      Le garde-fou « ne pas traverser un const/let/var/function » ramène ce cas
-     là où il doit être : bloc introuvable, et l'outil le dit. */
+     là où il doit être : bloc introuvable, et l'outil le dit.
+
+     ET LES DEUX COMMENCENT EN DÉBUT DE LIGNE — c'est la troisième moitié, et
+     elle est restée ouverte après les deux autres. Sans « ^ », le motif
+     s'accroche à la PREMIÈRE occurrence de « const CARTES= » dans le fichier,
+     y compris à l'intérieur d'une chaîne de texte que le lead a tapée. Il lui
+     suffit d'écrire dans une rubrique « Prep : const CARTES={ à revoir », ou
+     de coller une note prise sur un forum. Mesuré sur le vrai data.js :
+     « absents » vide, l'atelier annonce « le guide est à jour », 41 lignes se
+     déplacent et le fichier ne charge plus — guide blanc, et l'atelier ne se
+     rouvre pas pour réparer. Les douze blocs sont déclarés en colonne 0 dans
+     data.js comme dans i18n.js, une seule fois chacun : l'ancre ne coûte
+     aucun cas légitime. */
   function motif(b){
     return b.scalaire
-      ? new RegExp('const ' + b.nom
+      ? new RegExp('^const ' + b.nom
           + '\\s*=\\s*(?:(?!\\n\\s*(?:const|let|var|function)\\b)[\\s\\S])*?;[ \\t\\r]*$', 'm')
-      : new RegExp('const ' + b.nom + '\\s*=\\s*[\\[{][\\s\\S]*?\\n[\\]}];');
+      : new RegExp('^const ' + b.nom + '\\s*=\\s*[\\[{][\\s\\S]*?\\n[\\]}];', 'm');
   }
 
   // Rend le texte modifié et la liste des blocs qu'on n'a PAS trouvés.
