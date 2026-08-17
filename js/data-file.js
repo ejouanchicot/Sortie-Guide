@@ -185,9 +185,17 @@
   // les crochets imbriqués sont indentés par les sérialiseurs, donc jamais
   // confondus avec la fin du bloc. Une regex non-gourmande sans cette ancre
   // s'arrêterait au premier « ]; » venu.
+  //
+  // Le scalaire s'arrête au premier « ; » qui termine SA LIGNE, jamais au
+  // premier « ; » venu : une strat nommée « Sortie ; run du jeudi » coupait
+  // la déclaration en plein milieu de son propre nom. La première sauvegarde
+  // passait — c'est la DEUXIÈME qui écrivait « …jeudi"; run du jeudi"; » et
+  // rendait data.js illisible, donc le guide blanc ET l'atelier incapable de
+  // se rouvrir pour réparer. COMPO, déclaré scalaire mais écrit sur plusieurs
+  // lignes, tombe sous la même règle : sa fermeture « ]}; » finit sa ligne.
   function motif(b){
     return b.scalaire
-      ? new RegExp('const ' + b.nom + '\\s*=\\s*[^;]*;')
+      ? new RegExp('const ' + b.nom + '\\s*=\\s*[\\s\\S]*?;[ \\t\\r]*$', 'm')
       : new RegExp('const ' + b.nom + '\\s*=\\s*[\\[{][\\s\\S]*?\\n[\\]}];');
   }
 
