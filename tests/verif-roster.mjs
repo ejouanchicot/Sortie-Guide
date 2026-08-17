@@ -66,7 +66,8 @@ const change = await p.evaluate(async () => {
   const opt = [...sel.options].find(o => o.value === cible || o.textContent.trim() === cible);
   if(!opt) return {non:'carte du sous-sol absente du sélecteur', vus:[...sel.options].map(o=>o.value)};
   sel.value = opt.value; sel.dispatchEvent(new Event('change'));
-  await new Promise(r => setTimeout(r, 1800));
+  // le crochet rend la promesse du rendu en cours : plus besoin de compter
+  await window.__MS.pret();
   return {ok:true, carte:(FLOORS[window.__idx||1]||{}).carte};
 });
 if(change.non){

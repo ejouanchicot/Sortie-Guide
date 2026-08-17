@@ -55,7 +55,16 @@ const depot = await p.evaluate(async () => {
   cnv.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX:cx, clientY:cy}));
   cnv.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX:cx, clientY:cy}));
   btn.dispatchEvent(new DragEvent('dragend', {bubbles:true, dataTransfer:dt}));
-  await new Promise(r => setTimeout(r, 900));
+  /* Poser un marqueur, c'est TROIS choses : il entre dans les données, l'outil
+     revient sur Sélection, la barre de pose se referme et il est sélectionné.
+     Attendre seulement la première coupait trop tôt — les trois assertions qui
+     suivent tombaient. On attend l'état complet. */
+  for(let i=0;i<120;i++){
+    const pose = (FLOORS[0].icones||[]).length > 0;
+    const anneau = Konva.stages[0].find('.selring').length > 0;
+    if(pose && anneau) break;
+    await new Promise(r=>setTimeout(r,25));
+  }
   const f = FLOORS[0], ic = (f.icones || []);
   return {n: ic.length, dernier: ic[ic.length - 1] || null};
 });

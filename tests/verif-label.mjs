@@ -43,7 +43,8 @@ const trace = await p.evaluate(async ()=>{
     .find(x=>/diter le label/i.test((x.title||'')+' '+(x.textContent||'')));
   if(!crayon) return {non:'pas de quoi éditer le label dans la carte de propriétés'};
   crayon.click();
-  await new Promise(r=>setTimeout(r,800));
+  // la boite d'edition est la : on l'attend au lieu de compter jusqu'a 800
+  for(let i=0;i<80 && !document.getElementById('mped');i++) await new Promise(r=>setTimeout(r,25));
   let ed = document.getElementById('mped');
   const montre = !!(ed && /MON LIBELLE/.test(ed.innerHTML));
 

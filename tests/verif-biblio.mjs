@@ -102,7 +102,12 @@ console.log('\n— on y ecrit, puis on revient —');
     document.getElementById('stTabStrat').click();
   });
   await p.evaluate(() => window.__SS && window.__SS.bascule && 0);
-  await new Promise(r => setTimeout(r, 2200));   // au-dela du delai d'ecriture
+  // on attend que la sauvegarde silencieuse ait VRAIMENT ecrit, au lieu de
+  // parier sur un delai plus long que le sien
+  await p.waitForFunction(async () => {
+    const l = await BIBLIO.liste();
+    return Array.isArray(l) && l.length > 1;
+  }, {timeout:15000}).catch(() => {});
 
   const idOdy = await p.evaluate(() => document.getElementById('stStratSel').value);
   const premier = await p.evaluate(() => [...document.getElementById('stStratSel').options]

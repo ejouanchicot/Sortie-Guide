@@ -22,6 +22,23 @@ const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
 const p = await b.newPage();
 const bruit=[]; p.on('pageerror',e=>bruit.push(String(e)));
 await p.setViewport({width:1500, height:1000});
+/* Ce test affirme que RIEN n'est retenu tant qu'on n'a pas vu la carte. Il
+   partait donc du principe que « studio_vues » est vide au départ — vrai quand
+   il tourne seul, faux quand un autre test a déjà écrit un cadrage dans le même
+   profil de navigateur. Un rouge sur trois passages, sans qu'aucune panne
+   existe : c'est une dépendance à l'ORDRE, pas un défaut de l'outil. On part
+   d'une ardoise propre. */
+/* UNE SEULE FOIS : evaluateOnNewDocument rejoue à chaque navigation, et ce
+   test recharge exprès pour vérifier qu'un cadrage est RETENU. L'effacer à
+   chaque fois lui retirerait son sujet. */
+await p.evaluateOnNewDocument(() => {
+  try{
+    if(!sessionStorage.getItem('__ardoise')){
+      localStorage.removeItem('studio_vues');
+      sessionStorage.setItem('__ardoise','1');
+    }
+  }catch(e){}
+});
 const ouvre = async () => {
   await p.goto('http://localhost:8137/tools/studio.html',{waitUntil:'networkidle0'});
   await p.waitForFunction(()=>window.__MS && window.__STUDIO,{timeout:9000});

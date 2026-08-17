@@ -28,7 +28,14 @@ await p.waitForFunction(()=>{ const t=document.getElementById('toast');
 const msg = await p.evaluate(()=>document.getElementById('toast')?.textContent);
 dit('il annonce le resultat en clair', /Ko/.test(msg||''), String(msg));
 
-await new Promise(r=>setTimeout(r,1500));
+/* Le fichier arrive quand il arrive : on regarde le dossier au lieu de compter
+   jusqu'à 1500. Chrome écrit d'abord un .crdownload puis le renomme — c'est la
+   disparition de celui-là qui dit que le téléchargement est fini. */
+for(let i=0; i<120; i++){
+  const vus = fs.readdirSync(dl);
+  if(vus.some(f=>f.endsWith('.html')) && !vus.some(f=>f.endsWith('.crdownload'))) break;
+  await new Promise(r=>setTimeout(r,100));
+}
 const fichiers = fs.readdirSync(dl).filter(f=>!f.endsWith('.crdownload'));
 dit('un fichier est arrive', fichiers.length===1, fichiers.join(','));
 dit('avec un nom qu\'on retrouve', /^[a-z0-9-]+\.html$/.test(fichiers[0]||''), fichiers[0]);

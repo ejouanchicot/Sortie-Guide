@@ -55,13 +55,25 @@ async function essaie(nom, url, attendu, minTexte){
     return page.evaluate(() => ({
       cartes: document.querySelectorAll('.card').length,
       canvas: document.querySelectorAll('canvas').length,
+      lignes: document.querySelectorAll('.line').length,
       texte: document.body.innerText.trim().length
     }));
   };
   const enLigne = await posee(p);
 
-  // le temps que le cache se remplisse, puis on coupe pour de bon
-  await new Promise(r => setTimeout(r, 2500));
+  /* Le cache se remplit quand il se remplit : on le REGARDE, au lieu de laisser
+     2,5 s en espérant. Le service worker prend la coquille entrée par entrée ;
+     on attend qu'elle ne bouge plus, ce qui est le seul moment où couper le
+     réseau a un sens. */
+  await p.waitForFunction(async () => {
+    const noms = await caches.keys();
+    if(!noms.length) return false;
+    const c = await caches.open(noms[0]);
+    const n = (await c.keys()).length;
+    const stable = window.__n === n && n > 5;
+    window.__n = n;
+    return stable;
+  }, {polling:300, timeout:20000}).catch(() => {});
   await p.setOfflineMode(true);
   let vu = null, tombe = null;
   try{
@@ -77,9 +89,15 @@ async function essaie(nom, url, attendu, minTexte){
   // comparaison qui suit vaut zéro
   dit(nom + ' a bien du contenu quand le réseau est là', enLigne.texte > minTexte,
       enLigne.texte + ' caractères en ligne, seuil ' + minTexte);
-  const part = enLigne.texte ? vu.texte / enLigne.texte : 0;
+  /* On compare des COMPTES, pas des longueurs de texte. La longueur enfle si la
+     mesure tombe pendant un changement d'étage — les deux sont un instant dans
+     le document — et on lisait « 69 % » alors que le hors-ligne était complet.
+     Un nombre de lignes de strat ne bouge pas pour cette raison-là. */
+  const refLignes = Math.max(enLigne.lignes, 1);
+  const part = vu.lignes / refLignes;
   dit(nom + ' se recharge sans réseau', part > 0.9,
-      Math.round(part * 100) + ' % du contenu (' + vu.texte + ' sur ' + enLigne.texte + ')');
+      Math.round(part * 100) + ' % des lignes (' + vu.lignes + ' sur ' + enLigne.lignes
+      + ') · ' + vu.texte + ' caractères');
   dit(nom + ' garde son contenu', attendu(vu, enLigne), JSON.stringify(vu));
 }
 

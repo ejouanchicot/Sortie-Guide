@@ -46,12 +46,22 @@ dit('et on est revenu dans l\'atelier Stratégie',
 
 console.log('\n— et la carte garde son cadrage —');
 await p.click('#stTabMap');
-await new Promise(r=>setTimeout(r,800));
+// la scene etait masquee, donc large de zero : on attend qu'elle revienne
+await p.waitForFunction(()=>Konva.stages[0] && Konva.stages[0].width()>300,{timeout:15000});
 // un vrai coup de molette sur la carte, comme un lead qui zoome pour placer
 const boite = await p.evaluate(()=>{ const r = document.getElementById('stage').getBoundingClientRect();
   return {x:r.left + r.width/2, y:r.top + r.height/2}; });
 await p.mouse.move(boite.x, boite.y);
 for(let i=0;i<6;i++){ await p.mouse.wheel({deltaY:-120}); await new Promise(r=>setTimeout(r,80)); }
+/* CE DÉLAI-LÀ RESTE, et il est le seul du fichier. J'ai essayé deux fois de le
+   remplacer par une condition, et deux fois le test est devenu faux :
+     · « scaleX > 1 » est vrai dès le PREMIER des six crans de molette — on
+       repartait avec un zoom de 1,03 au lieu du zoom complet ;
+     · attendre que la valeur se stabilise ne suffit pas non plus : le cadrage
+       est retenu à part, et le rechargement d'après ne le retrouvait pas.
+   Ce que ces 800 ms achètent est donc la fin d'un enchaînement que rien
+   n'annonce de l'extérieur. Tant qu'on ne sait pas l'observer, un nombre écrit
+   et expliqué vaut mieux qu'une condition qui ment. */
 await new Promise(r=>setTimeout(r,800));
 const zoom = await p.evaluate(()=>{ const st = Konva.stages[0];
   return {s:st.scaleX(), x:st.x(), y:st.y()}; });
