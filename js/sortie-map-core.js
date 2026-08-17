@@ -634,6 +634,18 @@
     var v = VIDE_CARTE[nom];
     return Array.isArray(v) ? [] : (v === undefined ? null : v);
   }
+  /* Une carte NEUVE, aux noms du registre. L'atelier en tenait sa propre liste,
+     et les deux ont divergé : « icones » manquait de son côté. resoudreCartes
+     donnait alors au chapitre un tableau neuf DÉTACHÉ du registre — les icônes
+     posées sur une carte créée dans l'atelier s'affichaient, s'enregistraient
+     en apparence, et n'étaient nulle part au rechargement.
+     La forme d'une carte se dit ici, une seule fois : ajouter un champ à
+     CHAMPS_CARTE suffit désormais, des deux côtés. */
+  function carteVide(){
+    var c = {};
+    CHAMPS_CARTE.forEach(function(p){ c[p[1]] = videPour(p[0]); });
+    return c;
+  }
   function resoudreCartes(floors, cartes){
     (floors || []).forEach(function(f){
       var c = (cartes || {})[f.carte];
@@ -741,7 +753,10 @@
 
   global.SORTIE = {
     groupesBuffs:groupesBuffs,
-    resoudreCartes:resoudreCartes, deposeCartes:deposeCartes,
+    resoudreCartes:resoudreCartes, deposeCartes:deposeCartes, carteVide:carteVide,
+    // publié pour que les tests puissent demander la forme d une carte au socle
+    // plutôt que de la recopier — une liste recopiée est une liste qui diverge
+    CHAMPS_CARTE:CHAMPS_CARTE,
     cartesConst:cartesConst,
     chapitresConst:chapitresConst, ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
     TAILLES:TAILLES, compoCreneaux:compoCreneaux, compoJobs:compoJobs, compoConst:compoConst,

@@ -1506,8 +1506,13 @@
      Une carte est un module : le chapitre la DESIGNE. On peut donc en
      choisir une autre, en creer une, ou renommer celle en cours — et deux
      chapitres qui pointent la meme carte se partagent son travail. */
-  const CARTE_VIDE=()=>({fond:'',trace:'',depart:null,departNom:'',
-    bosses:[],packs:[],mids:[],routes:[],texts:[],shapes:[],zones:[]});
+  /* La forme d'une carte neuve vient du SOCLE, elle n'est plus recopiée ici :
+     les deux listes avaient divergé sur « icones », et resoudreCartes donnait
+     alors au chapitre un tableau détaché du registre. Les icônes posées sur une
+     carte créée dans l'atelier s'affichaient, le témoin « non enregistré »
+     s'allumait, l'enregistrement se disait fait — et elles n'étaient nulle part
+     au rechargement. */
+  const CARTE_VIDE=()=>S.carteVide();
 
   // Meme modale, avec un champ. window.prompt sort du theme et bloque l'onglet.
   function askText(msg,opts){opts=opts||{};return new Promise(res=>{

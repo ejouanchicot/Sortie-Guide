@@ -238,6 +238,48 @@ dit('et chacun s\'écrit dans data.js',
     couvre.boss && couvre.mid && couvre.pack && couvre.ico, JSON.stringify(couvre));
 dit('sans qu\'aucun ne se range au mauvais endroit', !couvre.fantome, String(couvre.fantome));
 
+/* ---------- une carte NEUVE garde ce qu'on pose dessus ----------
+   L'atelier tenait sa propre liste des champs d'une carte, à côté de celle du
+   socle, et les deux avaient divergé : « icones » manquait du côté atelier.
+   resoudreCartes donnait alors au chapitre un tableau neuf DÉTACHÉ du
+   registre — l'icône s'affichait, le témoin « non enregistré » s'allumait,
+   l'enregistrement se disait fait, et elle n'était nulle part au
+   rechargement. Sur une carte livrée par data.js, qui porte « icones:[] », le
+   même geste marchait : c'est ce qui rendait le défaut invisible.
+
+   On ne vérifie donc PAS que « icones » est là — on vérifie que les deux
+   listes disent la même chose, champ par champ. Le prochain champ ajouté
+   entre dans le contrôle sans qu'on y pense. */
+console.log('\n— une carte créée dans l\'atelier garde ce qu\'on y pose —');
+const neuve = await p.evaluate(() => {
+  const S = window.SORTIE;
+  const c = S.carteVide();
+  CARTES['Carte d audit'] = c;
+  const f = FLOORS[0], avant = f.carte;
+  f.carte = 'Carte d audit';
+  S.resoudreCartes(FLOORS, CARTES);
+  /* On demande la liste des champs AU SOCLE, on ne la relit pas sur l'objet
+     qu'on teste : une première version parcourait les clés de la carte neuve
+     et ne pouvait donc pas voir un champ ABSENT — elle est restée verte
+     pendant que le défaut était remis. */
+  const detaches = S.CHAMPS_CARTE
+    .filter(p => Array.isArray(S.carteVide()[p[1]]) || Array.isArray(f[p[0]]))
+    .filter(p => f[p[0]] !== c[p[1]])
+    .map(p => p[1]);
+  f.icones.push({ico:'PLD', x:50, y:50});
+  const src = window.__MS.blocs().map(b => b.txt).join('\n');
+  const vu = {champs: S.CHAMPS_CARTE.map(p=>p[1]),
+              detaches,
+              registre: (CARTES['Carte d audit'].icones || []).length,
+              ecrit: /Carte d audit[\s\S]{0,900}?icones:\[\s*\{/.test(src)};
+  f.carte = avant; delete CARTES['Carte d audit']; S.resoudreCartes(FLOORS, CARTES);
+  return vu;
+});
+dit('aucun champ du registre n\'est détaché du chapitre', neuve.detaches.length === 0,
+    'détaché(s) : ' + neuve.detaches.join(', ') + ' — sur ' + neuve.champs.join(', '));
+dit('  une icône posée rejoint le registre', neuve.registre === 1, neuve.registre + ' dans le registre');
+dit('  et part bien dans data.js', neuve.ecrit);
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();
