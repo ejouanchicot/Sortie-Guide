@@ -1225,13 +1225,18 @@
   /* ---------------- démarrage ---------------- */
   // Un onglet par chapitre, nommé par le contenu. Aucun chapitre nommé dans le
   // code : une strat à un seul chapitre n'affiche simplement pas la bascule.
-  (function(){
+  /* Rappelable : les chapitres changent avec la strat ouverte. Construits une
+     fois pour toutes, ils restaient ceux de la strat de départ, et la coque
+     cherchait un bouton qui n'existait pas. */
+  function construitChapitres(){
     var host = $('ssFloor');
-    if(FL.length < 2){ host.style.display = 'none'; return; }
+    if(FL.length < 2){ host.style.display = 'none'; host.innerHTML = ''; return; }
+    host.style.display = '';
     host.innerHTML = FL.map(function(f, i){
       return '<button type="button" data-i="'+i+'"'+(i===idx?' class="on"':'')+'>'
         + esc(f.fr || f.en || ('Chapitre '+(i+1))) + '</button>'; }).join('');
-  })();
+  }
+  construitChapitres();
   $('ssFloor').addEventListener('click', function(e){
     var b = e.target.closest('button[data-i]'); if(!b) return;
     $('ssFloor').querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
@@ -1283,9 +1288,9 @@
   // crochet de test, et ce que la coque de l'outil unifié (studio.js) demande :
   // les blocs à écrire, l'état « non enregistré », et sa modale de confirmation.
   window.__SS = {choisir:choisir, etat:function(){ return {idx:idx, selP:selP, dirty:dirty}; },
-                 recharge:function(){ idx=0; selP=null; JEUX=(typeof BUFFS!=='undefined')?BUFFS:{};
+                 recharge:function(){ idx=0; selP=null; construitChapitres(); JEUX=(typeof BUFFS!=='undefined')?BUFFS:{};
                    CP=(typeof COMPO!=='undefined')?COMPO:CP; buildTree(); editeur(); rendre(); propre(); },
-                 saisie:saisie, vide:vide,
+                 saisie:saisie, vide:vide, chapitres:construitChapitres,
                  blocs:blocsData, blocsTr:function(){ return [{nom:'TR', txt:SC.trConst('TR', TRAD)}]; },
                  sale:function(){ return dirty; }, propre:propre, demande:demande,
                  blocsData:blocsData, roles:ouvrirRoles, bascule:basculeRole,

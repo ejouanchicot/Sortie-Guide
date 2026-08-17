@@ -293,6 +293,13 @@
     host.innerHTML = FL.length < 2 ? '' : FL.map(function(f, i){
       return '<button type="button" data-i="'+i+'"'+(i===0?' class="on"':'')+'>'
         + S.esc(f.fr || f.en || ('Chapitre '+(i+1))) + '</button>'; }).join('');
+    /* Les deux ateliers gardent leur propre rangée, cachée avec leur barre, et
+       c'est ELLE qu'on pilote. Elles étaient construites une fois pour toutes,
+       au chargement : ouvrir une strat à trois chapitres laissait deux boutons
+       de l'ancienne, chapitre(2) ne trouvait rien à cliquer, et la carte ne
+       changeait jamais. L'en-tête disait « Chapitre C », on éditait le A. */
+    if(MS && MS.chapitres) MS.chapitres();
+    if(SS && SS.chapitres) SS.chapitres();
   }
   $('stChap').addEventListener('click', function(e){
     var b = e.target.closest('button[data-i]'); if(b) chapitre(+b.dataset.i); });

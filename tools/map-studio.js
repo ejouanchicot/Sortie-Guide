@@ -1957,10 +1957,20 @@
      11 · BARRE / RACCOURCIS / TOAST / BOOT
      ============================================================ */
   // Un onglet par chapitre, nommé par le contenu (FLOORS), pas par le code.
-  (function(){const h=document.getElementById('floorSeg');
-    if(FL.length<2){h.style.display='none';return;}
+  /* Rappelable, et pas une fois pour toutes : les chapitres ne sont pas les
+     mêmes d'une strat à l'autre. Construits au seul chargement, ils restaient
+     ceux de la strat de départ — la coque cherchait alors « le bouton 2 » dans
+     une liste qui n'en comptait que deux, ne trouvait rien, et n'appelait donc
+     jamais allerEtage. L'en-tête affichait « Chapitre C », la carte montrait le
+     A, et tout ce qu'on y posait partait dans le A. */
+  function construitChapitres(){
+    const h=document.getElementById('floorSeg');
+    if(FL.length<2){h.style.display='none';h.innerHTML='';return;}
+    h.style.display='';
     h.innerHTML=FL.map((f,i)=>'<button data-i="'+i+'"'+(i===curIdx?' class="on"':'')+'>'
-      +esc(f.fr||f.en||('Chapitre '+(i+1)))+'</button>').join('');})();
+      +esc(f.fr||f.en||('Chapitre '+(i+1)))+'</button>').join('');
+  }
+  construitChapitres();
   document.getElementById('floorSeg').addEventListener('click',e=>{
     const b=e.target.closest('button');if(!b)return;allerEtage(+b.dataset.i);});
   document.getElementById('btnFit').addEventListener('click',fit);
@@ -2216,9 +2226,11 @@
        suite ne sélectionnait rien, et c'était indiscernable d'une panne. */
     recharge:function(o){if(o){if(typeof o.mobScale==='number')mobScale=o.mobScale;
                                if(typeof o.labelMargin==='number')labelMargin=o.labelMargin;}
-                         paintGlobals();curIdx=0;var q=renderFloor(0);resetHistory();setDirty(false);
+                         paintGlobals();curIdx=0;construitChapitres();var q=renderFloor(0);resetHistory();setDirty(false);
                          return q.then(deuxImages);},
     pret:function(){return rendFile.then(deuxImages);},
+    // la coque rappelle ceci quand elle ouvre une autre strat
+    chapitres:construitChapitres,
     reglages:function(){return {mobScale:mobScale,labelMargin:labelMargin};}
   };
   if(document.readyState!=='loading')boot();else window.addEventListener('DOMContentLoaded',boot);
