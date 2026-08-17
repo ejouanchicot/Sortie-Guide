@@ -49,6 +49,24 @@ GUILLEMETS = '"' + "'"
 ANTISLASH = '\\'
 
 
+# Une CLASSE d'etat sur <body> n'est pas la meme chose qu'un pseudo-element.
+#
+#   body::before        -> le panneau lui-meme    -> .ms::before
+#   body.insp-open X    -> la classe est posee par map-studio.js sur le VRAI
+#                          <body> de la page hote, pas sur le panneau. On garde
+#                          donc l'ancre, et on confine le DESCENDANT :
+#                          body.insp-open .ms X
+#
+# Sans ce cas, « body.insp-open .inspector » sortait en
+# « .ms body.insp-open .inspector » — un <body> descendant du panneau, qui ne
+# peut exister nulle part. Les cinq regles d'etat du tiroir de l'inspecteur ne
+# matchaient donc plus rien : sous 820 px le bouton flottant repondait au doigt
+# et il ne se passait rien, plus aucun acces aux reglages de marqueur. Le
+# generateur sortait un selecteur mort en silence, exactement comme un jeton
+# absent — et l'assertion de fin ne compare que les CORPS de blocs.
+ETAT = ('.', '[', '#')
+
+
 def prefixeUn(sel):
     sel = sel.strip()
     if not sel:
@@ -58,6 +76,17 @@ def prefixeUn(sel):
     for r in ('body', 'html'):
         if sel.startswith(r + ':') or sel.startswith(r + '::'):
             return '.ms' + sel[len(r):]
+        if sel.startswith(r) and len(sel) > len(r) and sel[len(r)] in ETAT:
+            reste = sel[len(r):]
+            coupe = reste.find(' ')
+            if coupe < 0:
+                # « body.x{…} » sans descendant : on ne saurait pas quoi viser,
+                # et deviner produirait une regle qui ne dit pas ce qu'elle fait.
+                raise SystemExit(
+                    'scope-mapcss : « ' + sel + ' » vise <body> lui-meme via un etat.\n'
+                    "  Ecris-le avec un descendant (body.etat .quelquechose), ou pose\n"
+                    "  l'etat sur .app plutot que sur <body>.")
+            return r + reste[:coupe] + ' .ms ' + reste[coupe + 1:].strip()
         if sel.startswith(r + ' '):
             return '.ms ' + sel[len(r) + 1:]
     return '.ms ' + sel
