@@ -23,6 +23,30 @@ function tr(s){
   return TR[s]!==undefined ? TR[s] : s;
 }
 
+/* Le guide prenait SORTIE, STRATR, FLOORS et CARTES sans les tester, et #app
+   est un <div> vide sans repli. Un <script> déplacé, un 404 sur l'un des cinq
+   fichiers, et le lecteur voyait l'en-tête, des rangées de boutons vides et le
+   pied de page. RIEN ne lui disait quoi faire — et c'est la face que le
+   linkshell ouvre, celle où personne ne saura lire une console.
+   Les deux ateliers annoncent cette panne en français depuis longtemps ; le
+   guide, non. Le message ne le renvoie pas à un nom de fichier : il n'a pas le
+   projet sous la main, il a reçu un lien. */
+(function(){
+  var manque = [];
+  if(!window.SORTIE) manque.push('le socle');
+  if(!window.STRATR) manque.push('le rendu des cartes');
+  if(typeof FLOORS === 'undefined' || typeof CARTES === 'undefined') manque.push('la strat');
+  if(!manque.length) return;
+  var cible = document.getElementById('app');
+  if(cible) cible.innerHTML = '<div style="padding:34px 20px;text-align:center;line-height:1.6">'
+    + '<p style="font-weight:700;margin-bottom:8px">Ce guide n’a pas pu se charger entièrement.</p>'
+    + '<p style="opacity:.75">Recharge la page (Ctrl+F5). Si ça revient, préviens celui qui te l’a partagé —'
+    + ' il manque ' + manque.join(' et ') + '.</p></div>';
+  // On arrête ici : sans ça la ligne suivante lève de toute façon, mais APRÈS
+  // avoir laissé la page à moitié montée. Le message doit être le dernier mot.
+  throw new Error('guide incomplet : ' + manque.join(', '));
+})();
+
 // ---- colorisation des éléments dans le texte ----
 // Rendu d'une carte de strat : js/strat-render.js, partagé avec l'outil d'écriture
 // (tools/strat-studio.html) pour que l'aperçu y soit le VRAI rendu, pas une imitation.

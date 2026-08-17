@@ -251,10 +251,34 @@
     rendFile=rendFile.catch(()=>{}).then(()=>(moi===rendDemande)?rendEtage(idx):undefined);
     return rendFile;
   }
+  /* Le voile de chargement s'allume ici et s'éteignait TOUT EN BAS. Entre les
+     deux : le fond, les formes, les tracés, les marqueurs, les icônes, les
+     textes. Rien n'était gardé, et personne n'attrapait la promesse — boot()
+     appelle renderFloor(0) sans .catch, et la file ne rattrape que pour laisser
+     passer le rendu SUIVANT.
+     Une strat reçue dont un champ n'a pas la forme attendue laissait donc le
+     lead devant le voile et le spinner, pour toujours. Aucun toast, aucun
+     message, la seule trace dans une console qu'il n'ouvre pas. Il rechargeait,
+     même résultat, puisque la strat vient de la bibliothèque.
+     Le finally éteint le voile quoi qu'il arrive ; le catch dit ce qui a
+     échoué, à l'endroit où la carte aurait dû s'afficher. */
   async function rendEtage(idx){
+    try{ await rendEtageOuPanne(idx); }
+    catch(e){
+      if(window.console) console.error(e);
+      loadmsg.innerHTML = '<b>Cette carte n’a pas pu s’afficher.</b><br>'
+        + 'Sa strat contient quelque chose que l’atelier ne sait pas relire. '
+        + 'Change de chapitre, ou rouvre une autre strat depuis la bibliothèque.';
+      loadmsg.style.maxWidth='34em';loadmsg.style.textAlign='center';loadmsg.style.lineHeight='1.5';
+      return;   // le voile RESTE, mais il explique — c'est le finally qui le lève sinon
+    }
+    loadingEl.style.display='none';
+  }
+  async function rendEtageOuPanne(idx){
     curIdx=idx;armedPin=null;armedShape=null;select(null);const f=FL[idx];if(!f)return;
     majSelCarte();
     loadingEl.style.display='flex';loadmsg.textContent='Chargement de la carte…';
+    loadmsg.style.maxWidth='';loadmsg.style.textAlign='';loadmsg.style.lineHeight='';
     layer.destroyChildren();if(anim){anim.stop();anim=null;}
     gMap=new Konva.Group();gShapes=new Konva.Group();gRoutes=new Konva.Group();gPins=new Konva.Group();gTexts=new Konva.Group();gEdit=new Konva.Group();
     layer.add(gMap,gShapes,gRoutes,gPins,gTexts,gEdit);   // les formes se posent SOUS les traces et les marqueurs
@@ -277,7 +301,7 @@
 
     applyVis();
     anim=new Konva.Animation(fr=>{const d=fr.time/1000*20;gRoutes.find('.flow').forEach(l=>{const dd=l.dash(),per=(dd[0]+dd[1])||24.5;l.dashOffset(-(d%per));});},layer);updateAnim();
-    setToolMode();reprendVue();buildLayers();loadingEl.style.display='none';
+    setToolMode();reprendVue();buildLayers();
   }
   /* ---------- les ICÔNES : un job, ou un marqueur générique ----------
      Un AUTOCOLLANT : le dessin a la couleur de son rôle, cerné de blanc, posé

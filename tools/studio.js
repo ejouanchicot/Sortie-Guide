@@ -386,16 +386,31 @@
     var b = $('stExport'), avant = b ? b.innerHTML : '';
     if(b){ b.disabled = true; }
     try{
-      var doc = await EX.fabrique(s, {base:'../', avance:function(m){
-        if(b) b.textContent = m; }});
+      var perdues = [];
+      var doc = await EX.fabrique(s, {base:'../',
+        avance:function(m){ if(b) b.textContent = m; },
+        manquantes:function(l){ perdues = l; }});
       var url = URL.createObjectURL(new Blob([doc], {type:'text/html'}));
       var a = document.createElement('a');
       a.href = url; a.download = EX.nomFichier(s);
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
-      toast('Fichier prêt — ' + Math.round(doc.length / 1024) + ' Ko, tout est dedans.','ok');
+      /* « tout est dedans » était faux dès qu'une image manquait, et c'est le
+         destinataire qui le découvrait. Une vignette renommée dans img/mobs
+         suffisait, ou un fond reçu d'un autre lead et jamais déposé. */
+      var ko = Math.round(doc.length / 1024);
+      if(perdues.length){
+        toast('Fichier prêt — ' + ko + ' Ko, mais ' + perdues.length
+            + (perdues.length > 1 ? ' images manquent' : ' image manque')
+            + ' : ' + (perdues.length > 1 ? 'elles seront vides' : 'elle sera vide')
+            + ' chez ceux qui l’ouvriront.', 'err');
+        if(window.console) console.warn('images introuvables à l’export :', perdues);
+      } else {
+        toast('Fichier prêt — ' + ko + ' Ko, tout est dedans.','ok');
+      }
     }catch(e){
-      toast('L’export a échoué : ' + e.message,'err');
+      if(window.console) console.error(e);
+      toast('Le fichier n’a pas pu être fabriqué — ton travail n’a pas bougé. Réessaie.','err');
     }finally{
       if(b){ b.disabled = false; b.innerHTML = avant; }
     }
@@ -515,10 +530,23 @@
   }
 
   function rendTexte(){
-    var parts;
+    /* « parts = [] » sur une panne faisait dire au panneau que l'étape ne
+       contient aucune ligne : une AFFIRMATION SUR SON CONTENU, alors qu'on
+       vient d'échouer à le mettre en forme. Le lead ferme le panneau en pensant
+       que son étape est vide, va corriger une strat qui n'a rien, et ne signale
+       jamais rien — la trace n'était même pas journalisée.
+       Une panne et un vide ne se disent pas de la même façon. */
+    var parts, panne = null;
     try{ parts = texteCourant(); }
-    catch(err){ parts = []; }
+    catch(err){ parts = []; panne = err; if(window.console) console.error(err); }
     var host = $('stTxtParts');
+    if(panne){
+      host.innerHTML = '<p class="st-vide">Le texte n’a pas pu être fabriqué pour ce choix. '
+        + 'Change « Quoi » ou « Pour qui » ; si ça revient, recharge la page.</p>';
+      $('stTxtInfo').textContent = '';
+      $('stTxtTout').disabled = true;
+      return;
+    }
     if(!parts.length){
       host.innerHTML = '<p class="st-vide">Rien à coller ici — cette étape ne contient '
         + 'aucune ligne pour ce choix.</p>';
@@ -725,21 +753,38 @@
       // deux, et c'est à lui qu'on comparera le fichier à la prochaine ouverture
       await sauve(true);
 
-      // la version anglaise vit dans un autre fichier : elle suit, sans bloquer
-      if(await DF.permission(h2)){
-        var avant2 = await DF.lis(h2);
-        var r2 = DF.remplace(avant2, SS ? SS.blocsTr() : []);
-        if(r2.absents.length){ await DF.oublie('i18n');
-          toast('Sauvegardé, mais la version anglaise n’a pas pu être écrite dans ce fichier.','err'); }
-        else if(await ecrisEtRelis(h2, r2.texte, avant2, 'js/i18n.js')){
-          toast('Carte et strat sauvegardées — le guide est à jour.','ok'); }
-      } else toast('Sauvegardé. La version anglaise n’a pas été enregistrée.','ok');
+      /* La version anglaise vit dans un autre fichier : elle suit, sans bloquer.
+         Son propre try/catch, et c'est le point : DF.permission(h2) peut jeter
+         (poignée périmée, fichier déplacé → NotFoundError). L'exception filait
+         au catch général, qui annonçait « Échec de la sauvegarde » — alors que
+         js/data.js venait d'être écrit ET relu avec succès. Le lead croyait
+         avoir tout perdu et recliquait, voire rechargeait. */
+      try{
+        if(await DF.permission(h2)){
+          var avant2 = await DF.lis(h2);
+          var r2 = DF.remplace(avant2, SS ? SS.blocsTr() : []);
+          if(r2.absents.length){ await DF.oublie('i18n');
+            toast('Sauvegardé, mais la version anglaise n’a pas pu être écrite dans ce fichier.','err'); }
+          else if(await ecrisEtRelis(h2, r2.texte, avant2, 'js/i18n.js')){
+            toast('Carte et strat sauvegardées — le guide est à jour.','ok'); }
+        } else toast('Sauvegardé. La version anglaise n’a pas été enregistrée.','ok');
+      }catch(e2){
+        if(window.console) console.error(e2);
+        await DF.oublie('i18n');
+        toast('Sauvegardé. La version anglaise n’a pas suivi — on te redemandera son fichier.','ok');
+      }
       majEtat();
       etatSave('fait');
     }catch(e){
+      if(window.console) console.error(e);
       if(e.message === 'DOSSIER_SANS_DATA')
         toast('Ce dossier n’est pas celui du projet — on n’y trouve pas js/data.js.','err');
-      else if(e.name !== 'AbortError') toast('Échec de la sauvegarde : '+e.message,'err');
+      /* Le message brut du navigateur — « Failed to execute 'write' on
+         'FileSystemWritableFileStream' » — ne dit ni ce qui a été perdu ni quoi
+         faire. Il part en console, où il sert ; le lead lit une phrase. */
+      else if(e.name !== 'AbortError')
+        toast('La sauvegarde n’a pas abouti — ton travail est toujours dans l’atelier. '
+            + 'Réessaie ; si ça recommence, ferme les autres onglets de l’atelier.','err');
     }finally{
       enCours = false;
       if(!$('stSave').classList.contains('fait')) etatSave(null);
@@ -881,7 +926,22 @@
     ouvreStrat(v);
   });
   // les ateliers démarrent sur DOMContentLoaded : on passe juste après
-  function demarre(){ ouvreBibliotheque().then(restaure).catch(restaure); }
+  /* Le .catch(restaure) rattrapait TOUT sans rien dire. Si indexedDB.open
+     échoue au chargement — navigation privée, stockage bloqué, base corrompue —
+     l'atelier s'ouvrait quand même : témoin gris, sélecteur de strats vide,
+     bouton Enregistrer actif, et sauve() qui sortait en première ligne à chaque
+     frappe parce que stratId restait null. Le lead travaillait une heure, et le
+     rechargement prenait tout.
+     panneEspace() existait déjà pour dire exactement ça — il ne couvrait que
+     l'échec d'une écriture APRÈS un démarrage réussi, soit le seul chemin où
+     la panne se voyait de toute façon. */
+  function demarre(){
+    ouvreBibliotheque().then(restaure).catch(function(e){
+      if(window.console) console.error(e);
+      panneEspace();
+      restaure();
+    });
+  }
   if(document.readyState === 'loading') window.addEventListener('DOMContentLoaded', function(){ setTimeout(demarre, 0); });
   else setTimeout(demarre, 0);
 

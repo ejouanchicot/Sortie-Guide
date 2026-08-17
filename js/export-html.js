@@ -184,11 +184,16 @@
 
     dit('Images…');
     var chemins = cheminsImages([data, html]);
-    var images = {};
+    var images = {}, absentes = [];
     for(var k = 0; k < chemins.length; k++){
       dit('Images… ' + (k + 1) + '/' + chemins.length);
       try{ images[chemins[k]] = await L.donnees(chemins[k]); }
-      catch(e){ /* une vignette manquante ne doit pas faire tomber l'export */ }
+      /* Une vignette manquante ne doit pas faire tomber l'export — un fichier
+         partagé vaut mieux qu'un export qui échoue. Mais le SILENCE, lui, ne
+         valait rien : on annonçait « tout est dedans » et c'est le destinataire
+         qui découvrait les cases vides, sans que personne sache d'où ça venait.
+         On les compte, et l'appelant le dit. */
+      catch(e){ absentes.push(chemins[k]); }
     }
     // Les icônes ne se remplacent pas dans le texte comme les autres images :
     // la carte retient le CODE du dessin et son chemin naît à l'exécution.
@@ -197,8 +202,11 @@
     for(var q = 0; q < codes.length; q++){
       dit('Icônes… ' + (q + 1) + '/' + codes.length);
       try{ icones[codes[q]] = await L.donnees(S.icoSrc(codes[q])); }
-      catch(e){ /* une icône manquante ne doit pas faire tomber l'export */ }
+      catch(e){ absentes.push(S.icoSrc(codes[q])); }
     }
+    // opts.manquantes plutôt qu'un retour composé : fabrique() rend une chaîne,
+    // et un seul appelant existe. Même forme que opts.avance.
+    if(absentes.length && opts.manquantes) opts.manquantes(absentes);
 
     dit('Assemblage…');
     var doc = html
