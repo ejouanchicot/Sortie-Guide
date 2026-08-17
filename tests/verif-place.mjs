@@ -59,7 +59,7 @@ dit('la molette a bien zoomé', zoom.s > 1, JSON.stringify(zoom));
 
 await ouvre();
 await p.click('#stTabMap');
-await new Promise(r=>setTimeout(r,1200));
+await carteDessinee(p);
 const revu = await p.evaluate(()=>{ const st = Konva.stages[0];
   return {s:st.scaleX(), x:st.x(), y:st.y()}; });
 dit('le zoom est retrouvé', Math.abs(revu.s - zoom.s) < 0.01,

@@ -21,7 +21,7 @@
    differentes. Les partager est prevu et affiche par l'outil. Ce
    qui compte, c'est qu'une etape montre bien SON boss.
    ============================================================ */
-import {puppeteer, GUIDE, STUDIO, rapport} from './navigateur.mjs';
+import {puppeteer, GUIDE, STUDIO, rapport, carteDessinee} from './navigateur.mjs';
 
 const {dit, bilan} = rapport();
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
@@ -39,7 +39,14 @@ const etages = await p.evaluate(() => [...document.querySelectorAll('.floorrow b
 for(const nom of etages){
   await p.evaluate(n => [...document.querySelectorAll('.floorrow button')]
     .find(b => b.textContent.trim() === n)?.click(), nom);
-  await new Promise(r => setTimeout(r, 1000));
+  /* Le GUIDE, pas l'atelier : pas de crochet __MS ici. L'étage est en place
+     quand son bouton est allumé et que les cartes sont dessinées. */
+  await p.waitForFunction(n => {
+    const b = [...document.querySelectorAll('.floorrow button')]
+      .find(x => x.textContent.trim() === n);
+    return !!b && b.classList.contains('on')
+        && document.querySelectorAll('.card').length > 0;
+  }, {timeout:15000}, nom);
 
   const r = await p.evaluate(() => {
     // Quel etage est affiche ? Rien ne le marque sur le document : on le lit
@@ -96,7 +103,7 @@ s.on('pageerror', e => bruit.push(String(e)));
 await s.setViewport({width:1680, height:1000});
 await s.goto(STUDIO, {waitUntil:'networkidle0'});
 await s.waitForFunction(() => document.getElementById('carteSel')?.options.length > 1, {timeout:9000});
-await new Promise(r => setTimeout(r, 900));
+await carteDessinee(s);
 
 const liens = () => s.evaluate(() => FLOORS.map(f => f.fr + '→' + f.carte).join(' · '));
 const etageVu = () => s.evaluate(() =>
@@ -108,7 +115,7 @@ const autre = await s.evaluate(() => [...document.getElementById('carteSel').opt
 
 await s.evaluate(x => { const el = document.getElementById('carteSel');
   el.value = x; el.dispatchEvent(new Event('change')); }, autre);
-await new Promise(r => setTimeout(r, 1400));
+await carteDessinee(s);
 
 dit('aucun chapitre n\'a change de carte', (await liens()) === avant,
     'avant ' + avant + ' · apres ' + (await liens()));

@@ -146,7 +146,8 @@ const manquantes = [];
 g.on('requestfailed', r => { if(/\/img\//.test(r.url())) manquantes.push(r.url().split('/').slice(-2).join('/')); });
 await g.setViewport({width:1400, height:1000});
 await g.goto(RACINE + '/index.html', {waitUntil:'networkidle0'});
-await new Promise(r => setTimeout(r, 1500));
+// le guide se dessine en JavaScript apres networkidle0 : on attend ce qu'on lit
+await g.waitForFunction(() => document.querySelectorAll('.card').length > 0, {timeout:15000});
 const vu = await g.evaluate(() => {
   const imgs = [...document.querySelectorAll('img')].filter(i => /\/img\//.test(i.src));
   return {total: imgs.length, cassees: imgs.filter(i => i.complete && i.naturalWidth === 0).length};

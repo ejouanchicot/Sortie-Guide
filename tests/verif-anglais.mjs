@@ -99,7 +99,12 @@ await q.evaluateOnNewDocument(() => { try { localStorage.setItem('sortie_lang', 
 await q.setRequestInterception(true);
 q.on('request', r => (/\/i18n\.js(\?|$)/.test(r.url()) ? r.abort() : r.continue()));
 await q.goto(GUIDE, {waitUntil:'networkidle0'});
-await new Promise(r => setTimeout(r, 400));
+/* On attend le CONTENU, pas 400 ms ni la seule présence des lignes : sous
+   charge, les .line existent déjà que la strat n'est pas encore écrite dedans,
+   et on mesurait 849 caractères. C'est la quantité de texte qui est le sujet
+   de l'assertion — c'est donc elle qu'on attend. */
+await q.waitForFunction(() => document.body.innerText.trim().length > 2000,
+                        {timeout:15000}).catch(() => {});
 
 const vus = await q.evaluate(() => ({
   TRabsent: (typeof TR === 'undefined'),

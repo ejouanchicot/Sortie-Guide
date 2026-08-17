@@ -119,8 +119,8 @@ dit('elle rejoint le tableau de la carte', pose.apres === pose.avant + 1,
     pose.avant + ' → ' + pose.apres);
 
 // on redessine l'etage : le vrai chemin, celui d'une carte rouverte
+// evaluate attend deja la promesse que recharge() rend : rien a ajouter
 await p.evaluate(() => window.__MS.recharge());
-await new Promise(r => setTimeout(r, 1800));
 
 const dessin = await p.evaluate(() => {
   const st = Konva.stages[0];

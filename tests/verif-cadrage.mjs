@@ -48,7 +48,14 @@ dit('on démarre bien avec la carte masquée',
 dit('rien n\'est retenu tant qu\'on ne voit rien', !masquee.retenu, String(masquee.retenu));
 
 await p.click('#stTabMap');
-await new Promise(r=>setTimeout(r,1800));
+/* Changer d'onglet ne redessine pas : la promesse de __MS.pret() est celle du
+   rendu PRÉCÉDENT, déjà résolue, et l'attendre ne laisse rien se passer. Ce
+   qu'on attend ici, c'est que la scène reprenne sa taille — le panneau était
+   masqué, donc large de zéro. C'est exactement ce que la ligne suivante mesure. */
+await p.waitForFunction(() => {
+  const f = Konva.stages[0] && Konva.stages[0].find('Image')[0];
+  return !!f && f.getClientRect().width > 300;
+}, {timeout:15000}).catch(() => {});   // l'assertion suivante reste le juge
 dit('en arrivant sur la carte, elle se voit', (await largeurDuFond()) > 300,
     (await largeurDuFond()) + ' px de large');
 

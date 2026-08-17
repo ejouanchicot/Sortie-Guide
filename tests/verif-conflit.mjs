@@ -37,6 +37,19 @@ const question = () => p.evaluate(()=>{
 // l'enregistrement, puis on laisse la sauvegarde silencieuse la garder
 const publie = () => p.evaluate(async ()=>{ await window.__STUDIO.publieFictif(); });
 
+/* Trois attentes, trois conditions vraies — au lieu de 900, 1200 et 500 ms.
+   La modale qui se ferme, celle qui s'ouvre, et le travail effectivement gardé
+   en bibliotheque. Les deux premieres sont observables dans le DOM ; la
+   troisieme se relit, ce qui est le seul fait qui compte ici. */
+const fermee = () => p.waitForFunction(
+  ()=>{ const m=document.getElementById('ssModal'); return !m || m.hidden; }, {timeout:12000});
+const ouverte = () => p.waitForFunction(
+  ()=>{ const m=document.getElementById('ssModal'); return !!m && !m.hidden; }, {timeout:12000});
+const gardeEn = (txt) => p.waitForFunction(async (t)=>{
+  const s = await BIBLIO.lis(BIBLIO.courante());
+  return JSON.stringify(s || null).indexOf(t) >= 0;
+}, {timeout:12000}, txt);
+
 await ouvre();
 // ce que le fichier dit avant qu'on y touche : c'est a lui qu'on doit pouvoir
 // revenir, meme des heures plus tard
@@ -49,8 +62,18 @@ console.log('\n— on publie, on rouvre : toujours rien —');
 // publier = le fichier dit desormais ce que dit l'atelier. On ne touche donc
 // a rien avant : sans disque, c'est le seul etat ou les deux sont vraiment
 // d'accord — et c'est bien celui que l'enregistrement produit.
+/* La sauvegarde silencieuse tourne sur son propre rythme : on attend qu'elle
+   ait VRAIMENT repris la main, ce que la suite du test suppose. Un délai fixe
+   pariait dessus sans le vérifier.
+   On guette « maj », l'horodatage de l'entrée : « fichier existe » ne dit rien,
+   il est déjà là avant qu'on publie — première version de cette attente. */
+const majAvant = await p.evaluate(async () =>
+  (await BIBLIO.lis(BIBLIO.courante()) || {}).maj || 0);
 await publie();
-await new Promise(r=>setTimeout(r,700));
+await p.waitForFunction(async (m) => {
+  const s = await BIBLIO.lis(BIBLIO.courante());
+  return !!s && (s.maj || 0) > m;
+}, {timeout:12000}, majAvant);
 await ouvre();
 dit('une strat publiee rouvre sans question', !(await question()),
     JSON.stringify(await question()));
@@ -59,7 +82,13 @@ console.log('\n— on travaille SANS publier, on rouvre : toujours rien —');
 // ecrire un libelle ET lever le temoin « non enregistre », comme le fait
 // l'atelier : c'est lui qui declenche la sauvegarde silencieuse
 await p.evaluate(()=>{ FLOORS[0].bosses[0].label = 'PAS ENCORE PUBLIE'; window.__MS.blocs(); });
-await new Promise(r=>setTimeout(r,1600));
+/* Le travail est gardé quand on le RELIT dans la bibliothèque, pas 1600 ms plus
+   tard. Sur TOUTE l'entrée, pas seulement ses chapitres : un libellé de boss
+   vit dans la carte, et les chapitres ne font que la désigner. */
+await p.waitForFunction(async () => {
+  const s = await BIBLIO.lis(BIBLIO.courante());
+  return /PAS ENCORE PUBLIE/.test(JSON.stringify(s || null));
+}, {timeout:12000});
 await ouvre();
 const garde = await p.evaluate(()=>FLOORS[0].bosses[0].label);
 dit('du travail non publie ne declenche rien', !(await question()),
@@ -82,7 +111,11 @@ if(q){
       /fichier/i.test(q.oui) && /travail/i.test(q.non), JSON.stringify(q));
   // on garde son travail
   await p.evaluate(()=>document.getElementById('ssModalNo').click());
-  await new Promise(r=>setTimeout(r,900));
+  /* Comme plus bas : la modale se ferme tout de suite, la strat se remet en
+     place ensuite. On attend le fait, pas le signal intermédiaire. */
+  await fermee();
+  await p.waitForFunction(()=>FLOORS[0].bosses[0].label === 'PAS ENCORE PUBLIE',
+                          {timeout:12000}).catch(()=>{});
   dit('garder son travail le garde vraiment',
       (await p.evaluate(()=>FLOORS[0].bosses[0].label)) === 'PAS ENCORE PUBLIE');
 
@@ -99,7 +132,7 @@ if(q){
   await ouvre();
   dit('la question se pose de nouveau', !!(await question()));
   await p.evaluate(()=>document.getElementById('ssModalYes').click());
-  await new Promise(r=>setTimeout(r,1200));
+  await fermee();
   const duFichier = await p.evaluate(()=>FLOORS[0].bosses[0].label);
   dit('le travail en cours a bien laissé la place au fichier',
       duFichier !== 'PAS ENCORE PUBLIE', String(duFichier));
@@ -113,17 +146,22 @@ if(q){
 console.log('\n— revenir au fichier quand on veut, pas seulement quand on nous le demande —');
 await ouvre();
 await p.evaluate(()=>{ FLOORS[0].bosses[0].label = 'ÉCRIT DANS L’ATELIER'; window.__MS.blocs(); });
-await new Promise(r=>setTimeout(r,1600));
+await gardeEn('ÉCRIT DANS L’ATELIER');
 const proposee = await p.evaluate(()=>
   [...document.getElementById('stStratSel').options].some(o=>o.value === '__fichier__'));
 dit('la commande est dans le menu des strats', proposee);
 await p.evaluate(()=>{ const s = document.getElementById('stStratSel');
   s.value = '__fichier__'; s.dispatchEvent(new Event('change',{bubbles:true})); });
-await new Promise(r=>setTimeout(r,500));
+await ouverte();
 const qf = await question();
 dit('elle previent avant d\'effacer', !!qf && /data\.js/.test(qf.titre), JSON.stringify(qf));
 await p.evaluate(()=>document.getElementById('ssModalYes').click());
-await new Promise(r=>setTimeout(r,1200));
+/* La modale se ferme TOUT DE SUITE, et le rechargement depuis le fichier suit :
+   attendre sa fermeture ne suffit pas, on lisait encore l'ancien libellé une
+   fois sur trois sous charge. On attend le fait lui-même. */
+await fermee();
+await p.waitForFunction(l => FLOORS[0].bosses[0].label === l,
+                        {timeout:12000}, labelDuFichier).catch(() => {});
 const revenu = await p.evaluate(()=>FLOORS[0].bosses[0].label);
 dit('et le fichier reprend sa place', revenu === labelDuFichier,
     String(revenu) + ' — attendu ' + String(labelDuFichier));

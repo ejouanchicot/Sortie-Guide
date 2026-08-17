@@ -48,7 +48,13 @@ const parcourir = () => p.evaluate(async () => {
 async function etage(nom, motif){
   await p.evaluate(m => [...document.querySelectorAll('.floorrow button')]
     .find(x => new RegExp(m, 'i').test(x.textContent))?.click(), motif);
-  await new Promise(r => setTimeout(r, 1100));
+  // l'étage est en place quand son bouton est allumé et que la strat est dessinée
+  await p.waitForFunction(m => {
+    const b = [...document.querySelectorAll('.floorrow button')]
+      .find(x => new RegExp(m, 'i').test(x.textContent));
+    return !!b && b.classList.contains('on')
+        && document.querySelectorAll('.phase').length > 0;
+  }, {timeout:15000}, motif);
   await parcourir();
   await new Promise(r => setTimeout(r, 900));
   return p.evaluate(() => {
