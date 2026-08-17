@@ -186,16 +186,28 @@
   // confondus avec la fin du bloc. Une regex non-gourmande sans cette ancre
   // s'arrêterait au premier « ]; » venu.
   //
-  // Le scalaire s'arrête au premier « ; » qui termine SA LIGNE, jamais au
-  // premier « ; » venu : une strat nommée « Sortie ; run du jeudi » coupait
-  // la déclaration en plein milieu de son propre nom. La première sauvegarde
-  // passait — c'est la DEUXIÈME qui écrivait « …jeudi"; run du jeudi"; » et
-  // rendait data.js illisible, donc le guide blanc ET l'atelier incapable de
-  // se rouvrir pour réparer. COMPO, déclaré scalaire mais écrit sur plusieurs
-  // lignes, tombe sous la même règle : sa fermeture « ]}; » finit sa ligne.
+  /* Le scalaire s'arrête au premier « ; » qui termine SA LIGNE, jamais au
+     premier « ; » venu : une strat nommée « Sortie ; run du jeudi » coupait la
+     déclaration en plein milieu de son propre nom. La première sauvegarde
+     passait — c'est la DEUXIÈME qui écrivait « …jeudi"; run du jeudi"; » et
+     rendait data.js illisible, donc le guide blanc ET l'atelier incapable de se
+     rouvrir pour réparer. COMPO, déclaré scalaire mais écrit sur plusieurs
+     lignes, tombe sous la même règle : sa fermeture « ]}; » finit sa ligne.
+
+     ET IL NE FRANCHIT PAS LA DÉCLARATION SUIVANTE — c'est la seconde moitié,
+     et elle a coûté cher. Ancrer sur la fin de ligne rend le motif plus strict,
+     donc il RATE plus souvent : un commentaire en bout de ligne
+     (« const LBLMARGIN=0;   // marge »), un « ; » oublié en éditant à la main,
+     et il ne s'arrêtait pas — il continuait jusqu'au « ; » de fin de ligne
+     suivant, en avalant tout ce qu'il traversait. Mesuré sur le vrai data.js :
+     35 lignes disparues, BUFFS et MOB avec, un fichier resté syntaxiquement
+     VALIDE, et « absents » vide — donc pas un mot, et l'écriture sur le disque.
+     Le garde-fou « ne pas traverser un const/let/var/function » ramène ce cas
+     là où il doit être : bloc introuvable, et l'outil le dit. */
   function motif(b){
     return b.scalaire
-      ? new RegExp('const ' + b.nom + '\\s*=\\s*[\\s\\S]*?;[ \\t\\r]*$', 'm')
+      ? new RegExp('const ' + b.nom
+          + '\\s*=\\s*(?:(?!\\n\\s*(?:const|let|var|function)\\b)[\\s\\S])*?;[ \\t\\r]*$', 'm')
       : new RegExp('const ' + b.nom + '\\s*=\\s*[\\[{][\\s\\S]*?\\n[\\]}];');
   }
 

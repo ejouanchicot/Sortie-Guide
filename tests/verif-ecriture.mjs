@@ -61,6 +61,35 @@ for (const [nom, a, z] of [['js/data.js', r.avant, r.apres], ['js/i18n.js', r.tr
   const d = ecarts(a, z);
   dit(nom + ' est inchange', d.length === 0, d.length + ' ligne(s) :\n       ' + d.slice(0, 60).join('\n       '));
 }
+/* ---------- un bloc qu'on ne reconnaît pas se DIT, il ne s'avale pas ----------
+   Le motif du bloc scalaire a été ancré sur la fin de ligne pour régler le cas
+   d'un « ; » dans le nom d'une strat. Ancrer le rend plus strict, donc il RATE
+   plus souvent — et il ne s'arrêtait pas : il continuait jusqu'au « ; » de fin
+   de ligne suivant en avalant tout ce qu'il traversait. Mesuré alors : un
+   commentaire en bout de ligne suffisait à faire disparaître BUFFS et MOB, dans
+   un fichier resté syntaxiquement valide, avec « absents » vide — donc pas un
+   mot, et l'écriture sur le disque.
+   Deux formes que le lead peut réellement produire dans son data.js. */
+console.log('\n— un bloc introuvable est signale, jamais avale —');
+const avale = await p.evaluate((src) => {
+  const DF = window.DATAFILE, out = [];
+  for(const [quoi, abime] of [
+    ['un commentaire en bout de ligne', src.replace(/^const LBLMARGIN=([^;]*);/m,
+                                                    'const LBLMARGIN=$1;   // marge des etiquettes')],
+    ['un point-virgule oublie',         src.replace(/^const MOBSCALE=([^;]*);/m,
+                                                    'const MOBSCALE=$1')]
+  ]){
+    const r = DF.remplace(abime, [{nom:'LBLMARGIN', scalaire:true, txt:'const LBLMARGIN=6;'},
+                                  {nom:'MOBSCALE',  scalaire:true, txt:'const MOBSCALE=1;'}]);
+    out.push({quoi, absents:r.absents, perdues: abime.split('\n').length - r.texte.split('\n').length});
+  }
+  return out;
+}, r.avant);
+avale.forEach(c => {
+  dit(c.quoi + ' : le bloc est signale absent', c.absents.length > 0, JSON.stringify(c.absents));
+  dit('  et rien n\'a disparu du fichier', c.perdues === 0, c.perdues + ' ligne(s) perdue(s)');
+});
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0,3).join('\n       '));
 
 await b.close();
