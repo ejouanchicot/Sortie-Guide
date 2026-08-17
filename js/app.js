@@ -461,6 +461,12 @@ let curJob=null;
 // indicatif (« avec un WAR… ») reste visible dans toutes les variantes.
 function compHidden(el){
   const comp=document.body.getAttribute("data-comp");
+  /* Pas de variante, rien à choisir — et donc rien à filtrer. Une strat qui
+     n'en déclare qu'une n'affiche pas la rangée : une ligne écrite « PLD@… »
+     y était alors masquée POUR TOUJOURS, sans aucun bouton pour la rappeler.
+     Le lead l'écrivait dans l'atelier, la voyait, et elle ne sortait jamais.
+     C'est exactement l'état « tout » de l'atelier (strat-studio filtreVue). */
+  if(!comp) return false;
   const dc=el.dataset.comp;
   if(dc && dc!==comp) return true;
   return (el.dataset.r||"").split(" ").some(j=>window.SORTIE.jobExclu(COMPO,comp,j));
