@@ -99,8 +99,21 @@
   /* ---------------- écrire du JS dans du HTML ----------------
      Un analyseur HTML ferme un <script> au premier « </script » qu'il
      croise, même au milieu d'une chaîne. Une strat qui parle de balises
-     casserait donc la page entière. */
-  function sur(js){ return String(js).replace(/<\/(script)/gi, '<\\/$1'); }
+     casserait donc la page entière.
+
+     Et il y a un second piège, plus vicieux : « <!-- » ouvre un mode où
+     « </script> » NE FERME PLUS RIEN tant qu'un « <script » a suivi. Une
+     note du genre « <!-- pull ici, puis <script> en bas » suffisait donc
+     à emporter tout le reste du fichier partagé — le lecteur ouvrait une
+     page blanche, et rien nulle part ne disait pourquoi. Mesuré : la
+     strat s'exporte, le fichier s'enregistre, il ne s'affiche pas.
+
+     On échappe donc le « < » lui-même, par son code Unicode : c'est du JS
+     valide ET du JSON valide — et c'est ce qui compte, le bloc de
+     sauvegarde étant relu par JSON.parse. Un « anti-slash » devant le
+     « / » y passait ; devant le « ! » il aurait fait échouer la relecture
+     de la strat dans l'atelier. */
+  function sur(js){ return String(js).replace(/<(\/?script|!--)/gi, '\\u003c$1'); }
 
   /* ---------------- les images ----------------
      Elles sont nommées par des chemins relatifs à la racine, aussi bien

@@ -234,6 +234,64 @@ const refus = await p.evaluate(() =>
   window.EXPORTHTML.extrait('<html><body>bonjour</body></html>'));
 dit('un fichier quelconque est refuse, pas avale', refus === null, JSON.stringify(refus));
 
+/* ---------- 4. une strat qui parle de balises ----------
+   Un analyseur HTML ferme un <script> au premier « </script ». Ca, c'etait
+   deja pris en compte. Ce qui ne l'etait pas : « <!-- » ouvre un mode ou
+   « </script> » NE FERME PLUS RIEN tant qu'un « <script » a suivi. Une note
+   du genre « <!-- pull ici, puis <script> en bas » emportait donc tout le
+   reste du fichier partage — le lecteur ouvrait une page blanche, et rien
+   nulle part ne disait pourquoi. On exporte donc une strat qui contient les
+   deux, on l'ouvre depuis le disque, et on regarde si elle s'affiche. */
+console.log('\n— une strat qui parle de balises —');
+
+const PIEGE = 'Note <!-- pull ici, puis <script> en bas, </script> pour finir';
+const docPiege = await p.evaluate(async (piege) => {
+  const s = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Sortie ' + piege,
+    window.__MS.reglages());
+  // et dans le texte d'une ligne, la ou le lead ecrit vraiment
+  const l = s.chapitres[0].phases[0].cards[0].groups[0].lines[0];
+  l.t = piege + ' — ' + l.t;
+  return await window.EXPORTHTML.fabrique(s, {base:'../'});
+}, PIEGE);
+
+const fp = path.join(dossier, 'piege.html');
+fs.writeFileSync(fp, docPiege, 'utf8');
+
+const gp = await b.newPage();
+const errP = [];
+gp.on('pageerror', e => errP.push(String(e).slice(0, 110)));
+await gp.setRequestInterception(true);
+gp.on('request', r => (r.url().startsWith('file://') || r.url().startsWith('data:'))
+                      ? r.continue() : r.abort());
+await gp.goto('file:///' + fp.replace(/\\/g, '/'), {waitUntil:'networkidle0'});
+const vp = await gp.evaluate(() => ({
+  cartes: document.querySelectorAll('.card').length,
+  lignes: document.querySelectorAll('.line').length,
+  titre: document.getElementById('gTitre')?.textContent || '',
+  texte: document.body.innerText
+}));
+await gp.close();
+
+dit('le fichier s\'affiche quand meme', vp.cartes > 0 && vp.lignes > 0,
+    vp.cartes + ' cartes · ' + vp.lignes + ' lignes');
+dit('  le titre porte la note telle qu\'ecrite', vp.titre.indexOf('<!--') >= 0,
+    vp.titre.slice(0, 60));
+dit('  et la ligne de strat aussi', vp.texte.indexOf('pull ici, puis') >= 0,
+    'introuvable dans la page');
+dit('  rien ne casse a l\'ouverture', errP.length === 0, errP.slice(0, 2).join('\n       '));
+
+// la moitie « sauvegarde » doit rester relisible : c'est du JSON, et un
+// echappement mal choisi la rendrait illisible sans que l'affichage bronche
+const reluP = await p.evaluate(html => {
+  const s = window.EXPORTHTML.extrait(html);
+  return s ? {nom: s.nom, ligne: s.chapitres[0].phases[0].cards[0].groups[0].lines[0].t} : null;
+}, docPiege);
+dit('  et le Studio la rouvre', !!reluP && reluP.nom.indexOf('<!--') >= 0,
+    reluP ? reluP.nom.slice(0, 60) : 'bloc illisible');
+dit('  avec le texte intact', !!reluP && reluP.ligne.indexOf('</script>') >= 0,
+    reluP ? reluP.ligne.slice(0, 70) : '—');
+
 dit('rien ne casse cote Studio', bruit.length === 0, bruit.slice(0,3).join('\n       '));
 
 await b.close();
