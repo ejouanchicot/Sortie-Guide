@@ -36,15 +36,16 @@
    ⚠ Monter VERSION à chaque livraison : c'est ce qui purge
      l'ancien cache chez tout le monde.
    ============================================================ */
-const VERSION = 'strat-studio-v33';
+const VERSION = 'strat-studio-v34';
 // Le préfixe sert à la purge : caches.keys() est à l'échelle de l'ORIGINE,
 // pas du dossier. Sur ejouanchicot.github.io, tous les dépôts publiés en
 // Pages la partagent — sans ce filtre, monter VERSION effaçait le cache des
 // autres projets du compte.
 const PREFIXE = 'strat-studio-';
 
-/* Ce qu'il faut pour LIRE une strat. Les images (fonds de carte, vignettes,
-   icônes) entrent toutes seules à la première visite, par la règle DURABLE. */
+/* Ce qu'il faut pour LIRE une strat. Les images du CONTENU — carte du run,
+   vignettes de mobs — ne sont pas ici : elles changent à chaque strat publiée
+   et se lisent dans data.js (voir gardeImages, plus bas). */
 const GUIDE = [
   'index.html',
   'js/app.js',
@@ -98,6 +99,32 @@ async function garde(liste) {
   await Promise.all(liste.map(u => c.add(u).catch(() => {})));
 }
 
+/* Les images de la strat : la carte du run et les vignettes de mobs.
+   Le commentaire de la liste disait qu'elles entraient « toutes seules à la
+   première visite, par la règle DURABLE ». C'était faux, et de la même façon
+   que pour les polices trois lignes plus haut : pendant ce premier chargement
+   le worker n'est pas encore aux commandes, il ne voit donc pas passer leurs
+   requêtes. Mesuré : après UNE visite du guide, 13 entrées en cache et 1 image
+   sur 10 — un membre du linkshell qui clique le lien Discord, lit une fois et
+   part en donjon a le texte de la strat, mais ni la carte ni un seul portrait.
+
+   On ne peut pas les lister en dur : elles appartiennent au CONTENU, et le
+   contenu change à chaque strat publiée. On les lit donc dans data.js, par le
+   même motif que l'export — sous-dossier compris, sans quoi on ne trouve plus
+   rien depuis le rangement de img/. */
+async function gardeImages() {
+  try {
+    const r = await fetch('js/data.js', {cache: 'no-store'});
+    if (!r.ok) return;
+    const txt = await r.text();
+    const vus = {}, liste = [];
+    const re = /img\/(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]+\.(?:webp|png|jpe?g|svg|gif|avif)/g;
+    let m;
+    while ((m = re.exec(txt))) if (!vus[m[0]]) { vus[m[0]] = 1; liste.push(m[0]); }
+    await garde(liste);
+  } catch (e) { /* pas d'images, ou pas de réseau : le guide s'ouvre quand même */ }
+}
+
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     await garde(GUIDE);
@@ -116,6 +143,7 @@ self.addEventListener('install', e => {
       atelierGarde = true;
       await garde(ATELIER);
     }
+    await gardeImages();
     self.skipWaiting();
   })());
 });

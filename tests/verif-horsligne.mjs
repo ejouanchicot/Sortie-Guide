@@ -148,9 +148,13 @@ async function range(quoi, chemin){
     for(const n of noms) for(const r of await (await caches.open(n)).keys()) urls.push(r.url);
     return urls;
   });
+  // ce que la page demande VRAIMENT comme images : c'est ça qui manque en donjon
+  const veut = await p.evaluate(() =>
+    [...document.images].map(i => i.currentSrc || i.src).filter(u => /^https?:/.test(u)));
   await ctx.close();
   const a = f => dedans.some(u => u.endsWith(f));
-  return {a, n:dedans.length, quoi};
+  const manque = [...new Set(veut)].filter(u => !dedans.includes(u));
+  return {a, n:dedans.length, quoi, voulues:new Set(veut).size, manque};
 }
 
 const at = await range('l\'atelier', '/tools/studio.html');
@@ -165,6 +169,23 @@ dit('  et le socle partagé', gu.a('/js/sortie-map-core.js'), gu.n + ' entrées'
 // Il n'a rien à faire de Konva : le lire coûte 300 ko à un membre qui ne fait que lire.
 dit('  sans emporter Konva, qu\'il n\'ouvre jamais', !gu.a('/tools/vendor/konva.min.js'),
     gu.n + ' entrées');
+
+/* Les images du CONTENU — la carte du run, les portraits de mobs. Le
+   commentaire de la liste préchargée les disait « entrées toutes seules à la
+   première visite, par la règle DURABLE » : c'était faux, de la même façon que
+   pour les polices. Pendant ce premier chargement le worker n'est pas encore
+   aux commandes, il ne voit pas passer leurs requêtes. Mesuré alors : 13
+   entrées et 1 image sur 10 — un membre du linkshell qui clique le lien
+   Discord, lit une fois et part en donjon avait le texte de la strat, mais ni
+   la carte ni un seul portrait, et rien ne le lui disait.
+   On compare donc à ce que la page DEMANDE, pas à un nombre écrit d'avance :
+   une strat qui grossit ne périme pas ce contrôle. */
+dit('  la carte du run et les portraits sont du voyage', gu.manque.length === 0,
+    gu.manque.length + ' sur ' + gu.voulues + ' absente(s) :\n       '
+    + gu.manque.slice(0, 4).map(u => u.replace(/^https?:\/\/[^/]+/, '')).join('\n       '));
+dit('  dont la carte elle-même', gu.a('/img/cartes/map.webp'), gu.n + ' entrées');
+dit('l\'atelier non plus ne manque aucune image', at.manque.length === 0,
+    at.manque.length + ' sur ' + at.voulues);
 
 /* La liste prechargee doit citer la coquille du GUIDE, pas seulement celle de
    l'atelier — sans quoi le guide dependait d'une visite prealable reussie. */
