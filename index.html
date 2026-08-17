@@ -33,6 +33,19 @@
 <link rel="apple-touch-icon" href="img/icon-180.webp">
 <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
+<!-- space-grotesk porte le titre, les libellés et les noms de carte : elle est
+     la plus visible au-dessus de la ligne de flottaison, et elle arrivait APRÈS
+     le premier pixel. Le titre s'affichait en Inter puis se réécrivait. -->
+<link rel="preload" href="fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<!-- La carte du run, en dur — comme og:image juste au-dessus, et pour la même
+     raison : le navigateur ne peut pas la deviner. Son adresse vit dans
+     data.js, elle n'entrait donc dans la page qu'une fois les cinq scripts
+     exécutés, et s'affichait à 4,3 s sur un téléphone en 4G. Avec ce préchargement,
+     2,6 s. C'est l'écran que le lead vient voir quand il ouvre le lien entre
+     deux packs.
+     Si la carte d'ouverture change de nom, cette ligne suit — sinon elle ne
+     coûte qu'un 404 silencieux, jamais un affichage de travers. -->
+<link rel="preload" href="img/cartes/map.webp" as="image" fetchpriority="high">
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>

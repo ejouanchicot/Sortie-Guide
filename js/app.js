@@ -125,7 +125,10 @@ function buildOverview(f, floor){
   var mapBlock;
   if(f.map){
     mapBlock='<div class="ovmap mapfig">'
-      +'<img src="'+escAttr(f.map)+'" alt="Carte complète du run" loading="lazy" decoding="async" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
+      /* PAS de loading="lazy" ici, contrairement aux vignettes : c'est la
+         seule image que le lead est venu voir. « lazy » disait au navigateur
+         qu'elle n'était pas pressée, sur l'écran qu'il attend. */
+      +'<img src="'+escAttr(f.map)+'" alt="Carte complète du run" fetchpriority="high" decoding="async" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
       +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
       +'<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true">'
       +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'

@@ -115,7 +115,9 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 /* La signature de l'outil, à gauche du titre de la strat. Elle tient la place
    qu'occupait un simple trait dégradé : même largeur d'accroche, mais on sait
    enfin de quoi la page sort — et on peut retourner à l'atelier d'un clic. */
-.bmark{flex:none;display:block;line-height:0;border-radius:11px;transition:transform .25s var(--ease,ease),box-shadow .25s var(--ease,ease)}
+/* Le dessin reste à 40 px, la zone qu'on peut viser fait 44 : c'est un lien
+   vers l'atelier, on le tape au doigt comme le reste de la barre. */
+.bmark{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;line-height:0;border-radius:11px;transition:transform .25s var(--ease,ease),box-shadow .25s var(--ease,ease)}
 .bmark img{width:40px;height:40px;display:block;border-radius:11px;object-fit:contain;
   box-shadow:0 0 0 1px var(--line),0 6px 18px -8px #000,0 0 26px -10px color-mix(in srgb,var(--accent) 70%,transparent)}
 .bmark:hover{transform:translateY(-1px) scale(1.03)}
@@ -132,7 +134,8 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .legend span{display:flex;align-items:center;font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.3px}
 .legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
 .topctl{display:flex;gap:6px;flex:none;align-items:center}
-.ctlbtn{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+/* même raison que .chip : le thème et la langue se changent au doigt */
+.ctlbtn{width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
 
 /* barres de contrôle */
 .bars{padding:9px var(--sp);display:flex;flex-direction:column;gap:9px}
@@ -141,7 +144,14 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .nav a{text-decoration:none}
 #jobs .rlabel{color:var(--accent2)}
 
+/* 44 px de haut, pas 28 : le pied de page demande au lead de cliquer son job
+   pour faire ressortir ses actions, et il le fait d'une main, avec le pouce,
+   en mouvement, entre deux packs. À 28 px il touchait BRD au lieu de COR.
+   min-height plutôt qu'un padding plus gros : le dessin de la pastille ne
+   change pas, seule la zone qu'on peut viser grandit. La barre collante suit
+   toute seule — app.js mesure sa hauteur réelle dans --stickh. */
 .chip{border:1px solid var(--chipbd);background:var(--chip);color:var(--txt);border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none;
+  min-height:44px;display:inline-flex;align-items:center;justify-content:center;
   transition:transform .12s var(--ease),border-color .16s,background .16s,color .16s,box-shadow .16s}
 .chip:hover{border-color:var(--accent)}
 .chip:active{transform:scale(.95)}
