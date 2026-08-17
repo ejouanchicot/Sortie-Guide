@@ -129,7 +129,15 @@ function buildOverview(f, floor){
          seule image que le lead est venu voir. « lazy » disait au navigateur
          qu'elle n'était pas pressée, sur l'écran qu'il attend. */
       +'<img src="'+escAttr(f.map)+'" alt="Carte complète du run" fetchpriority="high" decoding="async" onerror="this.closest(\'.ovmap\').classList.add(\'nomap\')">'
-      +'<div class="mapmiss">Carte non trouvée · ajoute <code>maps/overview.png</code>.</div>'
+      /* Ce bloc ne s'affiche QUE si l'image a échoué (.nomap, posé par onerror).
+         Il était masqué sans condition, donc jamais vu : quand un fond ne
+         chargeait pas, le lecteur voyait un cadre vide, sans un mot — le
+         silence exact qu'on s'interdit ailleurs. Et il parlait à l'auteur
+         (« ajoute maps/overview.png », un dossier qui n'existe plus) alors
+         que c'est le LECTEUR qui a l'écran sous les yeux, et qu'il n'a rien
+         à ajouter. On lui dit ce qui manque et ce qui reste vrai. */
+      +'<div class="mapmiss">'+tr("Le fond de cette carte ne s'affiche pas")+' — '
+      +tr("les positions restent justes, seule l'image manque.")+'</div>'
       +'<svg class="ovroute" viewBox="0 0 100 100" aria-hidden="true">'
       +'<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aa9e6"/><stop offset="1" stop-color="#8b7cff"/></linearGradient></defs>'
       +shapesSvg(f)

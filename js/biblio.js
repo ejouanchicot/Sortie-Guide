@@ -200,6 +200,8 @@
     "N'afficher que mon rôle":"Show only my role",
     "Carte à venir":"Map coming soon",
     "on la placera avec l'éditeur":"we'll place it with the editor",
+    "Le fond de cette carte ne s'affiche pas":"This map's background didn't load",
+    "les positions restent justes, seule l'image manque.":"the positions are still right, only the image is missing.",
     "SECTEUR":"SECTOR",
     "à venir":"coming soon",
     "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",

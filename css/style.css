@@ -624,7 +624,12 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .ovroute .ovn{fill:#fff;font:800 2px var(--mono)}
 
 .mapfig{margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow)}
+/* Masqué tant que le fond charge, montré quand il a échoué : .nomap est posé
+   par le onerror de l'image. Sans la seconde règle, le message existait dans
+   la page et n'apparaissait jamais — un cadre vide, sans explication. */
 .mapmiss{display:none}
+.ovmap.nomap .mapmiss{display:block;padding:16px 18px;font-size:13.5px;line-height:1.55;color:var(--dim);
+  background:var(--panel2);border:1px dashed var(--line2);border-radius:var(--r-md);text-align:center}
 
 .lightbox{position:fixed;inset:0;z-index:80;background:rgba(5,7,10,.92);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
 .lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6)}

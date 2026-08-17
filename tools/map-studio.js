@@ -1625,11 +1625,15 @@
     const dejaLa=await II.dossierPret();
     if(dejaLa || !window.DATAFILE.dispoDossier()){ ouvreFichier(dejaLa); return; }
 
+    /* Le nom du dossier vient de IMPORTIMAGE, jamais écrit à la main : depuis le
+       rangement de img/, les fonds vivent dans img/cartes, et ces messages
+       envoyaient encore le lead déposer son image dans img/. Il faisait
+       exactement ce qu'on lui disait, et son fond ne s'affichait jamais. */
     const ok=await askConfirm('Pour ranger l’image dans le projet, le navigateur doit d’abord '
-      +'t’autoriser a ecrire dans le dossier <b>img</b>.<br><br>'
-      +'A faire <b>une seule fois</b> : il s’en souviendra ensuite, et tu n’auras plus '
-      +'qu’a choisir l’image.',
-      {title:'Ou ranger l’image ?',ok:'Choisir le dossier img',danger:false});
+      +'t’autoriser à écrire dans le dossier <b>'+esc(II.DOSSIER)+'</b>.<br><br>'
+      +'À faire <b>une seule fois</b> : il s’en souviendra ensuite, et tu n’auras plus '
+      +'qu’à choisir l’image.',
+      {title:'Où ranger l’image ?',ok:'Choisir le dossier',danger:false});
     if(!ok)return;
 
     const a=await II.acces();                     // le clic ci-dessus est le geste
@@ -1668,14 +1672,14 @@
 
     if(!dossier){
       II.telecharge(prete,nomFichier);
-      await askConfirm('Ton navigateur ne sait pas ecrire dans un dossier — Chrome ou Edge le font.<br><br>'
-        +'L’image convertie vient d’etre telechargee sous le nom <b>'+esc(nomFichier)+'</b>. '
-        +'Depose-la dans le dossier <b>img</b> du projet et elle apparaitra.',
-        {title:'A poser toi-meme',ok:'Compris',danger:false});
+      await askConfirm('Ton navigateur ne sait pas écrire dans un dossier — Chrome ou Edge le font.<br><br>'
+        +'L’image convertie vient d’être téléchargée sous le nom <b>'+esc(nomFichier)+'</b>. '
+        +'Dépose-la dans <b>'+esc(II.DOSSIER)+'</b>, à l’intérieur du projet, et elle apparaîtra.',
+        {title:'À poser toi-même',ok:'Compris',danger:false});
     } else {
       const r=await II.depose(dossier,prete,nomFichier,{confirme:nom=>
-        askConfirm('<b>'+esc(nom)+'</b> existe deja dans le dossier <b>img</b>.<br><br>'
-          +'Une autre carte s’en sert peut-etre : elle changerait de fond elle aussi.',
+        askConfirm('<b>'+esc(nom)+'</b> existe déjà dans <b>'+esc(II.DOSSIER)+'</b>.<br><br>'
+          +'Une autre carte s’en sert peut-être : elle changerait de fond elle aussi.',
           {title:'Remplacer l’image ?',ok:'Remplacer'})});
       if(r.ou==='annule')return;
       if(r.ou==='refuse'){

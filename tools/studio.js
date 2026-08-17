@@ -691,8 +691,31 @@
       var avant = await DF.lis(h);              // la version qu'on remplace
       var r = DF.remplace(avant, blocs);
       if(r.absents.length){
+        /* Un bloc introuvable veut dire DEUX choses, et le même message les
+           confondait — en accusant toujours le fichier.
+
+           · un bloc d'étapes manque (PHASES_C…) : la strat a plus de chapitres
+             que le fichier n'en connaît. Le fichier est le BON, il est juste
+             en retard. Oublier la poignée ici n'aidait pas — pire, comme seule
+             'data' était oubliée et pas 'projet', fichiersProjet retrouvait le
+             même fichier sans rien redemander, et le lead rejouait le même
+             message à l'infini sans jamais rien enregistrer ;
+           · autre chose manque : là oui, on écrit probablement ailleurs.
+
+           Dans les deux cas on NOMME ce qui manque. L'atelier Carte seul le
+           faisait déjà ; la coque avait perdu l'information en unifiant. */
+        var quoi = r.absents.join(', ');
+        var quEtapes = r.absents.every(function(n){ return /^PHASES/.test(n); });
+        if(quEtapes){
+          toast('Ta strat a un chapitre que js/data.js ne connaît pas encore (' + quoi + '). '
+              + 'Rien n\'a été enregistré : ajoute « const ' + r.absents[0] + '=[]; » au fichier, '
+              + 'ou publie cette strat dans le projet d\'où elle vient.', 'err');
+          return;
+        }
         await DF.oublie('data');
-        toast('Ce fichier ne contient pas ta strat — on te le redemandera.','err');
+        await DF.oublie('projet');
+        toast('Ce fichier ne contient pas ta strat — il y manque ' + quoi + '. '
+            + 'On te redemandera le dossier du projet.', 'err');
         return;
       }
       if(!(await ecrisEtRelis(h, r.texte, avant, 'js/data.js'))) return;
