@@ -24,6 +24,8 @@
   var esc = global.SORTIE.esc;
   // dans un attribut, esc() ne suffit pas : il laisse passer le guillemet
   var escAttr = global.SORTIE.escAttr;
+  // ce qui vient d'une strat reçue et part dans du HTML sans guillemets autour
+  var nombreSur = global.SORTIE.nombreSur;
   var couleurSure = global.SORTIE.couleurSure;
   var H = {tr:function(s){return s;}, MOB:{}, ELC:{}, ROLE:{}, base:''};
   function img(nom){ return esc(H.base + H.MOB[nom]); }
@@ -171,7 +173,13 @@
     var fixes = cr.filter(function(c){ return c.length === 1; });
     var flex  = cr.filter(function(c){ return c.length > 1; });
     var bouts = [];
-    var n = (compo && compo.taille) || cr.length;
+    /* La compo d'une strat REÇUE est du texte écrit par quelqu'un d'autre, et
+       ce sous-titre part en innerHTML (app.js). « taille » y arrivait brut :
+       une balise img avec un onerror s'exécutait à la SIMPLE OUVERTURE du
+       fichier partagé — sans atelier, sans enregistrement, au double-clic.
+       C'est le seul champ de l'en-tête qui échappait à esc ; le job juste à
+       côté passe par jobChip, qui échappe. */
+    var n = nombreSur((compo && compo.taille), 0) || cr.length;
     if(n) bouts.push(n + (en ? ' players' : ' joueurs'));
     // Les flex se rattachent aux fixes par un « + » : ils complètent la même
     // composition, ils ne sont pas une information de plus.

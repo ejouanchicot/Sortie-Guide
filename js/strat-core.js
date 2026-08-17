@@ -341,7 +341,9 @@
     var s = ind+'{label:'+q(g.label);
     if(g.cls!=null) s += ',cls:'+q(g.cls);   // même vide : on ne modifie pas le fichier d'Eric sans raison
     if(g.boite) s += ',boite:1';             // encadrée, même quand elle a un titre
-    if(g.niv) s += ',niv:'+g.niv;            // emboîtée dans la rubrique d'avant
+    // niv s'écrit NU, hors guillemets : un nombre reçu d'une strat partagée y
+    // refermerait l'objet et exécuterait la suite. Voir phaseConst juste après.
+    if(g.niv) s += ',niv:'+S.nombreSur(g.niv);
     if(g.img) s += ',img:'+q(g.img);
     if(g.note) s += ',note:'+q(g.note);
     return s + ',lines:' + liste(g.lines, ind, lnConst) + '}';
@@ -357,8 +359,16 @@
   // affiche en tête du bloc. Avant, elle pointait sur une constante
   // (« buffs:BUFFS_P1 ») dont le nom ne disait rien et n'était visible nulle
   // part, et le titre affiché était écrit en dur dans le moteur.
+  /* n s'écrit NU — c'est un nombre, pas une chaîne. Or « nombre » n'est qu'une
+     habitude : une strat reçue sur Discord traverse l'import sans qu'un champ
+     soit relu, et ressort par ici au premier « Enregistrer ». Un n forgé
+     referme l'objet, exécute ce qu'il veut, puis rouvre un tableau bidon pour
+     que la fin du fichier reste valide — et data.js est chargé en <script>.
+     Le correctif d'août avait fermé phasesNom et el, les deux champs NOMMÉS
+     dans le rapport ; il avait laissé la classe entière ouverte. n est le plus
+     exposé des trois : il est sur toutes les phases de tous les chapitres. */
   function phaseConst(p, ind){
-    var s = ind+'{n:'+p.n;
+    var s = ind+'{n:'+S.nombreSur(p.n);
     if(p.sector) s += ',sector:'+q(p.sector);
     if(p.boss) s += ',boss:'+q(p.boss);
     if(p.soon) s += ',soon:true';

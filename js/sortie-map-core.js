@@ -572,7 +572,8 @@
     return jobsDeLaVariante(c, nom).indexOf(job) < 0;
   }
   function compoConst(nm, c){
-    return 'const '+nm+'={taille:'+((c&&c.taille)||6)+',creneaux:[\n'
+    // taille s'écrit NU, comme n et niv dans strat-core : même parade
+    return 'const '+nm+'={taille:'+nombreSur((c&&c.taille), 6)+',creneaux:[\n'
       + compoCreneaux(c).map(function(cr){ return ' '+JSON.stringify(cr); }).join(',\n')
       + '\n]};';
   }
