@@ -1727,7 +1727,17 @@
     if(i<0||i>=FL.length||i===curIdx)return;
     document.querySelectorAll('#floorSeg button').forEach(x=>
       x.classList.toggle('on', +x.dataset.i===i));
-    renderFloor(i);resetHistory();
+    /* resetHistory APRÈS le rendu, et c'est tout le sujet. Depuis que les
+       rendus passent par une file, curIdx n'est plus posé tout de suite :
+       resetHistory prenait donc son instantané du chapitre qu'on QUITTE, et le
+       premier Ctrl+Z le réappliquait au chapitre où l'on arrive.
+       Mesuré : ouvrir sur le sous-sol, taper Ctrl+Z par réflexe, et Dhartok,
+       Triboulex, Aïta, Gartell et Aminon devenaient les quatre boss du
+       rez-de-chaussée — marqueurs, packs, tracés et textes avec. Le témoin
+       « non enregistré » s'allumait, et blocs() écrivait bien les mauvais boss.
+       La coque rejouant le chapitre mémorisé au démarrage, il suffisait d'avoir
+       fermé l'atelier en bas la veille. */
+    renderFloor(i).then(resetHistory);
   }
 
   /* Choisir une carte ici, c'est ALLER LA VOIR — pas rattacher le chapitre
