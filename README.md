@@ -42,6 +42,7 @@ css/  fonts/  img/        style, polices auto-hébergées, images
                           img/mobs/ les vignettes · img/cartes/ les fonds · le reste, l'app
 js/                       le socle, le moteur du guide, les modules partagés
 tools/                    les deux ateliers + tools/build/ (générateurs)
+                          tools/audit/ les contrôles du contenu de la strat
 tests/                    les tests de rendu · node tests/lancer.mjs
 docs/                     architecture, backlog, marque
 ```
@@ -57,6 +58,21 @@ Aucune dépendance à installer, aucun build. Un serveur local suffit :
 python -m http.server 8137     # puis http://localhost:8137/
 node tests/lancer.mjs          # les tests de rendu (Puppeteer)
 ```
+
+Deux familles de contrôles, et elles ne voient pas la même chose. Les tests
+ouvrent la page et regardent l'écran ; les contrôles de `tools/audit/` relisent
+le **texte** de la strat, ce qu'aucun rendu ne peut attraper — la page s'affiche
+très bien avec « Minuet V » ici et « Valor Minuet V » trois lignes plus bas.
+
+```bash
+node tools/audit/coherence.mjs     # un mot deux couleurs, marques croisées,
+                                   # couleurs vs base GearSwap, moves en double
+node tools/audit/traductions.mjs   # le français resté sans anglais
+node tools/audit/mort.mjs          # ce que plus personne n'appelle
+node tools/audit/rendu.mjs         # marques visibles, débordement, console
+```
+
+À lancer après toute retouche du contenu (`js/data.js`).
 
 Deux fichiers sont **générés** — les modifier à la main ne sert à rien :
 

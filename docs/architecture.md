@@ -2,7 +2,7 @@
 
 > Le détail. Pour l'essentiel, lire `CLAUDE.md` à la racine.
 > **La source de vérité, ce sont les fichiers**, pas ce document. Au moindre doute, les relire.
-> État au 13 août 2026.
+> État au 17 août 2026.
 
 ## 1. Ce que c'est
 
@@ -57,8 +57,10 @@ Fonctions **pures**, aucune dépendance à un backend de rendu. Chargé avant to
 - **Texte** — `esc`, `escAttr`, `htmlSur`, texte enrichi (`parseInline`, `parseRich`,
   `runsToHtml`).
 - **Sérialisation** de `data.js` — `TABLEAUX_CARTE` associe chaque tableau d'une
-  carte à l'écrivain qui le rend en texte (`bossesConst`, `packsConst`, `midsConst`,
-  `routesConst`, `iconesConst`).
+  carte à l'écrivain qui le rend en texte. Ils sont **sept**, et la liste doit
+  rester complète : en ajouter un tableau sans son écrivain, c'est perdre ce
+  qu'il portait au premier enregistrement. `bossesConst`, `packsConst`,
+  `midsConst`, `routesConst`, `textsConst`, `shapesConst`, `iconesConst`.
 
 ## 4. Modèle de données — `js/data.js`
 
