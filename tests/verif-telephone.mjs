@@ -1,0 +1,121 @@
+/* ============================================================
+   verif-telephone.mjs — le guide sur le téléphone d'un lead
+   ------------------------------------------------------------
+   C'est le seul écran qui compte pendant un run : le téléphone
+   posé à côté du clavier, ou tenu d'une main entre deux packs.
+   Deux choses s'y payent cash, et les deux ont été mesurées :
+
+   · la barre du haut mangeait 454 px sur les 568 d'un petit
+     téléphone — 80 % de l'écran pour cinq rangées de boutons et
+     un en-tête qui ne se lit qu'une fois. Il restait 114 px de
+     strat ;
+   · les animations tournaient même quand le système demandait de
+     les couper : « * » ne désigne pas les pseudo-éléments, et le
+     rail de la timeline y défile une fois par seconde.
+
+   On regarde donc la PLACE que prend la barre, qu'elle suive bien
+   quand on descend, que rien ne déborde sur le côté, et qu'un lead
+   qui coupe les animations les coupe vraiment.
+   ============================================================ */
+import {puppeteer, GUIDE, rapport} from './navigateur.mjs';
+
+const {dit, bilan} = rapport();
+const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
+
+/* Le plus petit téléphone encore en service, et un courant. Au-dessus,
+   l'en-tête a la place de rester : on vérifie que la règle ne déborde pas
+   sur l'écran où elle n'a pas lieu d'être. */
+const ECRANS = [
+  ['un petit téléphone',  320, 568, 0.40],
+  ['un téléphone courant',390, 844, 0.30],
+  ['un grand téléphone',  430, 932, 0.30],
+  ['une tablette',        900, 900, 0.30]
+];
+
+for(const [quoi, w, h, part] of ECRANS){
+  const p = await b.newPage();
+  const bruit = [];
+  p.on('pageerror', e => bruit.push(String(e).slice(0, 110)));
+  await p.setViewport({width:w, height:h, isMobile:w < 600, hasTouch:w < 600});
+  await p.goto(GUIDE, {waitUntil:'networkidle0'});
+  await p.waitForSelector('.card', {timeout:15000});
+  await p.waitForFunction(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--stickh').trim() !== '',
+    {timeout:8000}).catch(() => {});
+
+  const vu = await p.evaluate(() => {
+    const st = document.querySelector('.topstick'), ba = document.querySelector('.bars');
+    // ce qui reste collé n'est pas le même bloc partout : display:contents
+    // laisse « position:sticky » dans le style calculé mais supprime la boîte
+    const cs = getComputedStyle(st);
+    const colle = (cs.position === 'sticky' && cs.display !== 'contents') ? st : ba;
+    return {haut: colle.getBoundingClientRect().height, ecran: innerHeight,
+            quoi: colle.className,
+            stickh: parseFloat(getComputedStyle(document.documentElement)
+                    .getPropertyValue('--stickh')) || 0,
+            large: document.documentElement.scrollWidth, ecranL: innerWidth};
+  });
+  console.log('\n— ' + quoi + ' · ' + w + '×' + h + ' —');
+  dit('la barre laisse la place à la strat',
+      vu.haut / vu.ecran <= part,
+      Math.round(vu.haut) + ' px sur ' + vu.ecran + ' — '
+      + Math.round(vu.haut / vu.ecran * 100) + ' %, on en accepte '
+      + Math.round(part * 100) + ' %');
+  /* La hauteur mémorisée sert à ne pas glisser une étape SOUS la barre quand
+     on la rejoint par un bouton. Elle doit désigner ce qui colle vraiment. */
+  dit('  et la hauteur retenue est la sienne', Math.abs(vu.stickh - vu.haut) < 2,
+      vu.stickh + ' px retenus pour ' + Math.round(vu.haut) + ' px de « ' + vu.quoi + ' »');
+  dit('  rien ne déborde sur le côté', vu.large <= vu.ecranL + 1,
+      vu.large + ' px de contenu pour ' + vu.ecranL + ' px d\'écran');
+
+  // on descend pour de vrai : une barre qui décolle ne sert plus à rien
+  const suit = await p.evaluate(async () => {
+    const st = document.querySelector('.topstick'), ba = document.querySelector('.bars');
+    const cs = getComputedStyle(st);
+    const colle = (cs.position === 'sticky' && cs.display !== 'contents') ? st : ba;
+    window.scrollTo({top: 1200, behavior: 'instant'});
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    return {top: colle.getBoundingClientRect().top, y: window.scrollY};
+  });
+  dit('  elle reste en haut quand on descend', suit.y > 200 && suit.top <= 1,
+      'à ' + Math.round(suit.y) + ' px de défilement, elle est à '
+      + Math.round(suit.top) + ' px du haut');
+  dit('  rien ne casse', bruit.length === 0, bruit.slice(0, 2).join('\n       '));
+  await p.close();
+}
+
+/* ---------- couper les animations les coupe vraiment ---------- */
+console.log('\n— quand le système demande de couper les animations —');
+const p = await b.newPage();
+await p.setViewport({width:390, height:844, isMobile:true, hasTouch:true});
+await p.emulateMediaFeatures([{name:'prefers-reduced-motion', value:'reduce'}]);
+await p.goto(GUIDE, {waitUntil:'networkidle0'});
+await p.waitForSelector('.card', {timeout:15000});
+await new Promise(r => setTimeout(r, 800));
+
+/* getAnimations({subtree:true}) rend AUSSI celles des pseudo-éléments — c'est
+   tout l'objet : elles échappaient à la règle, et elles seules. */
+const tourne = await p.evaluate(() =>
+  document.documentElement.getAnimations({subtree:true})
+    .filter(a => a.playState === 'running')
+    .map(a => (a.animationName || a.transitionProperty || '?')
+              + ' sur ' + (a.effect?.target?.tagName || '?')
+              + '.' + ((a.effect?.target?.className || '') + '').trim().split(/\s+/)[0]
+              + (a.effect?.pseudoElement || '')));
+dit('plus une seule animation ne tourne', tourne.length === 0,
+    tourne.length + ' encore en marche :\n       ' + [...new Set(tourne)].slice(0, 6).join('\n       '));
+
+// et la page est toujours là : couper le mouvement ne doit rien effacer
+const reste = await p.evaluate(() => ({
+  cartes: document.querySelectorAll('.card').length,
+  lignes: document.querySelectorAll('.line').length
+}));
+dit('  et la strat s\'affiche entière', reste.cartes > 0 && reste.lignes > 0,
+    reste.cartes + ' cartes · ' + reste.lignes + ' lignes');
+await p.close();
+
+await b.close();
+const ko = bilan();
+console.log(ko ? `\n${ko} probleme(s) : le guide tient mal sur un telephone.`
+               : '\nLe guide laisse la place a la strat, et se tait quand on lui demande.');
+process.exit(ko ? 1 : 0);

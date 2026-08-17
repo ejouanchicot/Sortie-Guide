@@ -752,6 +752,41 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
   .line.proc .txt{gap:6px}
 }
 
+/* La barre du haut mangeait l'écran du téléphone. Mesuré sur un 320 px :
+   454 px de barre pour 568 px de haut — 80 %, et 114 px pour la strat. Elle
+   empile cinq rangées qui reviennent chacune à la ligne : les chapitres, les
+   secteurs, les étapes, les jobs, la compo.
+   Les rangées ne reviennent donc plus à la ligne, elles GLISSENT sous le
+   pouce — un geste que le lead fait déjà sur la carte. Les pastilles gardent
+   leurs 44 px : c'est ce qui les rend visables en mouvement, et c'est la
+   hauteur qu'on gagne ici, pas la leur. */
+@media (max-width:560px){
+  /* L'en-tête — marque, titre, compo, légende — se lit UNE fois : 132 px de
+     plus collés en haut pendant tout le run. Il défile donc avec la page, et
+     seule la rangée des boutons reste. */
+  /* display:contents et pas position:static — un élément collant ne dépasse
+     jamais la boîte de son parent, et la barre décollait dès qu'on avait
+     dépassé la hauteur de l'en-tête, c'est-à-dire tout de suite. */
+  .topstick{display:contents}
+  .bars{position:sticky;top:0;z-index:30;background:var(--glass);
+    backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+    border-bottom:1px solid var(--line)}
+  .navrow,.jobrow{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;padding-bottom:2px}
+  .navrow::-webkit-scrollbar,.jobrow::-webkit-scrollbar{display:none}
+  .navrow > *,.jobrow > *{scroll-snap-align:start}
+  /* le libellé de la rangée reste en place : sans lui, on ne sait plus ce
+     qu'on fait glisser une fois parti vers la droite */
+  .rlabel{position:sticky;left:0;z-index:1;background:var(--glass);
+    padding-right:4px}
+}
+
+/* « * » ne désigne PAS les pseudo-éléments, et c'est là que vivaient les deux
+   animations les plus chères : le rail de la timeline, qui défile une fois par
+   seconde, et le halo tournant d'une carte de boss. Un lead qui coupe les
+   animations dans son système les gardait donc toutes les deux — sur un
+   téléphone posé à côté du clavier pendant tout un run, c'est la batterie. */
 @media (prefers-reduced-motion:reduce){
-  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }

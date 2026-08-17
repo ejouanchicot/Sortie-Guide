@@ -674,7 +674,19 @@ document.documentElement.lang=LANG;
 // mesure de la hauteur du sticky pour les offsets d'ancre
 (function(){
   const stick=document.querySelector(".topstick");
-  function measure(){ if(stick) document.documentElement.style.setProperty("--stickh",stick.offsetHeight+"px"); }
+  const bars=document.querySelector(".bars");
+  // Ce qu'on mesure, c'est ce qui RESTE COLLÉ — pas le bloc du haut. Sur
+  // téléphone l'en-tête défile avec la page et seule la rangée des boutons
+  // suit : mesurer les deux laissait 132 px de vide sous chaque étape qu'on
+  // rejoint par la barre.
+  function measure(){
+    // display:contents laisse « position:sticky » dans le style calculé mais
+    // supprime la boîte : sans ce test, on mesurait une hauteur de zéro et
+    // chaque étape rejointe par la barre passait sous elle.
+    const cs = stick && getComputedStyle(stick);
+    const colle = (cs && cs.position === "sticky" && cs.display !== "contents") ? stick : bars;
+    if(colle) document.documentElement.style.setProperty("--stickh",colle.offsetHeight+"px");
+  }
   measure(); window.addEventListener("resize",measure);
   if(document.fonts&&document.fonts.ready){document.fonts.ready.then(measure);}
 })();
