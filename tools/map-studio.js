@@ -246,6 +246,9 @@
      On les met à la queue leu leu, et on saute celui qu'une demande plus
      récente a déjà périmé : seul le dernier étage demandé se dessine. */
   let rendDemande=0, rendFile=Promise.resolve();
+  // vrai pendant qu'on change de chapitre : l'historique du chapitre d'arrivée
+  // n'existe pas encore, et annuler y rejouerait celui qu'on vient de quitter
+  let enRoute=false;
   function renderFloor(idx){
     const moi=++rendDemande;
     rendFile=rendFile.catch(()=>{}).then(()=>(moi===rendDemande)?rendEtage(idx):undefined);
@@ -1738,8 +1741,19 @@
        rez-de-chaussée — marqueurs, packs, tracés et textes avec. Le témoin
        « non enregistré » s'allumait, et blocs() écrivait bien les mauvais boss.
        La coque rejouant le chapitre mémorisé au démarrage, il suffisait d'avoir
-       fermé l'atelier en bas la veille. */
-    renderFloor(i).then(resetHistory);
+       fermé l'atelier en bas la veille.
+
+       Mais poser resetHistory après le rendu n'a fait que RÉTRÉCIR la fenêtre,
+       pas la fermer : entre le clic et la fin du dessin — le fond, puis chaque
+       vignette de mob — curIdx est déjà sur le nouveau chapitre pendant que
+       l'historique tient encore l'instantané de l'ancien. Un Ctrl+Z tapé là
+       écrasait toujours, 3 fois sur 3 ; à partir de 100 ms d'attente, plus
+       jamais. C'est donc une COURSE, et on ne la gagne pas avec un délai.
+       Pendant le trajet il n'y a rien à annuler sur le chapitre où l'on
+       arrive : on le dit, au lieu de rejouer un passé qui n'est pas le sien. */
+    enRoute = true;
+    var fin = function(){ enRoute = false; resetHistory(); };
+    renderFloor(i).then(fin, fin);
   }
 
   /* Choisir une carte ici, c'est ALLER LA VOIR — pas rattacher le chapitre
@@ -2003,8 +2017,12 @@
   // vide l'historique (il ne traverse pas les étages) SANS toucher au témoin : changer
   // d'étage ne sauve rien, les modifs de l'étage quitté restent en attente d'enregistrement.
   function resetHistory(){clearTimeout(histTimer);hist=[];hidx=-1;const d=dirty;commit();setDirty(d);}
-  function undo(){clearTimeout(histTimer);commit();if(hidx>0){hidx--;restoreState(hist[hidx]);toast('Annulé.');}else toast('Rien à annuler.');}
-  function redo(){clearTimeout(histTimer);if(hidx<hist.length-1){hidx++;restoreState(hist[hidx]);toast('Rétabli.');}else toast('Rien à rétablir.');}
+  // Tant que le chapitre d'arrivée se dessine, son historique n'existe pas :
+  // annuler y appliquerait celui du chapitre qu'on vient de quitter.
+  function undo(){if(enRoute){toast('Rien à annuler.');return;}
+    clearTimeout(histTimer);commit();if(hidx>0){hidx--;restoreState(hist[hidx]);toast('Annulé.');}else toast('Rien à annuler.');}
+  function redo(){if(enRoute){toast('Rien à rétablir.');return;}
+    clearTimeout(histTimer);if(hidx<hist.length-1){hidx++;restoreState(hist[hidx]);toast('Rétabli.');}else toast('Rien à rétablir.');}
 
   // ---- copier / coller / dupliquer / supprimer l'élément sélectionné ----
   function selData(){if(!selNode||!selNode._meta||selNode._meta.kind==='marker')return null;return {kind:selNode._meta.kind,o:cleanPin(selNode._meta.o)};}

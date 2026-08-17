@@ -103,6 +103,36 @@ const apresZ = await p.evaluate((i) => (FLOORS[i].bosses||[]).map(b => b.name).j
 dit(chapitre.nom + ' garde ses boss', apresZ === chapitre.boss,
     'attendu ' + chapitre.boss + '\n       obtenu  ' + apresZ);
 
+/* ---------- et surtout PENDANT que la carte se dessine ----------
+   Poser l'oubli de l'historique après le rendu n'avait fait que rétrécir la
+   fenêtre. Entre le clic et la fin du dessin — le fond, puis chaque vignette —
+   le chapitre d'arrivée est déjà courant alors que l'historique tient encore
+   l'instantané de celui qu'on quitte. Mesuré : 3 fois sur 3 écrasé quand on
+   tape tout de suite, plus jamais à partir de 100 ms d'attente. C'est une
+   course, et un test qui attend d'abord le rendu ne la voit PAS — celui du
+   dessus était vert pendant que le défaut était là. */
+console.log('\n— et Ctrl+Z tapé pendant que la carte se dessine —');
+let ecrase = 0, temoin = '';
+for(let essai = 0; essai < 3; essai++){
+  await p.evaluate(() => location.reload());
+  await p.waitForFunction(() => window.__MS && window.__STUDIO, {timeout:9000});
+  await carteDessinee(p);
+  const av = await p.evaluate(i => (FLOORS[i].bosses||[]).map(b => b.name).join(', '), cible);
+  // on part, et on tape SANS attendre — pas de carteDessinee ici, c'est le sujet
+  await p.evaluate(i => {
+    const s = document.getElementById('carteSel');
+    const o = [...s.options].find(x => x.value === FLOORS[i].carte);
+    s.value = o.value; s.dispatchEvent(new Event('change'));
+  }, cible);
+  await p.evaluate(() => { document.activeElement?.blur?.(); document.body.focus(); });
+  await p.keyboard.down('Control'); await p.keyboard.press('z'); await p.keyboard.up('Control');
+  await new Promise(r => setTimeout(r, 1200));
+  const ap = await p.evaluate(i => (FLOORS[i].bosses||[]).map(b => b.name).join(', '), cible);
+  if(ap !== av){ ecrase++; temoin = 'attendu ' + av + '\n       obtenu  ' + ap; }
+}
+dit('trois fois de suite, ' + chapitre.nom + ' garde ses boss', ecrase === 0,
+    ecrase + '/3 écrasé(s)\n       ' + temoin);
+
 dit('rien n\'a casse', bruit.length===0, bruit.slice(0,3).join('\n       '));
 await b.close();
 console.log(ko ? '\nUn raccourci traverse encore vers l\'atelier d\'a cote.'
