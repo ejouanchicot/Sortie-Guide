@@ -20,6 +20,8 @@
      et aucune paire ne descend plus sous trente. */
   --e-water:#4aa3e0; --e-fire:#f2564d; --e-thunder:#c9a7ff; --e-wind:#43c463;
   --e-earth:#96633a; --e-ice:#5fd0d0; --e-light:#ffffff; --e-dark:#e0479f;
+  /* l'élément « aucun » : une phase sans élément, un mob neutre */
+  --e-gray:#8b93a0;
   /* les skillchains ont leurs teintes à eux : ce ne sont ni des éléments ni
      des sorts, et on les reconnaît à leur halo */
   --sc-fusion:#ff7a45; --sc-gravitation:#b67a25;
@@ -54,7 +56,9 @@
   --bg:#eceff5; --bg2:#e4e9f1;
   --panel:#ffffff; --panel2:#f6f8fc; --panel3:#eef2f8;
   --line:#e0e5ee; --line2:#ccd4e0; --hair:rgba(15,23,42,.06);
-  --txt:#111823; --txt2:#38455a; --dim:#657085;
+  /* --dim tenait 4,2 à 4,4 sur les remarques, les conditions et le pied de
+     page : sous les 4,5 qu'il faut, et c'est du texte qu'on lit vraiment. */
+  --txt:#111823; --txt2:#38455a; --dim:#586274;
   /* le violet des débuffs s'écarte de la foudre : en plein soleil, dix-sept
      points d'écart ne suffisaient pas à séparer « Stun » de « Paralysis » */
   --accent:#2c78c8; --accent2:#1f6fbf; --violet:#4a41a8;
@@ -70,16 +74,34 @@
      là où il en faut 4,5 pour du texte de cette taille. Aucune ne passait, et
      la ligne d'avertissement était le texte le moins lisible de la page.
      Mêmes teintes, assombries jusqu'à passer — un lead lit son téléphone
-     dehors, en plein run. */
-  --e-light:#d99a1a; --r-buff:#c99a12;
-  --r-heal:#12854e; --r-tank:#1668c4; --r-dd:#c0261d; --r-all:#5c6577;
-  --e-wind:#12854e; --e-water:#1f6fbf; --e-ice:#0f7a84; --e-thunder:#7d34dd;
-  --e-dark:#b0177a; --e-earth:#8a5a28; --e-fire:#c0261d;
+     dehors, en plein run.
+
+     Elles servent AUSSI de fond, sous une encre : badge de rôle, pastille
+     active. Cette passe-là n'avait pas été faite, et une couleur ne peut pas
+     être à la fois claire pour porter du texte sombre et sombre pour se lire
+     sur du blanc. On a tranché : toutes restent assez sombres pour être lues
+     sur fond clair, et l'encre posée dessus passe au blanc (--badge-ink).
+     Le jaune et le doré étaient les deux qui échouaient dans les deux rôles à
+     la fois — ils descendent nettement. */
+  --e-light:#7a5d00; --r-buff:#6d5300;
+  --badge-ink:#ffffff;
+  --e-gray:#4f5867;
+  --r-heal:#0a5c35; --r-tank:#125aa8; --r-dd:#a81f18; --r-all:#5c6577;
+  --e-wind:#0a5c35; --e-water:#125791; --e-ice:#0f7a84; --e-thunder:#7d34dd;
+  --e-dark:#b0177a; --e-earth:#8a4520; --e-fire:#a81f18;
   --sc-fusion:#b8390a; --sc-gravitation:#7a4e1f;
   --sc-distortion:#0b6472; --sc-induration:#1a5f9e;
-  --warn:#8a5200; --gc-mb:#0e7c92; --gc-proc:#0f7361; --gc-tp:#b02a72;
+  --warn:#8a5200; --gc-mb:#0a6274; --gc-proc:#0f7361; --gc-tp:#b02a72;
 }
 :root[data-theme="light"] .ckind.boss{color:var(--violet)}
+/* Le nom de la strat est du texte transparent avec un dégradé agrafé dessus.
+   Ses trois arrêts étaient les mêmes dans les deux thèmes : sur le fond clair,
+   le premier tombait à 1,2 contre 1 — le mot s'effaçait de gauche à droite,
+   et c'est le titre de la page. Mêmes teintes, assombries, dans le même ordre
+   chaud→rouge : on reconnaît la marque, on la lit aussi dehors. */
+:root[data-theme="light"] .btitle h1{
+  background-image:linear-gradient(95deg,#8a5a00,#a33c0c 45%,#a81d16);
+  filter:drop-shadow(0 2px 10px rgba(168,29,22,.18))}
 
 /* ---------- BASE ---------- */
 *{box-sizing:border-box}
@@ -161,11 +183,11 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 #nav .chip.navactive b{color:rgba(255,255,255,.85)}
 .jobchip{border-color:transparent;background:color-mix(in srgb,var(--jc) 15%,var(--chip))}
 .jobchip[data-j]{color:var(--jc)}
-.jobrow .jobchip.on{background:var(--jc);color:#0b0e12;border-color:var(--jc);box-shadow:0 4px 14px -4px var(--jc)}
+.jobrow .jobchip.on{background:var(--jc);color:var(--badge-ink,#0b0e12);border-color:var(--jc);box-shadow:0 4px 14px -4px var(--jc)}
 #jobAll{font-weight:800}
 #jobAll.on{background:var(--accent);color:#fff;border-color:transparent}
 .compchip{color:var(--jc)}
-.compchip.on{background:var(--jc);color:#0b0e12;border-color:var(--jc);box-shadow:0 4px 14px -4px var(--jc)}
+.compchip.on{background:var(--jc);color:var(--badge-ink,#0b0e12);border-color:var(--jc);box-shadow:0 4px 14px -4px var(--jc)}
 #soloToggle{border-color:var(--line2);color:var(--dim)}
 #soloToggle.on{background:var(--accent2);color:#08121d;border-color:var(--accent2);box-shadow:0 0 14px -4px var(--accent2)}
 
@@ -445,7 +467,7 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .grp .line + .line{border-top:1px solid var(--hair)}
 .line .roles{display:flex;gap:4px;flex:none}
 .line .role{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:7px;
-  background:var(--jc);color:#0b0e12;min-width:46px;text-align:center;margin-top:0;border:none;line-height:1.3}
+  background:var(--jc);color:var(--badge-ink,#0b0e12);min-width:46px;text-align:center;margin-top:0;border:none;line-height:1.3}
 .line .txt{flex:1;min-width:0;color:var(--txt2)}
 /* La condition ne se coupait JAMAIS : « ?sans RDM » tient sur un mot, et
    l'empecher de passer a la ligne le gardait colle a son action. Mais une

@@ -21,7 +21,11 @@
   // couleurs hex directes (fond canvas / Konva)
   var EL_HEX = {fire:'#f2564d',water:'#4aa3e0',ice:'#5fd0d0',thunder:'#b07cff',wind:'#43c463',earth:'#96633a',light:'#ffffff',dark:'#d94fb8',red:'#f2564d',blue:'#4aa3e0',green:'#43c463',gray:'#8b93a0'};
   // variables CSS de thème (guide + éditeur DOM — suivent clair/sombre)
-  var EL_VAR = {fire:'var(--e-fire)',water:'var(--e-water)',ice:'var(--e-ice)',thunder:'var(--e-thunder)',wind:'var(--e-wind)',earth:'var(--e-earth)',light:'var(--e-light)',dark:'var(--e-dark)',red:'var(--e-fire)',blue:'var(--e-water)',green:'var(--e-wind)',gray:'#8b93a0'};
+  // gray était le SEUL à porter un hex en dur ici, donc le seul à ne pas suivre
+  // le thème : en clair, l'étiquette d'une phase sans élément tombait à 2,41 de
+  // contraste — le texte le moins lisible de la page, sur un repère qu'on suit
+  // du regard pendant tout un run. Il a maintenant son jeton comme les autres.
+  var EL_VAR = {fire:'var(--e-fire)',water:'var(--e-water)',ice:'var(--e-ice)',thunder:'var(--e-thunder)',wind:'var(--e-wind)',earth:'var(--e-earth)',light:'var(--e-light)',dark:'var(--e-dark)',red:'var(--e-fire)',blue:'var(--e-water)',green:'var(--e-wind)',gray:'var(--e-gray)'};
   // couleur secondaire d'accent (pulsation des pastilles boss)
   var EL_ZC2 = {red:'#ff9d3a',blue:'#7ce0ff',green:'#b6ff5a',gray:'#ffffff'};
 
