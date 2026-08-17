@@ -50,11 +50,35 @@
 
   // La liste, la plus récemment touchée d'abord — sans les contenus, qui
   // peuvent peser : on ne les lit qu'à l'ouverture.
+  /* Une strat est LISIBLE si l'interface peut la montrer : des chapitres en
+     tableau, et chacun un objet. C'est le minimum dont dépendent la liste, le
+     sélecteur et l'ouverture.
+     Ça se vérifie AVANT d'écrire, parce qu'une seule entrée de travers rendait
+     toute la bibliothèque inatteignable : un guide reçu dont « chapitres »
+     valait [null] faisait lever liste(), donc plus de sélecteur, donc plus une
+     seule strat ouvrable — et l'atelier annonçait « le navigateur refuse
+     d'écrire, mémoire pleine », un diagnostic faux. Les strats du lead étaient
+     toujours là, simplement plus atteignables. */
+  function lisible(s){
+    if(!s || typeof s !== 'object' || Array.isArray(s)) return false;
+    if(!Array.isArray(s.chapitres)) return false;
+    return s.chapitres.every(function(c){
+      return c && typeof c === 'object' && !Array.isArray(c)
+          && (c.phases === undefined || Array.isArray(c.phases));
+    });
+  }
+
+  /* Et la liste, elle, ne lève plus JAMAIS : c'est la fonction dont dépend
+     tout le reste de l'interface. Une base déjà abîmée se relit, l'entrée
+     fautive s'y compte pour zéro chapitre au lieu de tout emporter. */
   function liste(){
     return tout().then(function(a){
-      return a.map(function(s){ return {id:s.id, nom:s.nom, maj:s.maj,
-        chapitres:(s.chapitres||[]).length,
-        etapes:(s.chapitres||[]).reduce(function(n,c){ return n + (c.phases||[]).length; }, 0)}; })
+      return a.map(function(s){
+        var ch = Array.isArray(s.chapitres) ? s.chapitres : [];
+        return {id:s.id, nom:s.nom, maj:s.maj,
+          chapitres:ch.length,
+          etapes:ch.reduce(function(n,c){
+            return n + ((c && Array.isArray(c.phases)) ? c.phases.length : 0); }, 0)}; })
         .sort(function(x,y){ return (y.maj||0) - (x.maj||0); });
     });
   }
@@ -251,7 +275,7 @@
   }
 
   global.BIBLIO = {
-    liste:liste, lis:lis, ecris:ecris, supprime:supprime,
+    liste:liste, lis:lis, ecris:ecris, supprime:supprime, lisible:lisible,
     depuisGlobaux:depuisGlobaux, versGlobaux:versGlobaux,
     nouvelle:nouvelle, duplique:duplique, copie:copie, id:id,
     courante:courante, noteCourante:noteCourante, persiste:persiste,

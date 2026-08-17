@@ -62,6 +62,46 @@ const e = await p.evaluate(()=>({
   noms:[...document.getElementById('stStratSel').options].filter(o=>!o.value.startsWith('__')&&!o.disabled).map(o=>o.textContent)}));
 dit('la strat recue rejoint la bibliotheque et s\'ouvre', e.combien===2 && e.chap>=2 && e.bosses>0, JSON.stringify(e));
 dit('son nom evite la collision', /import/i.test(e.ouverte||''), String(e.ouverte));
+
+/* ---------- un guide ABIME ne doit pas emporter la bibliotheque ----------
+   Le fichier entrait en base AVANT qu'on regarde sa forme, et c'est
+   l'affichage qui tombait apres : plus de selecteur de strats, et le temoin
+   annoncait « le navigateur refuse d'ecrire, memoire pleine » — un
+   diagnostic faux. Les strats du lead etaient toujours la, simplement plus
+   atteignables. Mesure : ce qu'il reste au selecteur APRES, et apres un
+   rechargement complet — c'est la qu'on voyait le degat. */
+console.log('\n— un guide abime est refuse, pas avale —');
+const sain = fs.readFileSync(chemin, 'utf8');
+const cas = [
+  ['un chapitre vide',   '"chapitres":[null]'],
+  ['des chapitres qui n\'en sont pas', '"chapitres":"zut"']
+];
+for(const [quoi, remplace] of cas){
+  const f = path.join(dl, 'abime.html');
+  // on remplace le bloc de sauvegarde par une strat de la meme forme, abimee
+  fs.writeFileSync(f, sain.replace(/"chapitres":\[/, remplace + ',"_ignore":['), 'utf8');
+  await p.evaluate(()=>{ const s=document.getElementById('stStratSel');
+    s.value='__import__'; s.dispatchEvent(new Event('change')); });
+  const ch = await p.$('#stFichier');
+  await ch.uploadFile(f);
+  await new Promise(r=>setTimeout(r,900));
+  const apres = await p.evaluate(()=>({
+    combien:[...document.getElementById('stStratSel').options]
+      .filter(o=>!o.value.startsWith('__')&&!o.disabled).length,
+    dit:[document.getElementById('toast'),document.getElementById('ssToast')].map(function(t){return t?t.textContent:'';}).filter(Boolean).join(' | ').slice(0,80)
+  }));
+  dit(quoi + ' : la bibliotheque garde ses deux strats', apres.combien===2,
+      apres.combien + ' au selecteur · message : « ' + apres.dit + ' »');
+  dit('  et l\'outil le dit', /abim|lisibl/i.test(apres.dit), apres.dit);
+}
+// et apres un rechargement : c'est la que le degat se voyait
+await p.reload({waitUntil:'networkidle0'});
+await p.waitForFunction(()=>window.__MS&&window.__SS,{timeout:9000});
+await new Promise(r=>setTimeout(r,900));
+const apresF5 = await p.evaluate(()=>[...document.getElementById('stStratSel').options]
+  .filter(o=>!o.value.startsWith('__')&&!o.disabled).length);
+dit('le selecteur survit au rechargement', apresF5===2, apresF5 + ' strat(s)');
+
 dit('rien ne casse', bruit.length===0, bruit.slice(0,3).join('\n       '));
 
 await b.close(); fs.rmSync(dl,{recursive:true,force:true});

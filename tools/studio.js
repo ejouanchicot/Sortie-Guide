@@ -423,6 +423,16 @@
       toast('Ce fichier ne contient pas de strat — il faut un guide exporté d’ici.','err');
       return;
     }
+    /* On regarde AVANT d'écrire. Un fichier dont les chapitres n'ont pas la
+       forme attendue entrait quand même en bibliothèque, et c'est l'affichage
+       qui tombait ensuite : plus de sélecteur de strats, et le témoin annonçait
+       « le navigateur refuse d'écrire, mémoire pleine » — faux. Les strats du
+       lead étaient toujours là, simplement plus atteignables. */
+    if(!BI.lisible(s)){
+      toast('Ce guide est abîmé : ses chapitres ne sont pas lisibles. '
+          + 'Rien n’a été ajouté — demande le fichier à nouveau.','err');
+      return;
+    }
     // Deux entrées du même nom dans la liste seraient impossibles à départager :
     // on numérote à partir de la deuxième.
     var noms = (await BI.liste()).map(function(x){ return x.nom; });
