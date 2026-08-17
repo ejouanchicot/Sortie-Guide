@@ -37,7 +37,8 @@ const p = await b.newPage();
 const bruit = []; p.on('pageerror', e => bruit.push(String(e)));
 await p.setViewport({width:1400, height:1000});
 await p.goto('http://localhost:8137/index.html', {waitUntil:'networkidle0'});
-await new Promise(r=>setTimeout(r,900));
+// le guide se dessine en JavaScript APRÈS networkidle0 : on attend ce qu'on lit
+await p.waitForFunction(() => document.querySelectorAll('.card, .phase').length > 0, {timeout:15000});
 
 /* On lit les teintes TELLES QUE LE NAVIGATEUR LES CALCULE — pas telles qu'on
    les a ecrites dans la feuille. Une variable redefinie ailleurs se verrait. */

@@ -19,7 +19,7 @@
    manques quand les icones sont arrivees. Ce test tient ces
    quatre-la ; le catalogue unique reste a faire.
    ============================================================ */
-import {puppeteer, STUDIO, rapport} from './navigateur.mjs';
+import {puppeteer, STUDIO, rapport, attend, cliqueJusqua} from './navigateur.mjs';
 
 const {dit, bilan} = rapport();
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
@@ -78,8 +78,7 @@ const colle = await p.evaluate(async () => {
   const f = FLOORS[0];
   f.icones = [{ico:'PLD', x:30, y:30, c:'#4c9df0'}];
   f.packs  = (f.packs || []).slice();
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1600));
+  await window.__MS.recharge();
   const avant = {ico:(f.icones||[]).length, pack:(f.packs||[]).length};
 
   const st = Konva.stages[0];
@@ -90,11 +89,14 @@ const colle = await p.evaluate(async () => {
 });
 if (colle.erreur) dit('on retrouve l\'icône sur la carte', false, colle.erreur);
 else {
-  await p.mouse.click(colle.clic.x, colle.clic.y);
-  await new Promise(r => setTimeout(r, 400));
+  // la sélection est faite quand l'anneau est posé sur la scène
+  await cliqueJusqua(p, colle.clic.x, colle.clic.y,
+                     () => Konva.stages[0].find('.selring').length > 0,
+                     'la sélection de l\'icône');
   await p.keyboard.down('Control'); await p.keyboard.press('KeyC');
   await p.keyboard.press('KeyV'); await p.keyboard.up('Control');
-  await new Promise(r => setTimeout(r, 900));
+  await attend(p, () => (FLOORS[0].icones || []).length >= 2,
+               'la seconde icône, collée');
 
   const apres = await p.evaluate(() => {
     const f = FLOORS[0];
@@ -117,8 +119,7 @@ console.log('\n— Ctrl+Z défait la pose d\'une icône —');
 const annule = await p.evaluate(async () => {
   const f = FLOORS[0];
   f.icones = [{ico:'PLD', x:30, y:30, c:'#4c9df0'}];
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1500));
+  await window.__MS.recharge();
   const depart = f.icones.length;
   /* On pose comme le lead : on prend le marqueur dans la barre et on le lâche
      sur la carte. C'est ce geste-là que Ctrl+Z doit savoir défaire. */
@@ -164,8 +165,7 @@ const calques = await p.evaluate(async () => {
   f.routes = [{n:1, el:'fire', points:'10,10 20,20'}, {n:2, el:'water', points:'30,30 40,40'}];
   f.texts  = [{x:50, y:50, s:2, t:'une note'}];
   f.shapes = [];
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1700));
+  await window.__MS.recharge();
   const lire = mot => {
     const l = [...document.querySelectorAll('.lay')].find(e => new RegExp(mot,'i').test(e.textContent));
     if (!l) return null;
@@ -196,8 +196,7 @@ const cat = await p.evaluate(async () => {
   f.mids   = [{name:'Bhoot', el:'blue', x:30, y:30}];
   f.packs  = [{name:'Acuex', el:'gray', x:40, y:40, q:'×3', ph:1}];
   f.icones = [{ico:'PLD', x:50, y:50, c:'#4c9df0'}];
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1700));
+  await window.__MS.recharge();
 
   const avant = {bosses:f.bosses.length, mids:f.mids.length,
                  packs:f.packs.length, icones:f.icones.length};

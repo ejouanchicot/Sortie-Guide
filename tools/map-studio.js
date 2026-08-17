@@ -2147,6 +2147,20 @@
   // Ce que la coque de l'outil unifié (studio.js) doit pouvoir demander :
   // les blocs à écrire, l'état « non enregistré », et de le baisser une fois
   // la sauvegarde faite. Le reste de l'atelier ne change pas.
+  /* « dessiné » et « cliquable » ne sont pas le même instant — voir recharge().
+     Le repli au chronomètre n'est pas de la ceinture-bretelles : dans un onglet
+     caché, et dans un navigateur sans affichage, requestAnimationFrame peut ne
+     jamais se déclencher. Sans lui, la promesse ne se résolvait pas du tout et
+     le test mourait sur « Runtime.callFunctionOn timed out » — une panne bien
+     pire que celle qu'on voulait éviter. */
+  function deuxImages(){
+    return new Promise(function(ok){
+      var fait = false, fin = function(){ if(!fait){ fait = true; ok(); } };
+      if(typeof requestAnimationFrame === 'function')
+        requestAnimationFrame(function(){ requestAnimationFrame(fin); });
+      setTimeout(fin, 80);
+    });
+  }
   window.__MS={
     blocs:function(){clearTimeout(histTimer);commit();return blocksToSave();},
     sale:function(){return dirty;},
@@ -2155,9 +2169,21 @@
     // la coque a charge une autre strat dans les globales : on repart de zero.
     // L'echelle des vignettes et la marge des etiquettes sont des nombres :
     // elles ne peuvent pas voyager par les globales, la coque les passe ici.
+    /* recharge REND sa promesse, et pret() celle du dernier rendu demandé.
+       Sans ça, un test n'avait aucun moyen de savoir quand la carte a fini de
+       se dessiner : il dormait 1,5 s en espérant que ça suffise. Ça suffisait
+       seul et plus forcément à quatre navigateurs en parallèle — le rouge au
+       hasard qui a coûté le passage de six tests de front à quatre.
+
+       Les DEUX images d'attente comptent : Konva reconstruit son hit-graph au
+       dessin, pas à la fin du calcul. Sans elles la carte est correcte à
+       l'écran mais ne répond pas encore au clic — un test qui cliquait tout de
+       suite ne sélectionnait rien, et c'était indiscernable d'une panne. */
     recharge:function(o){if(o){if(typeof o.mobScale==='number')mobScale=o.mobScale;
                                if(typeof o.labelMargin==='number')labelMargin=o.labelMargin;}
-                         paintGlobals();curIdx=0;renderFloor(0);resetHistory();setDirty(false);},
+                         paintGlobals();curIdx=0;var q=renderFloor(0);resetHistory();setDirty(false);
+                         return q.then(deuxImages);},
+    pret:function(){return rendFile.then(deuxImages);},
     reglages:function(){return {mobScale:mobScale,labelMargin:labelMargin};}
   };
   if(document.readyState!=='loading')boot();else window.addEventListener('DOMContentLoaded',boot);

@@ -167,8 +167,7 @@ const atelier = await st.evaluate(async (C, CA, CS) => {
   const nom = Object.keys(CARTES)[0];
   CARTES[nom].icones = [{ico:'DANGER', x:30, y:30, c:CS, label:C}];
   CARTES[nom].routes = [{n:1, el:'fire', c1:CS, points:'10,10 20,20'}];
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1600));
+  await window.__MS.recharge();
   // on ouvre le panneau des traces : c'est lui qui peignait la couleur recue
   const st2 = Konva.stages[0];
   return {pwn: !!window.__PWN,

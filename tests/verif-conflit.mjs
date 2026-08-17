@@ -12,7 +12,7 @@
      pose a tort est pire que pas de question : on apprend a repondre sans lire ;
    · quand le fichier a vraiment change ailleurs, on demande ;
    · et quoi qu'on reponde, on ne redemande pas a l'ouverture suivante. */
-import {puppeteer} from './navigateur.mjs';
+import {puppeteer, carteDessinee} from './navigateur.mjs';
 let ko = 0;
 const dit=(t,c,d)=>{ if(c) console.log('  ok   '+t); else {ko++;console.log('  KO   '+t+(d?'\n       '+d:''));} };
 
@@ -24,7 +24,7 @@ await p.setViewport({width:1500, height:950});
 const ouvre = async () => {
   await p.goto('http://localhost:8137/tools/studio.html',{waitUntil:'networkidle0'});
   await p.waitForFunction(()=>window.__MS && window.__STUDIO,{timeout:9000});
-  await new Promise(r=>setTimeout(r,1800));
+  await carteDessinee(p);
 };
 // la modale est-elle posee, et que demande-t-elle ?
 const question = () => p.evaluate(()=>{

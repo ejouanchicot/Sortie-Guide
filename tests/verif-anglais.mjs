@@ -34,7 +34,8 @@ async function ouvre(lang, avant){
   await p.evaluateOnNewDocument(l => { try { localStorage.setItem('sortie_lang', l); } catch(e){} }, lang);
   if(avant) await avant(p);
   await p.goto(GUIDE, {waitUntil:'networkidle0'});
-  await new Promise(r => setTimeout(r, 400));
+  // le guide se dessine en JavaScript APRÈS networkidle0 : on attend ce qu'on lit
+  await p.waitForFunction(() => document.querySelectorAll('.card, .phase').length > 0, {timeout:15000});
   return {p, bruit};
 }
 

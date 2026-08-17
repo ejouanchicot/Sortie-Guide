@@ -9,7 +9,7 @@
      vide, le refermer efface ce qu'on croyait garder ;
    · le refermer sans rien taper ne doit RIEN changer ;
    · le changer doit partir dans data.js, l'ancien avec. */
-import {puppeteer} from './navigateur.mjs';
+import {puppeteer, carteDessinee} from './navigateur.mjs';
 let ko = 0;
 const dit=(t,c,d)=>{ if(c) console.log('  ok   '+t); else {ko++;console.log('  KO   '+t+(d?'\n       '+d:''));} };
 
@@ -19,7 +19,7 @@ const bruit=[]; p.on('pageerror',e=>bruit.push(String(e)));
 await p.setViewport({width:1600, height:1000});
 await p.goto('http://localhost:8137/tools/studio.html',{waitUntil:'networkidle0'});
 await p.waitForFunction(()=>window.__MS && window.__STUDIO,{timeout:9000});
-await new Promise(r=>setTimeout(r,1500));
+await carteDessinee(p);
 
 // le premier boss de la premiere carte, quel que soit le contenu du fichier
 const trace = await p.evaluate(async ()=>{

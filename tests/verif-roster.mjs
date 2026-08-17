@@ -83,8 +83,7 @@ const sans = await p.evaluate(async () => {
   const nom = Object.keys(CARTES)[0];
   const garde = CARTES[nom].roster;
   delete CARTES[nom].roster;
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1600));
+  await window.__MS.recharge();
   document.querySelector('.tool[data-tool="pin"]').click();
   await new Promise(r => setTimeout(r, 300));
   const b = document.querySelector('#ar_cat button[data-pc="boss"]');
@@ -122,8 +121,7 @@ console.log('\n— une créature que le roster ignore —');
 const filet = await p.evaluate(async () => {
   const nom = Object.keys(CARTES)[0];
   MOB['Chose'] = 'img/mobs/mob-flan.webp';       // une image que rien ne classe
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1600));
+  await window.__MS.recharge();
   document.querySelector('.tool[data-tool="pin"]').click();
   await new Promise(r => setTimeout(r, 300));
   const lu = c => { const b = document.querySelector('#ar_cat button[data-pc="' + c + '"]');

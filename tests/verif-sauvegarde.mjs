@@ -27,11 +27,14 @@ async function atelier(){
   await p.setViewport({width:1500, height:1000});
   await p.goto(STUDIO, {waitUntil:'networkidle0'});
   await p.waitForFunction(() => window.__STUDIO && window.__SS, {timeout:9000});
-  await new Promise(r => setTimeout(r, 1800));
   await p.click('#stTabStrat');
-  await new Promise(r => setTimeout(r, 400));
-  await p.evaluate(() => document.querySelector('#ssTree .ss-step')?.click());
-  await p.waitForSelector('#ssBlocs .ss-btxt', {timeout:5000});
+  /* Ce que les 1800 + 400 ms achetaient sans le dire : que la liste des étapes
+     soit là. Le clic juste en dessous porte un « ?. » qui avale son absence —
+     sans étape à cliquer, aucun bloc ne s'ouvre et l'attente suivante expire,
+     dix secondes plus loin, sur un message qui ne dit pas pourquoi. */
+  await p.waitForSelector('#ssTree .ss-step', {timeout:15000});
+  await p.evaluate(() => document.querySelector('#ssTree .ss-step').click());
+  await p.waitForSelector('#ssBlocs .ss-btxt', {timeout:8000});
   return p;
 }
 // taper une ligne, comme un lead

@@ -8,7 +8,7 @@
    courant (marqueurs, traces, textes), et l'enregistrement les grave dans
    data.js. C'est comme ca que la carte du sous-sol a perdu ses cinq boss et
    s'est retrouvee avec ceux du rez-de-chaussee. */
-import {puppeteer} from './navigateur.mjs';
+import {puppeteer, carteDessinee} from './navigateur.mjs';
 let ko = 0;
 const dit=(t,c,d)=>{ if(c) console.log('  ok   '+t); else {ko++;console.log('  KO   '+t+(d?'\n       '+d:''));} };
 
@@ -17,7 +17,7 @@ const p = await b.newPage();
 const bruit=[]; p.on('pageerror',e=>bruit.push(String(e)));
 await p.goto('http://localhost:8137/tools/studio.html',{waitUntil:'networkidle0'});
 await p.waitForFunction(()=>window.__MS && window.__SS && window.__STUDIO,{timeout:9000});
-await new Promise(r=>setTimeout(r,1000));
+await carteDessinee(p);
 
 const ctrlZ = async () => {
   await p.evaluate(()=>{ document.activeElement?.blur?.(); document.body.focus(); });

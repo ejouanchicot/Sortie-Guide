@@ -287,8 +287,7 @@ const mesures = await p.evaluate(async () => {
   const f = FLOORS[0];
   f.icones = [{ico:'PLD', x:30, y:30, c:'#4c9df0'},
               {ico:'PLD', x:60, y:30, c:'#4c9df0', t:2}];
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1700));
+  await window.__MS.recharge();
   const st = Konva.stages[0];
   const g = Array.from(st.find('.pin')).filter(n => n._meta && n._meta.kind === 'ico');
   return g.map(n => ({d: Math.round(n._iw), img: Math.round(n._ico.width()),
@@ -327,8 +326,7 @@ const B = await p.evaluate(async () => {
   const f = FLOORS[0];
   f.icones = [{ico:'DANGER', x:30, y:70, c:'#f2564d'},
               {ico:'DANGER', x:60, y:70, c:'#f2564d', b:'blanc'}];
-  window.__MS.recharge();
-  await new Promise(r => setTimeout(r, 1700));
+  await window.__MS.recharge();
   // ce que l'atelier a reellement peint autour du dessin
   const st = Konva.stages[0];
   const bords = Array.from(st.find('.pin'))

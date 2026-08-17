@@ -59,3 +59,58 @@ export function rapport() {
   };
   return {dit, bilan: () => ko};
 }
+
+/* ============================================================
+   Attendre une CONDITION, jamais une durée
+   ------------------------------------------------------------
+   Les tests dormaient 107 secondes en tout, réparties en délais
+   fixes après chaque geste. Deux défauts, et le second est le
+   pire :
+     · c'était le gros du temps de la suite ;
+     · un délai fixe ment sous charge. À six navigateurs de front,
+       deux tests différents tombaient sur deux passages
+       consécutifs et chacun passait seul — d'où le repli à
+       quatre. Le sommeil ne rend pas un test fiable, il déplace
+       le seuil auquel il devient capricieux.
+   Ces trois fonctions attendent ce qu'on veut vraiment : que la
+   carte ait fini de se dessiner, qu'un élément existe, qu'une
+   condition soit vraie. Elles échouent bruyamment au bout du
+   délai maximal, au lieu de laisser le test mesurer le vide.
+   ============================================================ */
+
+// Le rendu de l'atelier Carte est terminé. window.__MS.pret() rend la promesse
+// du dernier rendu demandé ; on attend d'abord que le crochet existe, la page
+// pouvant encore être en train de se monter.
+export async function carteDessinee(page, delai = 15000) {
+  await page.waitForFunction(() => !!(window.__MS && window.__MS.pret), {timeout: delai});
+  await page.evaluate(() => window.__MS.pret());
+}
+
+// Une condition dans la page, avec un message utile si elle n'arrive jamais.
+export async function attend(page, fn, quoi = 'la condition', delai = 10000, ...args) {
+  try { await page.waitForFunction(fn, {timeout: delai}, ...args); }
+  catch (e) { throw new Error('attente dépassée (' + delai + ' ms) : ' + quoi); }
+}
+
+// Un élément qui apparaît, puis qui est réellement visible.
+export async function apparait(page, sel, delai = 10000) {
+  await page.waitForSelector(sel, {visible: true, timeout: delai});
+  return page.$(sel);
+}
+
+/* Cliquer, puis vérifier — et recommencer si le clic n'a pas pris.
+   Konva reconstruit son hit-graph au dessin : sous charge, la carte peut être
+   juste à l'écran sans encore répondre au pointeur. Allonger un délai jusqu'à
+   ce que ça passe, c'est refaire le défaut qu'on répare ; on réessaie donc le
+   geste lui-même, ce qui est immédiat quand la scène est prête et n'échoue que
+   si elle ne l'est jamais. */
+export async function cliqueJusqua(page, x, y, condition, quoi = 'le clic', essais = 12) {
+  for (let i = 0; i < essais; i++) {
+    await page.mouse.click(x, y);
+    try {
+      await page.waitForFunction(condition, {timeout: 700});
+      return i;                       // rang de l'essai qui a pris
+    } catch (e) { /* pas encore : on refait le geste */ }
+  }
+  throw new Error('sans effet après ' + essais + ' essais : ' + quoi);
+}

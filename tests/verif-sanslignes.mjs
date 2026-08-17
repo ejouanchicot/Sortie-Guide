@@ -22,14 +22,23 @@ const p = await b.newPage();
 p.on('pageerror', e => bruit.push(String(e)));
 await p.setViewport({width:1400, height:1000});
 await p.goto(GUIDE, {waitUntil:'networkidle0'});
-await new Promise(r => setTimeout(r, 1300));
+// le guide se dessine en JavaScript APRÈS networkidle0 : on attend ce qu'on
+// vient lire, pas une durée choisie au jugé
+await p.waitForFunction(() => document.querySelectorAll('.card').length > 0, {timeout:15000});
 
-// le sous-sol, la ou vivent les TP moves
+// le sous-sol, la ou vivent les TP moves. On note ce qui est a l'ecran AVANT
+// de cliquer, et on attend que ca ait vraiment change d'etage : « 2 secondes »
+// devinait ce moment, et devinait faux des que la machine etait chargee.
+const avantEtage = await p.evaluate(() =>
+  [...document.querySelectorAll('.card .cname')].map(e => e.textContent).join('|'));
 await p.evaluate(() => {
   const b = [...document.querySelectorAll('button')].find(x => /sous-sol|basement/i.test(x.textContent));
   if (b) b.click();
 });
-await new Promise(r => setTimeout(r, 2000));
+await p.waitForFunction(a =>
+  document.querySelectorAll('.card').length > 0 &&
+  [...document.querySelectorAll('.card .cname')].map(e => e.textContent).join('|') !== a,
+  {timeout:15000}, avantEtage);
 
 console.log('\n— un TP move n\'a pas de ligne, et se lit quand meme —');
 const vus = await p.evaluate(() => [...document.querySelectorAll('.grp')]
@@ -47,9 +56,13 @@ dit('chacun garde ses effets sous son nom', vus.length > 0 && vus.every(v => v.n
 console.log('\n— mais un bloc dont les lignes sont filtrees disparait toujours —');
 const filtre = await p.evaluate(async () => {
   // on repasse au rez-de-chaussee, ou les rubriques portent de vraies lignes
+  const marque = () => [...document.querySelectorAll('.card .cname')].map(e => e.textContent).join('|');
+  const avantClic = marque();
   const b = [...document.querySelectorAll('button')].find(x => /rez-de-chauss|top floor/i.test(x.textContent));
   if (b) b.click();
-  await new Promise(r => setTimeout(r, 1200));
+  // l'etage a VRAIMENT change : on l'attend au lieu de compter jusqu'a 1200
+  for (let i = 0; i < 150 && marque() === avantClic; i++)
+    await new Promise(r => setTimeout(r, 100));
   const avec = g => g.querySelectorAll('.line').length > 0;
   const visibles = () => [...document.querySelectorAll('.grp')].filter(avec)
     .filter(g => getComputedStyle(g).display !== 'none').length;

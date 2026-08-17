@@ -100,6 +100,23 @@ const modaleVisible = p => p.evaluate(() =>
     .filter(x => /Choisir le dossier/.test(x.textContent))
     .some(x => { const r = x.getBoundingClientRect();
                  return r.width > 0 && r.height > 0 && x.offsetParent !== null; }));
+/* Attendre l'ÉTAT plutôt qu'une durée. Ces trois-là couvrent tous les délais du
+   fichier : on attendait 350 ms que la modale s'ouvre, 1400 ms que l'écriture
+   finisse, 1500 ms que le bouton se calme. Des nombres choisis pour qu'ils
+   passent sur une machine au repos, donc faux dès qu'elle ne l'est plus.
+   Chacune rend un booléen : l'assertion reste une assertion, elle échoue juste
+   tout de suite au lieu de dormir pour rien. */
+const guette = async (p, fn, delai = 12000, ...args) => {
+  try { await p.waitForFunction(fn, {timeout: delai}, ...args); return true; }
+  catch (e) { return false; }
+};
+const modaleOuverte = p => guette(p, () =>
+  [...document.querySelectorAll('button')]
+    .filter(x => /Choisir le dossier/.test(x.textContent))
+    .some(x => { const r = x.getBoundingClientRect();
+                 return r.width > 0 && r.height > 0 && x.offsetParent !== null; }), 6000);
+const boutonDit = (p, mot) => guette(p, m =>
+  document.querySelector('#stSave .st-lbl')?.textContent === m, 12000, mot);
 const repondreModale = p => p.evaluate(() =>
   [...document.querySelectorAll('button')]
     .find(x => /Choisir le dossier/.test(x.textContent))?.click());
@@ -111,13 +128,12 @@ const auRepos = await etat(p);
 dit('au repos, le bouton dit « Enregistrer »', auRepos.mot === 'Enregistrer');
 
 p.evaluate(() => document.getElementById('stSave').click());
-await new Promise(r => setTimeout(r, 350));
-dit('on explique d\'abord ce qui va etre demande', await modaleVisible(p));
+dit('on explique d\'abord ce qui va etre demande', await modaleOuverte(p));
 await repondreModale(p);
 
-await new Promise(r => setTimeout(r, 250));
+const enCours = await boutonDit(p, 'En cours…');
 const pendant = await etat(p);
-dit('pendant l\'ecriture, le bouton le dit', pendant.mot === 'En cours…', pendant.mot);
+dit('pendant l\'ecriture, le bouton le dit', enCours && pendant.mot === 'En cours…', pendant.mot);
 dit('et devient inactif, pour ne pas partir deux fois', pendant.inactif === true);
 dit('son icone tourne', pendant.cours === true);
 // Un bouton qui s'elargit pousse toute la barre du haut : c'etait 39 px, et
@@ -128,10 +144,10 @@ dit('il n\'a pas change de taille ni bouge ses voisins',
 
 // un second clic pendant l'ecriture ne doit rien relancer
 await p.evaluate(() => document.getElementById('stSave').click());
-await new Promise(r => setTimeout(r, 1400));
+const fini = await boutonDit(p, 'Enregistré');
 
 const apres = await etat(p);
-dit('une fois fini, il annonce que c\'est fait', apres.mot === 'Enregistré', apres.mot);
+dit('une fois fini, il annonce que c\'est fait', fini && apres.mot === 'Enregistré', apres.mot);
 dit('et le montre', apres.fait === true);
 dit('sans avoir bouge non plus',
     JSON.stringify(apres.boite) === JSON.stringify(auRepos.boite),
@@ -149,16 +165,18 @@ dit('et ils gardent tout ce qui n\'etait pas a changer',
     await p.evaluate(() => window.__ecrit['data.js'].includes('const CARTES=')
                         && window.__ecrit['data.js'].length > 10000));
 
-await new Promise(r => setTimeout(r, 1500));
-dit('puis le bouton revient au repos tout seul', (await etat(p)).mot === 'Enregistrer');
+dit('puis le bouton revient au repos tout seul', await boutonDit(p, 'Enregistrer'));
 
 /* ---------------- 2. toutes les fois d'apres ---------------- */
 console.log('\n— les fois suivantes —');
 await p.evaluate(() => { window.__vus = {fichier:0, dossier:0}; window.__ecrit = {}; });
 await p.evaluate(() => document.getElementById('stSave').click());
-await new Promise(r => setTimeout(r, 400));
+/* On attend que l'écriture ABOUTISSE, puis on constate qu'aucune question n'a
+   été posée. Si la modale s'était ouverte, l'écriture n'aurait pas eu lieu —
+   elle attend la réponse. Vérifier une absence après un délai fixe, c'est
+   parier sur la lenteur de la machine ; ici l'absence est déduite d'un fait. */
+await boutonDit(p, 'Enregistré');
 dit('on ne rexplique rien', (await modaleVisible(p)) === false);
-await new Promise(r => setTimeout(r, 1600));
 dit('et on ne redemande rien',
     JSON.stringify(await p.evaluate(() => window.__vus)) === '{"fichier":0,"dossier":0}',
     JSON.stringify(await p.evaluate(() => window.__vus)));
@@ -206,14 +224,14 @@ dit('le bouton Enregistrer de l\'atelier Carte est masque par la coque',
       return !el || el.offsetParent === null; }));
 
 p.evaluate(() => document.getElementById('stSave').click());
-await new Promise(r => setTimeout(r, 350));
+await modaleOuverte(p);
 await repondreModale(p);
-await new Promise(r => setTimeout(r, 1500));
+await boutonDit(p, 'Enregistré');   // l'écriture a abouti, on ne dort plus 1,5 s
 // tout est autorise : on repart a zero et on tape le raccourci
 await p.evaluate(() => { window.__vus = {fichier:0, dossier:0};
                          window.__ecrit = {}; window.__suite = []; });
 await p.keyboard.down('Control'); await p.keyboard.press('s'); await p.keyboard.up('Control');
-await new Promise(r => setTimeout(r, 2000));
+await guette(p, () => (window.__suite || []).includes('i18n.js'), 12000);   // les deux fichiers écrits
 dit('aucun second selecteur ne surgit',
     JSON.stringify(await p.evaluate(() => window.__vus)) === '{"fichier":0,"dossier":0}',
     JSON.stringify(await p.evaluate(() => window.__vus)));
@@ -228,9 +246,15 @@ await p.close();
 console.log('\n— si on designe le mauvais dossier —');
 p = await page({mauvais:true});
 p.evaluate(() => document.getElementById('stSave').click());
-await new Promise(r => setTimeout(r, 350));
+await modaleOuverte(p);
 await repondreModale(p);
-await new Promise(r => setTimeout(r, 900));
+/* Le toast vit dans le DOM en permanence, VIDE : attendre qu'il « existe » est
+   vrai tout de suite, et on lisait alors une chaîne vide. C'est son TEXTE qu'on
+   attend. (Première version de cette migration : deux rouges reproductibles.) */
+await guette(p, () => {
+  const t = document.querySelector('#stToast, .st-toast, #toast');
+  return !!t && t.textContent.trim().length > 0;
+}, 12000);
 const msg = await p.evaluate(() => {
   const t = document.querySelector('#stToast, .st-toast, #toast');
   return t ? t.textContent : '';
@@ -238,7 +262,7 @@ const msg = await p.evaluate(() => {
 dit('on le dit, en nommant ce qu\'on cherchait', /dossier/i.test(msg) && /data\.js/.test(msg), msg);
 dit('et rien n\'a ete ecrit',
     (await p.evaluate(() => Object.keys(window.__ecrit))).length === 0);
-dit('le bouton est revenu au repos', (await etat(p)).mot === 'Enregistrer');
+dit('le bouton est revenu au repos', await boutonDit(p, 'Enregistrer'));
 
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
