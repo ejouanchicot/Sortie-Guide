@@ -470,8 +470,51 @@
      strat (une par combinaison de remplaçants), et donc les boutons du guide.
      Un seul job par créneau = une seule façon de jouer, aucun sélecteur. */
   var TAILLES = [6, 12, 18];
+  /* Une compo écrite AVANT le 13 août 2026 se décrivait autrement :
+       {taille, jobs:[…], variantes:[{nom, jobs:[…]}, …]}
+     compoCreneaux rendait [] sans un mot — et une compo vide ressemble à une
+     strat qu'on n'a pas encore remplie. Rien ne signalait la perte : le lead
+     rouvrait sa strat, trouvait le panneau Compo vide, travaillait, et le
+     premier enregistrement retirait COMPO de data.js pour de bon. Les boutons
+     de variante disparaissaient du guide, et plus personne ne savait qui
+     remplaçait qui.
+
+     On refait donc les places à partir des façons de jouer : chaque position
+     d'une variante donne une place, et les jobs qui diffèrent d'une variante
+     à l'autre à cette position sont les remplaçants.
+
+       jobs      MNK BRD COR GEO RDM PLD DNC
+       PLD       MNK BRD COR GEO RDM PLD
+       DNC       MNK BRD COR GEO RDM DNC
+        ⇒        [MNK] [BRD] [COR] [GEO] [RDM] [PLD, DNC]
+
+     Sans variantes exploitables, une place par job : on perd qui remplace
+     qui — l'ancienne forme ne le disait pas non plus — mais aucun job.
+     La reprise ne s'écrit nulle part : c'est le prochain enregistrement qui
+     range la compo au format d'aujourd'hui, comme pour les chemins d'images. */
+  function creneauxDepuisVariantes(vs){
+    var L = (vs[0].jobs || []).length;
+    if(!L) return null;
+    var alignees = vs.every(function(v){ return v.jobs && v.jobs.length === L; });
+    if(!alignees) return null;
+    var out = [];
+    for(var i = 0; i < L; i++){
+      var vus = {}, cr = [];
+      vs.forEach(function(v){
+        var j = v.jobs[i];
+        if(j && !vus[j]){ vus[j] = 1; cr.push(j); }
+      });
+      if(cr.length) out.push(cr);
+    }
+    return out.length ? out : null;
+  }
   function compoCreneaux(c){
     if(c && c.creneaux) return c.creneaux.map(function(x){ return x.slice(); });
+    if(c && c.variantes && c.variantes.length){
+      var repris = creneauxDepuisVariantes(c.variantes);
+      if(repris) return repris;
+    }
+    if(c && c.jobs && c.jobs.length) return c.jobs.map(function(j){ return [j]; });
     return [];
   }
   function compoJobs(c){
