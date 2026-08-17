@@ -260,8 +260,10 @@
      lead devant le voile et le spinner, pour toujours. Aucun toast, aucun
      message, la seule trace dans une console qu'il n'ouvre pas. Il rechargeait,
      même résultat, puisque la strat vient de la bibliothèque.
-     Le finally éteint le voile quoi qu'il arrive ; le catch dit ce qui a
-     échoué, à l'endroit où la carte aurait dû s'afficher. */
+     Le voile ne s'éteint donc plus depuis le fond du dessin, mais ICI, après
+     le try : quel que soit le chemin pris, on repasse par cette ligne. Et
+     quand ça échoue, le catch écrit la panne à l'endroit même où la carte
+     aurait dû s'afficher. */
   async function rendEtage(idx){
     try{ await rendEtageOuPanne(idx); }
     catch(e){
@@ -270,7 +272,7 @@
         + 'Sa strat contient quelque chose que l’atelier ne sait pas relire. '
         + 'Change de chapitre, ou rouvre une autre strat depuis la bibliothèque.';
       loadmsg.style.maxWidth='34em';loadmsg.style.textAlign='center';loadmsg.style.lineHeight='1.5';
-      return;   // le voile RESTE, mais il explique — c'est le finally qui le lève sinon
+      return;   // on sort AVANT la ligne qui éteint : le voile reste, et il explique
     }
     loadingEl.style.display='none';
   }
