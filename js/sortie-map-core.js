@@ -543,13 +543,39 @@
     ['startNode','departNom'], ['bosses','bosses'], ['packs','packs'], ['mids','mids'],
     ['routes','routes'], ['texts','texts'], ['shapes','shapes'], ['icones','icones'],
     ['zones','zones'], ['roster','roster']];
+  /* Ce que vaut un champ quand la carte ne le porte pas — ou quand la carte
+     elle-même n'existe pas. Les TABLEAUX valent [], jamais null : le guide les
+     parcourt sans les tester (f.bosses.forEach, f.bosses.length), et un
+     chapitre qui désignait une carte disparue emportait TOUTE la strat —
+     vue d'ensemble affichée, barre de navigation aux ancres mortes, et rien
+     en dessous. setFloor ayant jeté, ni le filtre ni la restauration du rôle
+     ne tournaient non plus. Il suffisait de renommer une carte pendant qu'un
+     chapitre la désigne encore, ou d'ouvrir une strat reçue au registre
+     incomplet. Le guide s'affiche maintenant amputé, mais VIVANT.
+
+     Les tests existants sont tous de la forme « f.zones && f.zones.length » :
+     [] y est aussi faux que null, rien ne change à l'écran.
+
+     roster garde null : absent veut dire « propose tout le catalogue », alors
+     que [] voudrait dire « ne propose rien ». */
+  var VIDE_CARTE = {points:'', startNode:'', map:null, start:null, roster:null,
+                    bosses:[], packs:[], mids:[], routes:[], texts:[],
+                    shapes:[], icones:[], zones:[]};
+  // un tableau NEUF par chapitre : partager la même référence ferait apparaître
+  // sur un chapitre le marqueur qu'on vient de poser sur un autre
+  function videPour(nom){
+    var v = VIDE_CARTE[nom];
+    return Array.isArray(v) ? [] : (v === undefined ? null : v);
+  }
   function resoudreCartes(floors, cartes){
     (floors || []).forEach(function(f){
       var c = (cartes || {})[f.carte];
-      if(!c) return;
       CHAMPS_CARTE.forEach(function(p){
-        var v = c[p[1]];
-        f[p[0]] = (v === undefined) ? (p[0] === 'points' || p[0] === 'startNode' ? '' : null) : v;
+        // Sans carte, on part de ce que le chapitre porte déjà : les strats
+        // écrites avant que la carte devienne un module désigné gardaient
+        // leurs marqueurs sur le chapitre lui-même. Les écraser les perdrait.
+        var v = c ? c[p[1]] : f[p[0]];
+        f[p[0]] = (v === undefined || v === null) ? videPour(p[0]) : v;
       });
     });
     return floors;
