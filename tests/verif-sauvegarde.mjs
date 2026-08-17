@@ -44,6 +44,13 @@ async function tape(p, txt){
     ta.value = ta.value + '\n' + t;
     ta.dispatchEvent(new Event('input', {bubbles:true}));
   }, txt);
+  /* CE DÉLAI RESTE, après deux tentatives de le remplacer.
+     On attend la sauvegarde silencieuse, qui est débouncée — un timer du code.
+     Attendre que la ligne apparaisse en bibliothèque marche… sauf que ce
+     fichier CASSE l'écriture exprès, et qu'un onglet y passe en lecture : dans
+     ces cas-là la ligne n'arrivera jamais, et l'attente consomme son timeout
+     entier. Le test est passé de 13 à 34 secondes avant que je m'en aperçoive.
+     Un délai fixe est ici la réponse honnête : il vaut pour les deux issues. */
   await new Promise(r => setTimeout(r, 1700));
 }
 const temoin = p => p.evaluate(() => {

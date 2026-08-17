@@ -138,7 +138,15 @@ const annule = await p.evaluate(async () => {
   cnv.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX:cx, clientY:cy}));
   cnv.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX:cx, clientY:cy}));
   btn.dispatchEvent(new DragEvent('dragend', {bubbles:true, dataTransfer:dt}));
-  await new Promise(r2 => setTimeout(r2, 900));
+  // l'icone est POSEE quand elle est dans les donnees
+  for(let i=0;i<120 && FLOORS[0].icones.length <= depart;i++)
+    await new Promise(r2 => setTimeout(r2, 25));
+  /* Puis on laisse l'HISTORIQUE se poser. Il est débouncé — c'est un timer du
+     code, pas un état qu'on peut observer — et le Ctrl+Z de la section suivante
+     n'a rien à défaire tant qu'il n'a pas commité. Accélérer jusqu'ici sans ce
+     délai rendait l'annulation sans effet, et le test rouge pour une raison qui
+     n'avait rien à voir avec ce qu'il vérifie. */
+  await new Promise(r2 => setTimeout(r2, 500));
   return {depart, pose: FLOORS[0].icones.length};
 });
 if (annule.erreur) dit('on pose une icône de plus', false, annule.erreur);
@@ -147,7 +155,9 @@ else if (annule.pose !== annule.depart + 1) {
 } else {
   dit('on pose une icône de plus', true, annule.depart + ' → ' + annule.pose);
   await p.keyboard.down('Control'); await p.keyboard.press('KeyZ'); await p.keyboard.up('Control');
-  await new Promise(r => setTimeout(r, 900));
+  // Ctrl+Z a DEFAIT la pose : on l'attend au lieu de compter
+  await attend(p, n => (FLOORS[0].icones || []).length === n,
+               'le retour au nombre d\'icônes d\'avant', 12000, annule.depart);
   const apres = await p.evaluate(() => ({
     n: (FLOORS[0].icones || []).length,
     dessinees: Konva.stages[0].find('.pin').filter(x => x._meta && x._meta.kind === 'ico').length

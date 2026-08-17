@@ -109,7 +109,9 @@ const nu = await p.evaluate(async () => {
     clientX:r.left + r.width * .4, clientY:r.top + r.height * .4}));
   cnv.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt,
     clientX:r.left + r.width * .4, clientY:r.top + r.height * .4}));
-  await new Promise(r => setTimeout(r, 900));
+  // le boss est POSE quand il est dans les donnees
+  for(let i=0;i<120 && f.bosses.length <= avant;i++)
+    await new Promise(r => setTimeout(r, 25));
   const bo = f.bosses[f.bosses.length - 1];
   return {avant, apres: f.bosses.length, nom,
           hl: bo && bo.hl, nx: bo && bo.nx, n: bo && bo.n,

@@ -65,7 +65,9 @@ const trace = await p.evaluate(async ()=>{
     .find(x=>/diter le label/i.test((x.title||'')+' '+(x.textContent||'')));
   if(!crayon2) return {non:'la carte de propriétés ne revient pas après l\'édition'};
   crayon2.click();
-  await new Promise(r=>setTimeout(r,800));
+  // la boite d'edition revient : on l'attend, comme plus haut
+  for(let i=0;i<80 && !document.getElementById('mped');i++)
+    await new Promise(r=>setTimeout(r,25));
   ed = document.getElementById('mped');
   ed.innerHTML = 'LIBELLE CHANGE';
   ed.dispatchEvent(new Event('input', {bubbles:true}));

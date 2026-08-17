@@ -88,7 +88,11 @@ const filtre = await p.evaluate(async () => {
 
   document.querySelector('#jobs .jobchip[data-j="' + utilisable + '"]').click();
   solo.click();
-  await new Promise(r => setTimeout(r, 900));
+  // le filtre a pris quand le mode Solo est actif ET qu'il a masque quelque chose
+  for(let i=0;i<120;i++){
+    if(document.body.classList.contains('solo') && visibles() < avant) break;
+    await new Promise(r => setTimeout(r, 25));
+  }
   return {avant, apres:visibles(), job:utilisable, candidats:candidats.length, possible:true};
 });
 if (!filtre.possible) {

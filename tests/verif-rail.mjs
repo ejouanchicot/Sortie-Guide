@@ -56,7 +56,11 @@ async function etage(nom, motif){
         && document.querySelectorAll('.phase').length > 0;
   }, {timeout:15000}, motif);
   await parcourir();
-  await new Promise(r => setTimeout(r, 900));
+  // le rail est en place quand sa hauteur est calculee : c'est elle qu'on lit
+  await p.waitForFunction(() => {
+    const tl = document.querySelector('.timeline');
+    return !!tl && parseFloat(tl.style.getPropertyValue('--rail-bottom')) > 0;
+  }, {timeout:15000}).catch(() => {});
   return p.evaluate(() => {
     const tl = document.querySelector('.timeline'), tr = tl.getBoundingClientRect();
     const bas = parseFloat(tl.style.getPropertyValue('--rail-bottom')) || 0;

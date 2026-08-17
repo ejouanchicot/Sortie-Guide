@@ -44,7 +44,11 @@ for(let i = 1; i <= TOURS; i++){
   await p.goto(STUDIO, {waitUntil:'networkidle0'});
   await p.waitForFunction(() => window.Konva && Konva.stages.length
                              && Konva.stages[0].find('.pin').length > 0, {timeout:9000});
-  // laisser le temps au second rendu de faire des degats s'il en fait
+  /* CE DÉLAI RESTE, et c'est voulu. Tout ce fichier attend une ABSENCE : qu'un
+     second rendu ne double PAS les marqueurs. On ne peut pas attendre qu'un
+     événement n'arrive pas — il faut lui laisser sa chance, puis constater.
+     C'est le seul cas de la suite où un nombre de millisecondes est la bonne
+     réponse ; le remplacer par une condition rendrait le test aveugle. */
   await new Promise(r => setTimeout(r, 1500));
   const r = await releve(p);
   dernier = r;
@@ -65,7 +69,8 @@ for(let i = 1; i <= TOURS; i++){
       for(const v of [autre, dep]){
         await p.evaluate(x => { const s = document.getElementById('carteSel');
           s.value = x; s.dispatchEvent(new Event('change')); }, v);
-        await new Promise(t => setTimeout(t, 1100));
+        // le crochet rend la promesse du rendu en cours
+        await p.evaluate(() => window.__MS && window.__MS.pret && window.__MS.pret());
       }
       const ar = await releve(p);
       dit('changer de carte et revenir ne change rien',
