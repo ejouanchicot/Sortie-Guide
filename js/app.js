@@ -281,7 +281,12 @@ function buildTimeline(f){
     const buffsHtml = STRATR.buffsHtml(p.buffs, BUFFS[p.buffs]);
     const numPill=(k)=>{const bb=bossByN[k];return '<span class="segpill" style="--sc:'+window.SORTIE.couleurSure(bb?ELC[bb.el]:'var(--dim)','var(--dim)')+'">'+esc(k)+'</span>';};
     const fromHtml=p.n===1?'<span class="segstart">Start</span>':numPill(p.n-1);
-    const segHtml='<span class="pseg">'+fromHtml+'<span class="segar">→</span>'+numPill(p.n)+'</span>';
+    // « phseg » et pas « pseg » : les trois règles de style visent phseg, comme
+    // phcard, phtag, phtitle et phroute juste à côté. Avec la faute, le repère
+    // « Start → ① » sortait en texte courant blanc au lieu du petit marqueur en
+    // chasse fixe, sans inline-flex — la flèche et les pastilles ne s'alignaient
+    // pas. Sur les quatre étapes, à chaque ouverture du guide.
+    const segHtml='<span class="phseg">'+fromHtml+'<span class="segar">→</span>'+numPill(p.n)+'</span>';
     const bz=bossByN[p.n]; const pc=bz?ELC[bz.el]:'var(--r-buff)'; const pc2=bz?(ZC2[bz.el]||ELC[bz.el]):'var(--r-buff)';
     sec.style.setProperty('--pc',pc); sec.style.setProperty('--pc2',pc2);
     sec.innerHTML='<div class="tlnode" style="--pc:'+window.SORTIE.couleurSure(pc,'var(--r-buff)')+';--pc2:'+window.SORTIE.couleurSure(pc2,'var(--r-buff)')+'">'+esc(p.n)+'</div>'
