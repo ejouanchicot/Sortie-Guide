@@ -16,8 +16,8 @@ node tests/lancer.mjs fond css     # ceux dont le nom contient
 
 Puppeteer : **headless, `--no-sandbox`**, son chemin vit uniquement dans
 `tests/navigateur.mjs` — ne le recopie jamais dans un test.
-Serveur : `python -m http.server 8137` à la racine (le lanceur s'en charge, et
-ne tue pas celui d'Eric s'il tourne déjà).
+Serveur : le lanceur monte `tests/serveur.mjs` sur le port 8137, et ne tue pas
+celui d'Eric s'il en trouve déjà un debout. Tu n'as rien à lancer toi-même.
 
 ## Écrire un test
 

@@ -41,8 +41,10 @@ function charge() {
 
 export const puppeteer = charge();
 
-/* L'adresse du serveur local. `python -m http.server 8137` à la racine
-   du dépôt — c'est ce que lance tests/lancer.mjs. */
+/* L'adresse du serveur local. `tests/lancer.mjs` monte `tests/serveur.mjs`
+   sur ce port, sauf s'il y trouve déjà quelque chose debout — un
+   `python -m http.server 8137` laissé ouvert à la racine fait l'affaire
+   pour travailler à la main, mais il plafonne à trois navigateurs. */
 export const RACINE = 'http://localhost:8137';
 export const STUDIO = RACINE + '/tools/studio.html';
 export const GUIDE = RACINE + '/index.html';
