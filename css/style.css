@@ -67,7 +67,9 @@
   --txt:#111823; --txt2:#38455a; --dim:#586274;
   /* le violet des débuffs s'écarte de la foudre : en plein soleil, dix-sept
      points d'écart ne suffisaient pas à séparer « Stun » de « Paralysis » */
-  --accent:#2c78c8; --accent2:#1f6fbf; --violet:#4a41a8;
+  /* l'accent porte du blanc — « Tous », le chapitre choisi, l'étape choisie.
+     À #2c78c8 il tenait 4,54, à un cheveu du seuil ; il descend d'un cran. */
+  --accent:#2a6fb8; --accent2:#1f6fbf; --violet:#4a41a8;
   --glass:rgba(255,255,255,.8);
   --shadow:0 14px 34px -16px rgba(20,30,50,.26);
   --shadow-lg:0 28px 64px -26px rgba(20,30,50,.3);
@@ -100,6 +102,11 @@
   --warn:#8a5200; --gc-mb:#0a6274; --gc-proc:#0f7361; --gc-tp:#b02a72;
 }
 :root[data-theme="light"] .ckind.boss{color:var(--violet)}
+/* L'ombre portée des trois pastilles numérotées ne sert qu'à décoller une
+   encre BLANCHE de sa pastille : elle n'existe donc que là où l'encre l'est. */
+:root[data-theme="light"] .tlnode{text-shadow:0 1px 2px rgba(0,0,0,.55)}
+:root[data-theme="light"] .segpill,
+:root[data-theme="light"] .ovnum{text-shadow:0 1px 1.5px rgba(0,0,0,.5)}
 /* Le nom de la strat est du texte transparent avec un dégradé agrafé dessus.
    Ses trois arrêts étaient les mêmes dans les deux thèmes : sur le fond clair,
    le premier tombait à 1,2 contre 1 — le mot s'effaçait de gauche à droite,
@@ -250,8 +257,15 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .tlstart .tllab{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--dim);letter-spacing:.04em}
 
 .phase{position:relative;margin:0 0 26px;padding-left:56px;scroll-margin-top:calc(var(--stickh) + 14px)}
+/* Le numéro de l'étape est posé sur la couleur de SON élément, pas sur le fond
+   de la page. Il était blanc en dur dans les deux thèmes — or en sombre les
+   couleurs d'élément sont CLAIRES : le 1 d'une phase de feu tombait à 2,41
+   contre 1, celui d'une phase sans élément à 2,26, et sur une phase de lumière
+   c'était blanc sur blanc. --badge-ink dit déjà la bonne encre : sombre quand
+   la pastille est claire, blanche quand elle est sombre. L'ombre portée, elle,
+   n'a de sens que sous une encre blanche — le thème clair la garde. */
 .tlnode{position:absolute;left:0;top:16px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-weight:800;font-size:16px;color:#fff;letter-spacing:-.3px;text-shadow:0 1px 2px rgba(0,0,0,.55);
+  font-family:var(--mono);font-weight:800;font-size:16px;color:var(--badge-ink,#0b0e12);letter-spacing:-.3px;
   background:var(--pc);border:2.5px solid #f6ead0;
   box-shadow:0 0 0 1.6px rgba(13,18,24,.92),0 0 0 5.6px var(--bg),0 0 15px -1px var(--pc);
   animation:numflash 1.35s ease-in-out infinite;z-index:2}
@@ -277,7 +291,7 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .phseg .segstart{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--dim)}
 .phseg .segar{color:var(--dim);font-weight:800;font-size:15px}
 .segpill{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--sc);
-  color:#fff;font-family:var(--mono);font-weight:800;font-size:12px;letter-spacing:-.3px;text-shadow:0 1px 1.5px rgba(0,0,0,.5);
+  color:var(--badge-ink,#0b0e12);font-family:var(--mono);font-weight:800;font-size:12px;letter-spacing:-.3px;
   border:1.8px solid #f6ead0;box-shadow:0 0 0 1.2px rgba(13,18,24,.92),0 0 9px -1px var(--sc)}
 .phtitle{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);font-weight:700;letter-spacing:0;line-height:1.18}
 .phroute{color:var(--dim);font-size:12.5px;margin-top:7px;line-height:1.45}
@@ -639,11 +653,10 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 /* marqueur de destination boss — plat, façon carte : disque couleur, liseré crème, contour encre */
 .ovnum{position:absolute;transform:translate(-50%,-50%);z-index:4;width:4.2%;aspect-ratio:1;min-width:19px;min-height:19px;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font:800 11px/1 var(--mono);color:#fff;letter-spacing:-.3px;
+  font:800 11px/1 var(--mono);color:var(--badge-ink,#0b0e12);letter-spacing:-.3px;
   background:var(--pc);
   border:2px solid #f6ead0;
-  box-shadow:0 0 0 1.4px rgba(13,18,24,.92),0 1px 3px rgba(0,0,0,.4),0 0 5px color-mix(in srgb,var(--pc) 55%,transparent);
-  text-shadow:0 1px 1.5px rgba(0,0,0,.5)}
+  box-shadow:0 0 0 1.4px rgba(13,18,24,.92),0 1px 3px rgba(0,0,0,.4),0 0 5px color-mix(in srgb,var(--pc) 55%,transparent)}
 /* tracé lisible sur tout fond : liseré sombre + trait couleur boss + pointillés blancs qui défilent */
 .ovroute .ovcase{stroke:rgba(9,13,18,.5);stroke-width:var(--cw,2.25);stroke-linecap:round;stroke-linejoin:round;fill:none}
 .ovroute .ovrail{stroke:#e5342b;stroke-width:var(--rw,1.5);stroke-linecap:round;stroke-linejoin:round;fill:none}
@@ -674,11 +687,13 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 
 /* ==== sélecteur d'étage (Top Floor / Sous-sol) ==== */
 .floorchip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:7px;font-size:11px;letter-spacing:.03em}
-.floorchip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
-.floorchip.on b{color:rgba(255,255,255,.9)}
+/* Le chapitre choisi et le secteur choisi étaient les deux seuls états actifs
+   restés en blanc dur : sur l'accent du thème sombre, du blanc tient 2,54. */
+.floorchip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+.floorchip.on b{color:var(--badge-ink,#0b0e12);opacity:.78}
 .zonechip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:7px;font-size:13px}
-.zonechip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
-.zonechip.on b{color:rgba(255,255,255,.9)}
+.zonechip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
+.zonechip.on b{color:var(--badge-ink,#0b0e12);opacity:.78}
 /* tabs de zone collés à droite de la carte (sous-sol) */
 .ovmapwrap{display:flex;gap:10px;align-items:stretch}
 .ovmapwrap > .ovmap{flex:1 1 auto;width:auto;min-width:0}
