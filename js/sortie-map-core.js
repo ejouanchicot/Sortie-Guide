@@ -180,7 +180,7 @@
   // ---- sérialisation data.js (chaînes ; format STABLE, partagé par les outils ET relu par app.js) ----
   // champs optionnels d'une pastille, omis quand ils valent le défaut → data.js propre + rétro-compatible
   function pinMeta(o){
-    var s=(o.lp&&o.lp!=='bottom')?", lp:'"+o.lp+"'":"";
+    var s=(o.lp&&o.lp!=='bottom')?", lp:'"+clefSure(o.lp,['top','left','right','bottom'],'bottom')+"'":"";
     if(o.label&&String(o.label).trim())s+=", label:'"+escJs(o.label)+"'";
     if(o.hl)s+=", hl:1";
     return s;
@@ -193,9 +193,9 @@
      pastille s'ecrivait « nx:NaN » et le guide ne se chargeait plus du tout. */
   function bossesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(b){
     var pastille=(typeof b.nx==='number'&&typeof b.ny==='number')?", nx:"+r1(b.nx)+",ny:"+r1(b.ny):"";
-    s+=" {name:'"+escJs(b.name)+"',n:"+b.n+",el:'"+b.el+"', x:"+r1(b.x)+",y:"+r1(b.y)+pastille+pinMeta(b)+"},\n";});return s+'];';}
-  function packsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(p){s+=" {name:'"+escJs(p.name)+"', el:'"+p.el+"', x:"+r1(p.x)+",y:"+r1(p.y)+", q:'"+escJs(p.q||'')+"', ph:"+p.ph+pinMeta(p)+"},\n";});return s+'];';}
-  function midsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(m){s+=" {name:'"+escJs(m.name)+"', el:'"+m.el+"', x:"+r1(m.x)+",y:"+r1(m.y)+pinMeta(m)+"},\n";});return s+'];';}
+    s+=" {name:'"+escJs(b.name)+"',n:"+nombreSur(b.n)+",el:'"+elSur(b.el)+"', x:"+r1(b.x)+",y:"+r1(b.y)+pastille+pinMeta(b)+"},\n";});return s+'];';}
+  function packsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(p){s+=" {name:'"+escJs(p.name)+"', el:'"+elSur(p.el)+"', x:"+r1(p.x)+",y:"+r1(p.y)+", q:'"+escJs(p.q||'')+"', ph:"+nombreSur(p.ph)+pinMeta(p)+"},\n";});return s+'];';}
+  function midsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(m){s+=" {name:'"+escJs(m.name)+"', el:'"+elSur(m.el)+"', x:"+r1(m.x)+",y:"+r1(m.y)+pinMeta(m)+"},\n";});return s+'];';}
 
   /* ---- les ICÔNES posées sur la carte ----
      Un job, ou un marqueur générique — « ici on se regroupe », « zone mortelle ».
@@ -291,10 +291,10 @@
   // routesConst lit rt.points (chaîne à jour) + les champs optionnels name/c1/a/fs
   function routesConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(rt){var ex='';
     if(rt.name)ex+=", name:'"+escJs(rt.name)+"'";
-    if(rt.c1)ex+=", c1:'"+rt.c1+"'";
+    if(rt.c1)ex+=", c1:'"+escJs(rt.c1)+"'";
     if(rt.a!=null&&Math.abs(rt.a-BAND_KONVA.ALPHA)>0.001)ex+=", a:"+(Math.round(rt.a*100)/100);
     if(rt.fs!=null&&Math.abs(rt.fs-1)>0.001)ex+=", fs:"+(Math.round(rt.fs*100)/100);
-    s+=" {n:"+rt.n+", el:'"+rt.el+"'"+ex+", points:'"+(rt.points||'')+"'},\n";});return s+'];';}
+    s+=" {n:"+nombreSur(rt.n)+", el:'"+elSur(rt.el)+"'"+ex+", points:'"+escJs(rt.points||'')+"'},\n";});return s+'];';}
 
   /* ---- FORMES libres : rectangle, ellipse ou image posée sur la carte ----
      Un seul type d'objet pour les trois : ils partagent centre + taille et ne diffèrent
@@ -315,13 +315,13 @@
     var ex='', def=(o.k==='img'?SHAPE_DEF.aImg:SHAPE_DEF.a);
     if(o.k==='img') ex+=", src:'"+escJs(o.src||'')+"'";
     else{
-      ex+=", c:'"+(o.c||SHAPE_DEF.c)+"'";
+      ex+=", c:'"+escJs(o.c||SHAPE_DEF.c)+"'";
       if(o.sw!=null&&Math.abs(o.sw-SHAPE_DEF.sw)>0.001)ex+=", sw:"+(Math.round(o.sw*100)/100);
       if(o.k==='rect'&&o.r)ex+=", r:"+(Math.round(o.r*100)/100);
     }
     if(o.a!=null&&Math.abs(o.a-def)>0.001)ex+=", a:"+(Math.round(o.a*100)/100);
     if(o.rot)ex+=", rot:"+r1(o.rot);
-    s+=" {k:'"+o.k+"', x:"+r1(o.x)+",y:"+r1(o.y)+", w:"+r1(o.w)+",h:"+r1(o.h)+ex+"},\n";});
+    s+=" {k:'"+clefSure(o.k,['rect','ell','img'],'rect')+"', x:"+r1(o.x)+",y:"+r1(o.y)+", w:"+r1(o.w)+",h:"+r1(o.h)+ex+"},\n";});
     return s+'];';}
 
   // ---- annotations texte : {x,y,t,s,c, al?,bg?,b?,i?,u?,st?,f?,ol?} — s = taille en % de carte
@@ -404,15 +404,37 @@
     return out;}
   // compat : anciennes lignes en texte simple (préfixes • / 1.) sans style
   function escJs(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'').replace(/\n/g,'\\n');}
+  /* ---- ce qui entre dans data.js sans guillemets autour ----
+     data.js est chargé en <script> : ce qu'on y écrit s'EXÉCUTE. Les champs
+     ci-dessous ne viennent pas tous de l'atelier — une strat reçue sur Discord
+     traverse l'import sans qu'un seul de ses champs soit relu, puis ressort par
+     ces écrivains au premier « Enregistrer ». Un « el » forgé refermait l'objet,
+     fermait le tableau, exécutait ce qu'il voulait et rouvrait un tableau bidon
+     pour que la fin du fichier reste valide. Le code partait ensuite chez tout
+     le linkshell avec le prochain git push.
+     · clefSure  — le champ ne peut valoir qu'un mot d'une liste fermée
+     · identSur  — le champ s'écrit NU (pas entre guillemets) : il doit être un
+                   nom de variable, rien d'autre. C'était le pire des cinq. */
+  function clefSure(v, permis, repli){
+    var s = String(v == null ? '' : v);
+    return permis.indexOf(s) >= 0 ? s : repli;
+  }
+  function identSur(v, repli){
+    var s = String(v == null ? '' : v);
+    return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(s) ? s : repli;
+  }
+  // Un élément inconnu retombe sur « gray », exactement comme au rendu
+  // (elHex fait déjà « EL_HEX[el] || GRAY ») : rien de nouveau à l'écran.
+  function elSur(v){ return clefSure(v, EL_KEYS, 'gray'); }
   // gras/italique/souligné/barré/couleur sont désormais INLINE (dans t) → non sérialisés au niveau bloc
   function textsConst(nm,arr){var s='const '+nm+'=[\n';(arr||[]).forEach(function(t){
     var ex='';
     if(textAlign(t)!=='c')ex+=", al:'"+textAlign(t)+"'";
-    if(t.f&&t.f!=='mono')ex+=", f:'"+t.f+"'";
+    if(t.f&&t.f!=='mono')ex+=", f:'"+clefSure(t.f,['mono','sans','serif'],'mono')+"'";
     if(t.ol===0)ex+=", ol:0"; else if(t.ol===1)ex+=", ol:1";
     if(t.bg)ex+=", bg:1";
     if(t.sh==='pill')ex+=", sh:'pill'";   // pastille ronde (« puce ») — même objet, autre forme
-    s+=" {x:"+r1(t.x)+",y:"+r1(t.y)+", t:'"+escJs(t.t)+"', s:"+(Math.round((t.s||1.5)*100)/100)+", c:'"+(t.c||'#ffffff')+"'"+ex+"},\n";});return s+'];';}
+    s+=" {x:"+r1(t.x)+",y:"+r1(t.y)+", t:'"+escJs(t.t)+"', s:"+(Math.round((t.s||1.5)*100)/100)+", c:'"+escJs(t.c||'#ffffff')+"'"+ex+"},\n";});return s+'];';}
 
   /* ---- rôle d'un job ----
      UN rôle par job, et il appartient à la strat : NIN peut tanker sur un
@@ -598,7 +620,9 @@
           if(f.introEn != null) s += ', introEn:' + JSON.stringify(f.introEn);
           // le chapitre dit lui-meme ou vivent ses etapes : sinon il fallait
           // le deviner sur son id, ce qui ne valait que pour Sortie
-          var pn = f.phasesNom || f.__phases || 'PHASES';
+          // phases s'écrit NU — c'est un nom de variable, pas une chaîne. Sans
+          // ce filtre, « 0;code() » passait tel quel et s'exécutait au chargement.
+          var pn = identSur(f.phasesNom || f.__phases, 'PHASES');
           return s + ',\n  phases:' + pn + ', phasesNom:' + JSON.stringify(pn) + '}';
         }).join(',\n')
       + '\n];';
