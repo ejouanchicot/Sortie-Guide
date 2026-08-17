@@ -18,8 +18,14 @@
   // ---- éléments : clés (ordre des palettes) ----
   var EL_KEYS = ['fire','water','ice','thunder','wind','earth','light','dark','red','blue','green','gray'];
 
-  // couleurs hex directes (fond canvas / Konva)
-  var EL_HEX = {fire:'#f2564d',water:'#4aa3e0',ice:'#5fd0d0',thunder:'#b07cff',wind:'#43c463',earth:'#96633a',light:'#ffffff',dark:'#d94fb8',red:'#f2564d',blue:'#4aa3e0',green:'#43c463',gray:'#8b93a0'};
+  /* Couleurs hex directes : Konva peint sur une toile, il n'a pas de jeton CSS.
+     Ce sont donc les MÊMES teintes que le thème sombre, recopiées à la main —
+     et c'est là le piège. Retoucher les jetons du guide sans les recopier ici
+     fait diverger les deux : le lead pose un boss de feu dans l'atelier, il le
+     voit d'un rouge, le guide le rend d'un autre, et rien ne le dit. C'est
+     arrivé : le feu, l'eau, la terre et le gris ont été éclaircis côté guide et
+     sont restés sombres ici. Les tenir alignés est vérifié par verif-teintes. */
+  var EL_HEX = {fire:'#ff827a',water:'#5cb0ea',ice:'#5fd0d0',thunder:'#c9a7ff',wind:'#43c463',earth:'#c08a55',light:'#ffffff',dark:'#e0479f',red:'#ff827a',blue:'#5cb0ea',green:'#43c463',gray:'#a6adb9'};
   // variables CSS de thème (guide + éditeur DOM — suivent clair/sombre)
   // gray était le SEUL à porter un hex en dur ici, donc le seul à ne pas suivre
   // le thème : en clair, l'étiquette d'une phase sans élément tombait à 2,41 de
@@ -29,7 +35,7 @@
   // couleur secondaire d'accent (pulsation des pastilles boss)
   var EL_ZC2 = {red:'#ff9d3a',blue:'#7ce0ff',green:'#b6ff5a',gray:'#ffffff'};
 
-  var GRAY = '#8b93a0';
+  var GRAY = '#a6adb9';   // le même gris que --e-gray : c'est le repli d'elHex
   function elHex(el){ return EL_HEX[el] || GRAY; }
 
   // ---- géométrie des marqueurs (modèle, pas rendu) ----

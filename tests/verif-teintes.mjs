@@ -106,6 +106,40 @@ for(const theme of ['dark','light']){
       'écart ' + ecart(t['--sc-fusion'], t['--sc-gravitation']));
 }
 
+/* ---------- l'atelier peint les MÊMES teintes que le guide ----------
+   Konva dessine sur une toile : il n'a pas de jeton CSS, il porte les hex
+   à la main. Les deux listes doivent donc rester jumelles, et c'est ce qui
+   a lâché : le feu, l'eau, la terre et le gris ont été éclaircis côté guide
+   et sont restés sombres côté atelier. Le lead pose un boss de feu, il le
+   voit d'un rouge, le guide le rend d'un autre, et rien ne le dit — c'est
+   le genre d'écart qu'on ne remarque qu'en comparant deux écrans. */
+console.log('\n— l\'atelier et le guide peignent la même chose —');
+const jumeaux = await p.evaluate(() => {
+  document.documentElement.setAttribute('data-theme', 'dark');   // l'atelier est sombre
+  const sonde = document.createElement('span');
+  sonde.style.cssText = 'position:fixed;left:-9999px';
+  document.body.appendChild(sonde);
+  const hex = c => '#' + c.match(/\d+/g).slice(0,3)
+    .map(x => (+x).toString(16).padStart(2,'0')).join('');
+  const out = [];
+  // on interroge le socle lui-même, élément par élément : un élément ajouté
+  // demain entre dans le contrôle sans qu'on ait à y penser
+  for(const el of window.SORTIE.EL_KEYS || ['fire','water','ice','thunder','wind',
+                                            'earth','light','dark','gray']){
+    const jeton = '--e-' + (el === 'red' ? 'fire' : el === 'blue' ? 'water'
+                          : el === 'green' ? 'wind' : el);
+    sonde.style.color = 'var(' + jeton + ')';
+    const guide = getComputedStyle(sonde).color;
+    if(!/\d/.test(guide)) continue;              // pas de jeton pour cet alias
+    out.push({el, atelier: window.SORTIE.elHex(el).toLowerCase(), guide: hex(guide)});
+  }
+  sonde.remove();
+  return out;
+});
+jumeaux.forEach(j => dit('« ' + j.el +' » est la même couleur des deux côtés',
+                         j.atelier === j.guide,
+                         'atelier ' + j.atelier + ' · guide ' + j.guide));
+
 dit('rien n\'a cassé', bruit.length === 0, bruit.slice(0,3).join('\n       '));
 await b.close();
 console.log(ko ? '\nDeux couleurs se ressemblent trop pour être lues en run.'
