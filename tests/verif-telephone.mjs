@@ -17,7 +17,7 @@
    quand on descend, que rien ne déborde sur le côté, et qu'un lead
    qui coupe les animations les coupe vraiment.
    ============================================================ */
-import {puppeteer, GUIDE, rapport} from './navigateur.mjs';
+import {puppeteer, GUIDE, STUDIO, rapport} from './navigateur.mjs';
 
 const {dit, bilan} = rapport();
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
@@ -82,6 +82,48 @@ for(const [quoi, w, h, part] of ECRANS){
       + Math.round(suit.top) + ' px du haut');
   dit('  rien ne casse', bruit.length === 0, bruit.slice(0, 2).join('\n       '));
   await p.close();
+}
+
+/* ---------- l'atelier en fenêtre réduite ----------
+   Le lead travaille souvent l'atelier dans une fenêtre posée à côté du jeu.
+   Sa barre était en une seule ligne, et body en overflow:hidden : ce qui
+   sortait de l'écran était PERDU, pas décalé. Mesuré à 768 px : « Partager »,
+   « Recharger » et « Enregistrer » entièrement hors champ, 210 px à droite,
+   et window.scrollX bloqué à 0. On ne pouvait plus enregistrer son travail.
+   On regarde donc chaque commande, pas la largeur du contenu : une barre qui
+   ne déborde pas peut très bien avoir escamoté un bouton. */
+console.log('\n— l\'atelier dans une fenêtre réduite —');
+for(const w of [1400, 1100, 900, 768, 600]){
+  const a = await b.newPage();
+  const err = [];
+  a.on('pageerror', e => err.push(String(e).slice(0, 110)));
+  await a.setViewport({width:w, height:800});
+  await a.goto(STUDIO, {waitUntil:'networkidle0'});
+  await a.waitForFunction(() => window.__MS && window.__MS.pret, {timeout:12000});
+  await a.evaluate(() => window.__MS.pret());
+  const vu = await a.evaluate(() => {
+    const cible = {'Enregistrer':'stSave', 'Partager':'stExport', 'Recharger':'stReload',
+                   'le choix de la strat':'stStratSel', 'l\'onglet Carte':'stTabMap',
+                   'l\'onglet Stratégie':'stTabStrat'};
+    const perdus = [];
+    for(const [nom, id] of Object.entries(cible)){
+      const e = document.getElementById(id);
+      if(!e){ perdus.push(nom + ' (absent)'); continue; }
+      const r = e.getBoundingClientRect();
+      if(r.width < 2 || r.height < 2) continue;             // caché volontairement
+      if(r.right > innerWidth + 1 || r.left < -1 ||
+         r.bottom > innerHeight + 1 || r.top < -1) perdus.push(nom);
+    }
+    return {perdus, deborde: document.documentElement.scrollWidth > innerWidth + 1,
+            carte: Math.round(document.querySelector('.st-panes')?.getBoundingClientRect().height || 0)};
+  });
+  dit(w + ' px : toutes les commandes restent atteignables', vu.perdus.length === 0,
+      'hors de portée : ' + vu.perdus.join(', '));
+  dit('  et rien ne déborde', !vu.deborde);
+  // une barre qui prendrait tout l'écran serait une autre façon de perdre l'outil
+  dit('  il reste de quoi travailler', vu.carte > 400, vu.carte + ' px de plan de travail');
+  dit('  rien ne casse', err.length === 0, err.slice(0, 2).join('\n       '));
+  await a.close();
 }
 
 /* ---------- couper les animations les coupe vraiment ---------- */
