@@ -63,7 +63,24 @@ const dessin = () => p.evaluate(() => {
 });
 
 console.log('\n— le geste, dans l\'atelier —');
-dit('editer un texte propose de le passer en Puce', true);
+/* C'etait « dit('…', true) » : une condition litterale, qui ne peut pas
+   rougir. La garantie tenait en realite au waitForSelector('#mped_pill') de
+   poser(), vingt lignes plus haut — donc la promesse n'etait pas fausse, mais
+   la ligne qui l'affichait ne mesurait rien et le rapport la comptait comme un
+   « ok ». On regarde la case elle-meme : presente, utilisable, et pas encore
+   cochee sur un texte ordinaire. */
+const casePuce = await p.evaluate(() => {
+  const c = document.getElementById('mped_pill');
+  if(!c) return null;
+  const r = c.getBoundingClientRect();
+  return {type:c.type, coche:!!c.checked, visible:r.width > 0 && r.height > 0,
+          desactivee:!!c.disabled};
+});
+dit('editer un texte propose de le passer en Puce',
+    !!casePuce && casePuce.type === 'checkbox' && casePuce.visible && !casePuce.desactivee,
+    JSON.stringify(casePuce));
+dit('  et elle n\'est pas cochee sur un texte ordinaire',
+    !!casePuce && !casePuce.coche, JSON.stringify(casePuce));
 
 const avant = await dessin();
 dit('un texte ordinaire n\'a pas de disque', !avant.visible && avant.rayon < avant.w / 4,

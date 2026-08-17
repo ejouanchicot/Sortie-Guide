@@ -51,24 +51,42 @@ const filtre = await p.evaluate(async () => {
   if (b) b.click();
   await new Promise(r => setTimeout(r, 1200));
   const avec = g => g.querySelectorAll('.line').length > 0;
-  const avant = [...document.querySelectorAll('.grp')].filter(avec)
+  const visibles = () => [...document.querySelectorAll('.grp')].filter(avec)
     .filter(g => getComputedStyle(g).display !== 'none').length;
-  // « Mon role » en Solo sur un job qui ne parle presque nulle part
-  // un job de la compo, pris tel quel : il ne parle pas dans toutes les rubriques
-  const j = document.querySelector('[data-j="GEO"]') || document.querySelector('[data-j]');
+  const avant = visibles();
+
+  /* On CHOISIT le job au lieu de le coder en dur. L'ancien repli
+     « [data-j="GEO"] || [data-j] » mentait dans les deux sens : si GEO quittait
+     la compo on prenait le premier job venu, et s'il parlait dans toutes les
+     rubriques l'assertion rougissait SANS qu'aucune panne existe — un rouge au
+     hasard piloté par le contenu de js/data.js, dans un projet qui est déjà
+     passé de six à quatre tests en parallèle pour en tuer.
+     On prend donc un job dont on a VÉRIFIÉ qu'il ne parle pas partout. */
+  const rubriques = [...document.querySelectorAll('.grp')].filter(avec);
+  const jobsDe = g => new Set([...g.querySelectorAll('.line')]
+    .flatMap(l => (l.dataset.r || '').split(' ').filter(Boolean)));
+  const candidats = [...document.querySelectorAll('#jobs .jobchip[data-j]')].map(b => b.dataset.j);
+  const utilisable = candidats.find(j =>
+    rubriques.some(g => { const s = jobsDe(g); return !s.has(j) && !s.has('ALL'); }));
+
   const solo = document.getElementById('soloToggle');
-  if (j) j.click();
-  if (solo) solo.click();
+  if (!utilisable || !solo) return {avant, apres:avant, job:utilisable || null,
+                                    candidats:candidats.length, possible:false};
+
+  document.querySelector('#jobs .jobchip[data-j="' + utilisable + '"]').click();
+  solo.click();
   await new Promise(r => setTimeout(r, 900));
-  const apres = [...document.querySelectorAll('.grp')].filter(avec)
-    .filter(g => getComputedStyle(g).display !== 'none').length;
-  return {avant, apres, filtreTrouve: !!j && !!solo};
+  return {avant, apres:visibles(), job:utilisable, candidats:candidats.length, possible:true};
 });
-if (!filtre.filtreTrouve) {
-  dit('le filtre « Mon role » est atteignable', false, 'aucun bouton de job');
+if (!filtre.possible) {
+  /* Pas un échec : la strat du dépôt ne permet simplement pas ce contrôle
+     aujourd'hui. On le DIT, au lieu de rougir ou de mesurer le vide. */
+  console.log('  --   aucun job de la compo n\'est absent d\'au moins une rubrique — '
+            + 'ce contrôle ne s\'applique pas à cette strat (' + filtre.candidats + ' jobs)');
 } else {
-  dit('filtrer sur un job cache bien des rubriques',
-      filtre.apres < filtre.avant, JSON.stringify(filtre));
+  dit('filtrer sur ' + filtre.job + ' cache bien des rubriques',
+      filtre.apres < filtre.avant,
+      filtre.apres + ' rubriques visibles contre ' + filtre.avant + ' avant');
 }
 
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));

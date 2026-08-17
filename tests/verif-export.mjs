@@ -38,7 +38,13 @@ const doc = await p.evaluate(async () => {
   return await window.EXPORTHTML.fabrique(s, {base:'../'});
 });
 const ko_ = Math.round(doc.length / 1024);
-dit(`un seul fichier, ${ko_} Ko en ${Date.now()-t0} ms`, doc.length > 50000);
+/* Le seuil etait « > 50 000 », soit 49 Ko, sur un fichier qui en fait 1739 :
+   un export tronque aux deux tiers passait sans broncher. On borne des deux
+   cotes — assez gros pour porter le guide, ses images et ses polices ; pas au
+   point d'avoir embarque deux fois les memes images, ce qui est arrive et que
+   le commentaire de export-html.js raconte. */
+dit(`un seul fichier, ${ko_} Ko en ${Date.now()-t0} ms`, ko_ > 900 && ko_ < 3000, ko_ + ' Ko');
+dit('  il se termine bien', /<\/html>\s*$/.test(doc), doc.slice(-40).replace(/\n/g, ' '));
 dit('plus rien a telecharger', !/(src|href)="(?!data:|#)[^"]*\.(js|css|webp|png|woff2)"/.test(doc),
     (doc.match(/(src|href)="(?!data:|#)[^"]*\.(js|css|webp|png|woff2)"/g) || []).slice(0,3).join(' '));
 dit('les images sont dedans', (doc.match(/data:image\//g) || []).length > 20,
@@ -131,10 +137,54 @@ dit('la mise en forme a suivi', vue.fond !== 'rgba(0, 0, 0, 0)', vue.fond);
 dit('rien n\'est alle chercher le reseau', casses.length === 0, casses.slice(0,3).join('\n       '));
 dit('aucune erreur a l\'ouverture', erreurs.length === 0, erreurs.slice(0,3).join('\n       '));
 
-// et il reste interactif
-await g.evaluate(() => document.querySelectorAll('#jobs button')[1]?.click());
-const apres = await g.evaluate(() => document.querySelectorAll('.card').length);
-dit('le filtre par job repond', apres > 0, String(apres));
+/* ---------- « Mon rôle » fonctionne dans le fichier partage ----------
+   L'assertion d'avant disait « apres > 0 » : vrai tant qu'il RESTE une carte,
+   donc vrai aussi si le bouton ne faisait rien — et le « ?. » avalait meme
+   l'absence du bouton. Elle ne pouvait pas rougir. C'etait pourtant la seule
+   ligne du depot censee couvrir ce geste dans un export.
+
+   Ce que le guide fait vraiment n'est PAS de masquer : le pied de page dit
+   « clique ton job pour faire ressortir tes actions », et c'est exactement ca
+   — les siennes passent en avant, les autres s'estompent. On mesure donc ce
+   qui est promis, pas ce qu'on aurait pu croire. */
+const avantF = await g.evaluate(() => {
+  const b = [...document.querySelectorAll('#jobs .jobchip')].filter(x => x.dataset.j);
+  return {boutons:b.length, job:b[0] && b[0].dataset.j,
+          total:document.querySelectorAll('.line').length,
+          jobsel:document.body.classList.contains('jobsel'),
+          match:document.querySelectorAll('.line.match').length};
+});
+dit('le guide exporte a ses boutons de job', avantF.boutons > 1 && !!avantF.job,
+    JSON.stringify(avantF));
+dit('  et rien n\'est mis en avant au depart', !avantF.jobsel && avantF.match === 0,
+    'jobsel=' + avantF.jobsel + ' match=' + avantF.match);
+
+const apres = await g.evaluate(() => {
+  const b = [...document.querySelectorAll('#jobs .jobchip')].filter(x => x.dataset.j)[0];
+  b.click();
+  const j = b.dataset.j;
+  const lignes = [...document.querySelectorAll('.line')];
+  const mis = lignes.filter(l => l.classList.contains('match'));
+  const autres = lignes.filter(l => !l.classList.contains('match')
+                                 && !(l.dataset.r || '').split(' ').includes('ALL'));
+  const op = e => parseFloat(getComputedStyle(e).opacity);
+  return {job:j, total:lignes.length, mis:mis.length,
+          // une ligne mise en avant doit vraiment porter ce job
+          etrangeres:mis.filter(l => !(l.dataset.r || '').split(' ').includes(j)).length,
+          opMis:mis.length ? Math.min(...mis.map(op)) : null,
+          opAutres:autres.length ? Math.max(...autres.map(op)) : null,
+          bouton:b.classList.contains('on'),
+          cartes:document.querySelectorAll('.card').length};
+});
+dit('cliquer un job met ses lignes en avant', apres.mis > 0 && apres.mis < apres.total,
+    apres.mis + ' lignes sur ' + apres.total + ' pour ' + apres.job);
+dit('  et ce sont bien les siennes', apres.etrangeres === 0,
+    apres.etrangeres + ' ligne(s) sans ' + apres.job + ' dans data-r');
+dit('  les autres s\'estompent pour de vrai', apres.opAutres !== null && apres.opAutres < 0.5,
+    'opacite des autres : ' + apres.opAutres);
+dit('  les siennes restent pleines', apres.opMis === 1, 'opacite des siennes : ' + apres.opMis);
+dit('  le bouton montre qu\'il est choisi', apres.bouton);
+dit('  et la page ne s\'est pas videe', apres.cartes > 0, apres.cartes + ' cartes');
 await g.close();
 
 /* ---------- 3. c'est le fichier de sauvegarde ---------- */
