@@ -10,7 +10,18 @@
 // ---- i18n FR / EN ----
 const LANG=(function(){try{var l=localStorage.getItem('sortie_lang');return l==='en'?'en':'fr';}catch(e){return 'fr';}})();
 // TR (traductions) vit dans js/i18n.js — contenu, pas moteur
-function tr(s){ return (LANG==='en' && s!=null && TR[s]!==undefined) ? TR[s] : s; }
+/* « typeof TR » et pas « TR » : le court-circuit sur LANG==='en' faisait que
+   le guide FRANÇAIS allait parfaitement bien même si i18n.js ne se chargeait
+   plus du tout — un script déplacé, un 404, une erreur de syntaxe dans les
+   280 lignes de TR. En anglais, chaque appel levait et la page restait
+   blanche : 40 tests verts, et le lead anglophone du linkshell ne voyait
+   rien. Sans i18n.js le guide s'affiche maintenant en français, ce qui est
+   lisible ; c'est tests/verif-anglais.mjs qui dit que le fichier manque. */
+function tr(s){
+  if(LANG!=='en' || s==null) return s;
+  if(typeof TR==='undefined' || !TR) return s;
+  return TR[s]!==undefined ? TR[s] : s;
+}
 
 // ---- colorisation des éléments dans le texte ----
 // Rendu d'une carte de strat : js/strat-render.js, partagé avec l'outil d'écriture
