@@ -133,6 +133,20 @@
     });
     return out;
   }
+  /* Poser un bloc juste avant la fermeture du corps de page.
+     Deux pièges, tous deux vécus, et une seule parade :
+     · `replace` traite son second argument comme un PATRON, même quand le
+       premier est une chaîne — « $& » y vaut le texte trouvé, « $' » tout ce
+       qui suit. Ce qu'on colle ici étant la strat entière, écrire « 100$& »
+       dans une ligne réinjectait « </body> » au milieu du fichier partagé.
+       Il gardait sa taille normale, s'annonçait « tout est dedans », et
+       n'affichait plus une seule carte ;
+     · une strat peut contenir « </body> » dans son texte. On vise donc le
+       DERNIER, celui de la page, jamais le premier venu. */
+  function avantFinDuCorps(doc, bloc){
+    var i = doc.lastIndexOf('</body>');
+    return i < 0 ? doc + bloc : doc.slice(0, i) + bloc + doc.slice(i);
+  }
   function remplaceTout(txt, table){
     // du plus long au plus court : « img/map.webp » ne doit pas être
     // remplacé à l'intérieur de « img/map-basement.webp »
@@ -190,10 +204,14 @@
     var doc = html
       // les feuilles et le code deviennent le contenu de la page
       .replace(/<link rel="preload"[^>]*>\s*/g, '')
+      /* Les feuilles passent par une FONCTION de remplacement, jamais par une
+         chaîne : dans une chaîne de remplacement, « $& » vaut le texte trouvé
+         et « $' » tout ce qui suit. Une seule de ces séquences quelque part
+         dans le CSS suffisait à recoller la page au milieu d'elle-même. */
       .replace(/<link rel="stylesheet" href="css\/fonts\.css">/,
-               '<style>' + compacte(poli, 'css') + '</style>')
+               function(){ return '<style>' + compacte(poli, 'css') + '</style>'; })
       .replace(/<link rel="stylesheet" href="css\/style\.css">/,
-               '<style>' + compacte(css, 'css') + '</style>')
+               function(){ return '<style>' + compacte(css, 'css') + '</style>'; })
       .replace(/<link rel="icon"[^>]*>\s*/g, '')
       // Le hors-ligne du site n'a pas de sens ici : un fichier qu'on s'échange
       // n'a pas de sw.js à côté de lui, et il est déjà entièrement sur le
@@ -218,7 +236,7 @@
           return '<script>' + sur(compacte(c, 'js')) + '</script>' + (i === 0 ? embarque : '');
         }).join('');
     doc = doc.replace(/<script src="js\/[^"]*"><\/script>\s*/g, '');
-    doc = doc.replace('</body>', scripts + '</body>');
+    doc = avantFinDuCorps(doc, scripts);
     doc = remplaceTout(doc, images);
 
     // La sauvegarde vient APRÈS le remplacement des images, et c'est capital :
@@ -226,7 +244,7 @@
     // copie de chaque image — la moitié du poids du fichier. Elle doit garder
     // les CHEMINS de toute façon : le Studio qui la relit a les vraies images,
     // et une strat réimportée n'a rien à faire de 1,3 Mo d'images en doublon.
-    doc = doc.replace('</body>', sauvegarde(strat) + '</body>');
+    doc = avantFinDuCorps(doc, sauvegarde(strat));
 
     // Le HTML en dernier : les <script> déjà compactés sont mis de côté par
     // le compacteur, qui ne touche jamais à leur contenu.
