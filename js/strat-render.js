@@ -26,6 +26,8 @@
   var escAttr = global.SORTIE.escAttr;
   // ce qui vient d'une strat reçue et part dans du HTML sans guillemets autour
   var nombreSur = global.SORTIE.nombreSur;
+  // le thème d'une rubrique part dans un attribut class : on le filtre
+  var clsSur = global.SORTIE.clsSur;
   var couleurSure = global.SORTIE.couleurSure;
   var H = {tr:function(s){return s;}, MOB:{}, ELC:{}, ROLE:{}, base:''};
   function img(nom){ return esc(H.base + H.MOB[nom]); }
@@ -282,7 +284,7 @@
       // BOÎTE (colorée mais muette) laissait sa pastille toute seule au-dessus
       // du vide, et 10 px de marge sous elle.
       var glabelHtml = (g.label || g.img)
-        ? '<div class="glabel '+(g.cls||"")+'">'+colorize(H.tr(g.label))+'</div>' : '';
+        ? '<div class="glabel '+clsSur(g.cls)+'">'+colorize(H.tr(g.label))+'</div>' : '';
       var headHtml = g.img ? '<div class="ghead">'+gthumb+glabelHtml+'</div>' : glabelHtml;
       // Une rubrique colorée SANS titre a été demandée en BOÎTE : elle doit en
       // être une, sur un farm comme sur un boss. Le cadre teinté n'existait que
@@ -297,7 +299,7 @@
          des lignes. Sept d'entre elles dans une boîte à procs en faisaient un
          mur, alors qu'elles se lisent d'un coup d'œil. */
       var serre = (!(g.lines||[]).length && (g.label || g.note)) ? ' seultitre' : '';
-      return '<div class="grp '+(g.cls||"")+(g.img?' hasimg':'')+boite+serre
+      return '<div class="grp '+clsSur(g.cls)+(g.img?' hasimg':'')+boite+serre
         +(noeud.enfants.length?' aimbrique':'')+'">'+headHtml
         // la remarque se met en forme comme le reste : c'est là qu'on écrit les
         // effets d'un TP move, sous son nom

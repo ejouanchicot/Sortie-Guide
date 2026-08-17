@@ -433,6 +433,19 @@
     var s = String(v == null ? '' : v);
     return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(s) ? s : repli;
   }
+  /* Le thème d'une rubrique (« buff », « rules proc », « tp »…) part dans un
+     attribut class. Il y arrivait NU : une strat reçue posait
+     « "><img src=x onerror=… > » et la balise naissait pour de bon, dans le
+     guide comme dans l'atelier — à la simple ouverture, sans un clic. Pire,
+     l'enregistrement la réécrivait telle quelle dans data.js : au push
+     suivant, tout le linkshell l'exécutait.
+     On n'échappe pas, on FILTRE : un thème n'est fait que de lettres, de
+     chiffres, de tirets et d'espaces. Tout le reste retombe sur « rien », ce
+     qui donne une rubrique neutre — lisible, et inoffensive. */
+  function clsSur(v){
+    var s = String(v == null ? '' : v);
+    return /^[A-Za-z][A-Za-z0-9 _-]*$/.test(s) ? s : '';
+  }
   // Un élément inconnu retombe sur « gray », exactement comme au rendu
   // (elHex fait déjà « EL_HEX[el] || GRAY ») : rien de nouveau à l'écran.
   function elSur(v){ return clefSure(v, EL_KEYS, 'gray'); }
@@ -741,6 +754,7 @@
     parsePts:parsePts, ptsStr:ptsStr,
     segDist:segDist, projectOnSeg:projectOnSeg, midpoint:midpoint, axisLock:axisLock,
     esc:esc, escAttr:escAttr, couleurSure:couleurSure, nombreSur:nombreSur, htmlSur:htmlSur,
+    clsSur:clsSur,
     BAND_KONVA:BAND_KONVA, BAND_SVG:BAND_SVG,
     /* bossesConst et iconesConst servent en interne, via TABLEAUX_CARTE : ce
        sont les tests qui les appellent nommement, pour verifier ce qu'une

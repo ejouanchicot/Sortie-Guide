@@ -20,6 +20,11 @@
    commentaire d'à côté le dira.
    ============================================================ */
 import {puppeteer, STUDIO, GUIDE, rapport} from './navigateur.mjs';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+// le fichier piégé s'ouvre depuis le DISQUE : c'est la forme sous laquelle une strat voyage
+const dossier = fs.mkdtempSync(path.join(os.tmpdir(), 'hostile-'));
 
 const {dit, bilan} = rapport();
 const b = await puppeteer.launch({headless:'new', args:['--no-sandbox']});
@@ -93,6 +98,70 @@ const entete = await p.evaluate(() => {
 dit('une taille piégée ne devient pas une balise', !entete.balise, entete.sous);
 dit('  et rien ne s\'exécute à l\'affichage', !entete.execute);
 
+/* Deux champs partaient nus dans un attribut class et dans le libellé d'un
+   bouton — donc dans du HTML, à l'ouverture du fichier et sans un clic. Le
+   sous-titre au-dessus était le SEUL couvert : celui-là avait été nommé par un
+   audit, les deux autres pas. C'est la même leçon qu'en tête de fichier, et
+   c'est pour ça qu'on teste la propriété et non la ligne. */
+console.log('\n— ni dans une classe, ni dans le nom d\'un chapitre —');
+
+const html = await p.evaluate(() => {
+  const R = window.STRATR, S = window.SORTIE;
+  R.config({tr:s=>s, MOB:{}, ELC:{}, ROLE:{}});
+  const piege = '"><img src=x onerror="globalThis.PWN3=1">';
+  const out = {};
+
+  // le thème d'une rubrique, tel que le rendu partagé le pose
+  const carte = {kind:'pack', name:'P', tag:'', groups:[
+    {label:'Rubrique', cls:piege, lines:[{r:['ALL'], t:'x'}]}]};
+  const d = document.createElement('div');
+  delete window.PWN3;
+  d.innerHTML = R.cardHtml(carte, {n:1, cards:[carte]}, {}, {});
+  document.body.appendChild(d);
+  out.cls = {balise: !!d.querySelector('img[src="x"]'), execute: window.PWN3 === 1};
+  d.remove(); delete window.PWN3;
+  // un thème honnête, lui, doit toujours arriver : « rules proc » porte l'espace
+  const sain = {kind:'pack', name:'P', tag:'', groups:[
+    {label:'R', cls:'rules proc', lines:[{r:['ALL'], t:'x'}]}]};
+  const e = document.createElement('div');
+  e.innerHTML = R.cardHtml(sain, {n:1, cards:[sain]}, {}, {});
+  out.sain = !!e.querySelector('.grp.rules.proc');
+
+  return out;
+});
+dit('un thème de rubrique piégé ne devient pas une balise', !html.cls.balise);
+dit('  et rien ne s\'exécute', !html.cls.execute);
+dit('  tandis qu\'un thème honnête arrive entier', html.sain, 'rules proc');
+
+/* Le nom d'un chapitre part dans le libellé d'un bouton du guide. On ne
+   refabrique PAS le bouton ici : une assertion qui rejoue le code à côté du
+   code ne peut pas rougir quand le vrai chemin casse — mesuré, elle est restée
+   verte pendant que le défaut était remis. On exporte donc une strat piégée et
+   on l'ouvre depuis le disque, comme un guide reçu sur Discord. */
+const f = path.join(dossier, 'chapitre.html');
+const doc = await p.evaluate(async (piege) => {
+  const s = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Essai', window.__MS.reglages());
+  s.chapitres[0].fr = piege; s.chapitres[0].en = piege;
+  return await window.EXPORTHTML.fabrique(s, {base:'../'});
+}, '"><img src=x onerror="globalThis.PWN4=1">');
+fs.writeFileSync(f, doc, 'utf8');
+
+const g2 = await b.newPage();
+await g2.goto('file:///' + f.replace(/\\/g, '/'), {waitUntil:'networkidle0'});
+await g2.waitForFunction(() => document.querySelectorAll('.floorchip').length > 0, {timeout:15000});
+const chap = await g2.evaluate(() => ({
+  balise: !!document.querySelector('.floorchip img[src="x"]'),
+  execute: window.PWN4 === 1,
+  lu: (document.querySelector('.floorchip')?.textContent || '').indexOf('<img') >= 0,
+  combien: document.querySelectorAll('.floorchip').length
+}));
+await g2.close();
+dit('un nom de chapitre piégé ne devient pas une balise', !chap.balise,
+    chap.combien + ' chapitre(s) au menu');
+dit('  et rien ne s\'exécute à l\'ouverture du fichier', !chap.execute);
+dit('  il se lit comme le texte qu\'il est', chap.lu);
+
 /* ---------- 3. le guide reçu s'affiche quand même ---------- */
 console.log('\n— et une strat honnête n\'est pas abîmée au passage —');
 
@@ -110,6 +179,7 @@ dit('et la strat s\'affiche entière', vrai.cartes > 0 && vrai.lignes > 0,
 await g.close();
 
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
+fs.rmSync(dossier, {recursive:true, force:true});
 await b.close();
 const ko = bilan();
 console.log(ko ? `\n${ko} probleme(s) : une strat recue peut encore agir.`

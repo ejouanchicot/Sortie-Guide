@@ -576,7 +576,12 @@ compEl.addEventListener("click",e=>{const b=e.target.closest(".compchip");if(b)s
 // ---- sélecteur d'étage (Top Floor / Sous-sol) ----
 const FLOOR_MAP={}; FLOORS.forEach(f=>FLOOR_MAP[f.id]=f);
 const floorEl=document.getElementById("floor");
-function floorLabel(f){ return LANG==='en'?f.en:f.fr; }
+/* Le nom d'un chapitre est du texte écrit par celui qui a fait la strat —
+   donc, pour un guide reçu, par quelqu'un d'autre. Il partait NU dans le
+   innerHTML du bouton, à côté d'un f.sub qui, lui, était échappé : une balise
+   posée là naissait pour de bon, dès l'ouverture du fichier et sans un clic.
+   Et l'atelier la réécrivait telle quelle dans data.js. */
+function floorLabel(f){ return esc(LANG==='en'?f.en:f.fr); }
 function buildFloorSwitcher(){
   if(!floorEl) return;
   FLOORS.forEach(f=>{
