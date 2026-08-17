@@ -108,6 +108,57 @@ dit('la ligne réservée à l\'autre variante est masquée',
     'affichée alors que data-comp = « ' + avec.vu.comp + ' »');
 dit('  rien ne casse', avec.err.length === 0, avec.err.slice(0, 2).join('\n       '));
 
+/* ---------- une ligne adressée à LA PLACE, pas à l'un de ses jobs ----------
+   « PLD,DNC : … » veut dire « la place 6, quel que soit celui qui la tient ».
+   Le filtre masquait la ligne dès qu'UN de ses jobs manquait à la variante :
+   elle était donc invisible dans les deux, donc nulle part, et aucun bouton
+   ne la rappelait. Mesuré : 0 état visible sur 16. Une ligne n'est masquée
+   que si AUCUN de ses jobs n'est là. */
+console.log('\n— une ligne adressée aux deux jobs d\'une même place —');
+
+const PLACE = 'La place six fait ceci';
+const docFlex = await p.evaluate(async (marque) => {
+  const s = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Essai', window.__MS.reglages());
+  const flex = window.SORTIE.compoCreneaux(s.compo).filter(c => c.length > 1)[0];
+  const g = s.chapitres[0].phases[0].cards[0].groups[0];
+  g.lines.unshift({r: flex.slice(), t: marque});
+  // et un témoin : un seul des deux jobs, qui lui DOIT se masquer ailleurs
+  g.lines.unshift({r: [flex[1]], t: marque + ' — seulement ' + flex[1]});
+  return await window.EXPORTHTML.fabrique(s, {base:'../'});
+}, PLACE);
+
+const flex = await ouvre('place-flex', docFlex);
+const vues = await (async () => {
+  const f = path.join(dossier, 'place-flex.html');
+  const g = await b.newPage();
+  await g.goto('file:///' + f.replace(/\\/g, '/'), {waitUntil:'networkidle0'});
+  await g.waitForFunction(() => document.querySelectorAll('.line').length > 0, {timeout:15000});
+  const par = [];
+  for(const c of await g.evaluate(() => [...document.querySelectorAll('.compchip')].map(x => x.dataset.c))){
+    await g.evaluate(v => document.querySelector('.compchip[data-c="' + v + '"]')?.click(), c);
+    await new Promise(r => setTimeout(r, 350));
+    par.push(await g.evaluate((m, v) => {
+      const l = [...document.querySelectorAll('.line')];
+      const laPlace = l.find(e => e.textContent.trim().endsWith(m));
+      const leSeul  = l.find(e => e.textContent.indexOf(m + ' — seulement') >= 0);
+      return {variante:v,
+              place: !!laPlace && laPlace.offsetParent !== null,
+              seul:  !!leSeul  && leSeul.offsetParent !== null};
+    }, PLACE, c));
+  }
+  await g.close();
+  return par;
+})();
+dit('la rangée des variantes est bien proposée', flex.vu.rangeeVue,
+    JSON.stringify(flex.vu.variantes));
+vues.forEach(v => dit('variante ' + v.variante + ' : la ligne de la place s\'affiche',
+                      v.place, 'elle est dans la page mais masquée'));
+/* Le témoin est indispensable : sans lui, débrancher le filtre ferait passer
+   l'assertion du dessus tout en cassant le tri par variante. */
+dit('  et une ligne d\'un seul job reste masquée là où il n\'est pas',
+    vues.some(v => !v.seul), JSON.stringify(vues));
+
 dit('rien ne casse côté atelier', bruit.length === 0, bruit.slice(0, 2).join('\n       '));
 await b.close();
 fs.rmSync(dossier, {recursive:true, force:true});

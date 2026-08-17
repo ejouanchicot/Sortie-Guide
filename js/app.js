@@ -469,7 +469,14 @@ function compHidden(el){
   if(!comp) return false;
   const dc=el.dataset.comp;
   if(dc && dc!==comp) return true;
-  return (el.dataset.r||"").split(" ").some(j=>window.SORTIE.jobExclu(COMPO,comp,j));
+  /* « every » et pas « some » : une ligne est masquée quand AUCUN de ses jobs
+     n'est là, pas dès que l'un d'eux manque. Écrire « PLD,DNC : … » — la
+     place 6, quel que soit celui qui la tient — donnait une ligne invisible
+     dans les DEUX variantes, donc nulle part. Le lead l'écrivait, la voyait
+     dans l'aperçu, publiait, et personne ne la lisait. Mesuré : 0 état
+     visible sur 16. */
+  const jobs=(el.dataset.r||"").split(" ").filter(Boolean);
+  return jobs.length>0 && jobs.every(j=>window.SORTIE.jobExclu(COMPO,comp,j));
 }
 function lineHidden(el){
   if(compHidden(el)) return true;
