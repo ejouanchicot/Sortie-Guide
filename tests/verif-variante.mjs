@@ -159,6 +159,70 @@ vues.forEach(v => dit('variante ' + v.variante + ' : la ligne de la place s\'aff
 dit('  et une ligne d\'un seul job reste masquée là où il n\'est pas',
     vues.some(v => !v.seul), JSON.stringify(vues));
 
+/* ---------- le bouton « @ » propose une variante de CETTE compo ----------
+   Il écrivait « @DNC » en dur — un nom de job du contenu, dans le moteur
+   d'écriture, ce que l'architecture interdit. Sur toute strat dont la place
+   libre n'est pas tenue par un DNC, il fabriquait une ligne que le guide ne
+   montre dans AUCUNE variante : le lead l'écrivait, la voyait dans l'aperçu,
+   publiait, et personne ne la lisait.
+   On ne vérifie donc pas qu'il écrit tel nom, mais qu'il écrit un nom QUE LA
+   COMPO CONNAÎT — sinon le contrôle se périmerait au prochain changement de
+   composition, ce qui est exactement le défaut qu'on répare. */
+console.log('\n— le bouton « @ » suit la composition —');
+const q = await b.newPage();
+await q.setViewport({width:1600, height:1000});
+await q.goto(STUDIO, {waitUntil:'networkidle0'});
+await q.waitForFunction(() => window.__SS && window.SORTIE, {timeout:9000});
+const bouton = await q.evaluate(async (flexs) => {
+  const out = [];
+  const cr = COMPO.creneaux;
+  const i = cr.findIndex(c => c.length > 1);
+  const avant = i >= 0 ? cr[i].slice() : null;
+  for(const flex of flexs){
+    if(flex){ if(i >= 0) cr[i] = flex.slice(); else cr.push(flex.slice()); }
+    else cr.forEach((c, k) => { if(c.length > 1) cr[k] = [c[0]]; });
+    const noms = window.SORTIE.compoVariantes(COMPO).map(v => v.nom);
+    window.__SS.recharge();
+    await new Promise(r => setTimeout(r, 400));
+    document.getElementById('stTabStrat').click();
+    await new Promise(r => setTimeout(r, 400));
+    document.querySelector('#ssTree .ss-step')?.click();
+    await new Promise(r => setTimeout(r, 400));
+    const ta = document.querySelector('#ssBlocs .ss-btxt');
+    let ecrit = '(pas de zone de saisie)';
+    const t = document.getElementById('ssToast');
+    if(t) t.textContent = '';
+    if(ta){
+      ta.value = 'MNK : test'; ta.selectionStart = ta.selectionEnd = 4; ta.focus();
+      const btn = document.querySelector('#ssBlocs [data-mk="comp"]') || document.querySelector('[data-mk="comp"]');
+      if(!btn) ecrit = '(bouton @ introuvable)';
+      else { btn.click();
+        // le bouton insère dans la zone qu'il pilote, pas forcément celle qu'on
+        // tient : on lit toutes les zones du bloc et on prend celle qui a bougé
+        ecrit = [...document.querySelectorAll('#ssBlocs .ss-btxt')]
+                  .map(x => x.value).find(v => /@/.test(v)) || ta.value; }
+    }
+    out.push({flex, noms, ecrit, message: (t ? t.textContent : '').slice(0, 110)});
+    if(avant && i >= 0) cr[i] = avant; else if(!avant && i < 0) cr.pop();
+  }
+  return out;
+}, [['PLD','DNC'], ['PLD','RUN'], null]);
+await q.close();
+
+bouton.forEach(c => {
+  const m = /@([A-Za-z]+)/.exec(c.ecrit);
+  if(c.flex){
+    dit('place libre ' + c.flex.join('/') + ' : il propose une variante réelle',
+        !!m && c.noms.indexOf(m[1]) >= 0,
+        'écrit « ' + c.ecrit +' » pour ' + JSON.stringify(c.noms));
+  } else {
+    /* Le témoin : aucune place libre, donc aucune variante. Écrire quand même
+       fabriquerait la ligne invisible qu'on vient de supprimer. */
+    dit('aucune place libre : il n\'écrit rien et le dit', !m && /aucune place/i.test(c.message),
+        'écrit « ' + c.ecrit + ' » · message « ' + c.message + ' »');
+  }
+});
+
 dit('rien ne casse côté atelier', bruit.length === 0, bruit.slice(0, 2).join('\n       '));
 await b.close();
 fs.rmSync(dossier, {recursive:true, force:true});

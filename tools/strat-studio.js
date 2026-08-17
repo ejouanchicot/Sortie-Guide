@@ -511,7 +511,28 @@
       else if(b.dataset.boite) insereBoite(ta, b.dataset.boite);
       else if(b.dataset.mk==='warn') marqueWarn(ta);
       else if(b.dataset.mk==='cond') insereFin(ta, '  ?');
-      else if(b.dataset.mk==='comp') insereApresRoles(ta, '@DNC');
+      else if(b.dataset.mk==='comp'){
+        /* La variante vient de la COMPO, elle n'est plus écrite en dur. « @DNC »
+           était dans le moteur d'écriture — un nom de job du contenu, ce que
+           l'architecture interdit — et sur toute strat dont la place libre
+           n'est pas tenue par un DNC, le bouton fabriquait une ligne que le
+           guide ne montre dans AUCUNE variante. Le lead l'écrivait, la voyait
+           dans l'aperçu, publiait, et personne ne la lisait.
+           On propose celle qu'on ne regarde pas : réserver une ligne à la
+           variante affichée n'apprend rien.
+           La syntaxe ne prend que des lettres (RE_LIGNE) : une variante à deux
+           places libres, nommée « PLD + DNC », ne peut pas s'écrire — on le dit
+           plutôt que d'écrire une ligne muette. */
+        var noms = S.compoVariantes(CP).map(function(v){ return v.nom; })
+                    .filter(function(n){ return /^[A-Za-z]+$/.test(n); });
+        var cible = noms.filter(function(n){ return n !== vueComp; })[0] || noms[0];
+        if(!cible){
+          toast('Cette compo ne laisse le choix sur aucune place : il n’y a pas '
+              + 'de variante à qui réserver cette ligne.','err');
+          return;
+        }
+        insereApresRoles(ta, '@'+cible);
+      }
       else if(b.dataset.mk==='sub') insereFin(ta, '\n      ');
       else if(b.dataset.mk==='titre') insereLigne(ta, 'Titre de la rubrique', true);
       else if(b.dataset.mk==='note') insereLigne(ta, '(remarque)', true);
