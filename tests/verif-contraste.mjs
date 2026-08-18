@@ -29,7 +29,7 @@
    fond, et chercher l'encre dans les pixels prenait le fond de page vu
    par un coin arrondi pour une lettre.
    ============================================================ */
-import {puppeteer, GUIDE, rapport} from './navigateur.mjs';
+import {puppeteer, GUIDE, STUDIO, rapport} from './navigateur.mjs';
 
 /* Chaque repère est peint sur SA propre couleur — c'est ce qui les réunit.
    Les états « choisi » n'existent qu'après le geste qui les produit : on le
@@ -159,6 +159,50 @@ for(const passe of [0, 1]){
    test qui devient aveugle sans le dire. On le compte. */
 dit('tous les repères ont été mesurés', manquants === 0, manquants + ' non mesuré(s)');
 dit('les deux thèmes ont bien été vus', themes[0] !== themes[1], themes.join(' puis '));
+/* ---------- et l'ATELIER, qui a la meme famille de reperes ----------
+   Le guide a ete corrige, l'atelier etait reste en arriere : ses etats actifs
+   et le numero d'etape portaient un blanc ecrit en dur. Sur l'accent, du blanc
+   tient 2,54 contre 1 ; sur le violet, 3,27. Et le numero d'etape est peint
+   sur la couleur de SON element — 2,26 a 2,41, et sur un boss de l'element
+   Lumiere, --pc vaut du blanc : le chiffre disparaissait entierement.
+   L'atelier est toujours sombre : il n'y a qu'un theme a mesurer. */
+console.log('\n— l\'atelier —');
+const at = await b.newPage();
+const bruitAt = [];
+at.on('pageerror', e => bruitAt.push(String(e).slice(0, 110)));
+await at.setViewport({width:1600, height:1000});
+await at.goto(STUDIO, {waitUntil:'networkidle0'});
+await at.waitForFunction(() => window.__SS && window.__MS, {timeout:12000});
+await at.evaluate(() => window.__MS.pret());
+await at.evaluate(() => document.getElementById('stTabStrat').click());
+await new Promise(r => setTimeout(r, 700));
+
+let manqueAt = 0;
+async function mesureAt(nom, sel){
+  const o = (await at.evaluate(MESURE, [nom, sel]))[0];
+  if(o.absent || o.sansFond){ manqueAt++;
+    console.log('  ??   ' + nom + ' — ' + (o.absent ? 'introuvable' : 'sans fond a lui'));
+    return; }
+  dit(nom + ' se lit — ' + o.c + ' contre 1', o.c >= o.seuil,
+      'il en faut ' + o.seuil + ' · encre ' + o.encre + ' sur ' + o.fond);
+}
+await mesureAt('le numero d\'une etape',      '.ss-pn');
+await mesureAt('le bouton Enregistrer',       '.st-btn.primary');
+await mesureAt('le chapitre choisi',          '.st-seg button.on');
+await mesureAt('un bouton primaire de strat', '.ss-btn.primary');
+
+/* Le cas qui disparaissait vraiment : un boss de l'element Lumiere. On pose le
+   style exactement comme strat-studio.js le fait, plutot que d'attendre qu'une
+   strat en contienne un — sinon le controle dependrait du contenu. */
+await at.evaluate(() => { const e = document.querySelector('.ss-pn');
+  if(e) e.style.setProperty('--pc', 'var(--e-light)'); });
+await mesureAt('le numero sur un boss Lumiere', '.ss-pn');
+
+dit('tous les reperes de l\'atelier ont ete mesures', manqueAt === 0,
+    manqueAt + ' non mesure(s)');
+dit('rien ne casse dans l\'atelier', bruitAt.length === 0, bruitAt.slice(0, 2).join('\n       '));
+await at.close();
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 
 await b.close();

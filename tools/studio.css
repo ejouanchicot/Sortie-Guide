@@ -95,7 +95,10 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
   background:rgba(0,0,0,.24);border:1px solid var(--hair);border-radius:12px}
 .st-seg button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--dim);
   background:transparent;border:none;border-radius:9px;padding:6px 13px;cursor:pointer;white-space:nowrap}
-.st-seg button.on{color:#fff;background:linear-gradient(135deg,var(--accent),var(--violet))}
+/* L'encre d'un etat actif suit --badge-ink, comme dans le guide : du blanc sur
+   l'accent ne tient que 2,54 contre 1, et 3,27 sur le violet. L'atelier est
+   toujours sombre, le jeton y vaut donc l'encre sombre. */
+.st-seg button.on{color:var(--badge-ink,#0b0e12);background:linear-gradient(135deg,var(--accent),var(--violet))}
 .st-seg:empty{display:none}
 
 /* ─── réglages du moment : les commandes de l'atelier actif ───
@@ -142,7 +145,7 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
    display d'auteur la bat. Le bouton « Installer » restait donc visible
    dans l'app alors que le code l'avait bien masqué. */
 [hidden]{display:none!important}
-.st-btn.primary{color:#fff;border-color:transparent;font-weight:700;
+.st-btn.primary{color:var(--badge-ink,#0b0e12);border-color:transparent;font-weight:700;
   background:linear-gradient(135deg,var(--accent),var(--violet))}
 .st-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
 
