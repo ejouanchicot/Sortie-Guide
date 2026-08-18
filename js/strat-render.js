@@ -174,7 +174,6 @@
     var cr = (compo && compo.creneaux) || [];
     var fixes = cr.filter(function(c){ return c.length === 1; });
     var flex  = cr.filter(function(c){ return c.length > 1; });
-    var bouts = [];
     /* La compo d'une strat REÇUE est du texte écrit par quelqu'un d'autre, et
        ce sous-titre part en innerHTML (app.js). « taille » y arrivait brut :
        une balise img avec un onerror s'exécutait à la SIMPLE OUVERTURE du
@@ -182,18 +181,19 @@
        C'est le seul champ de l'en-tête qui échappait à esc ; le job juste à
        côté passe par jobChip, qui échappe. */
     var n = nombreSur((compo && compo.taille), 0) || cr.length;
-    if(n) bouts.push(n + (en ? ' players' : ' joueurs'));
-    // Les flex se rattachent aux fixes par un « + » : ils complètent la même
-    // composition, ils ne sont pas une information de plus.
-    if(fixes.length || flex.length){
-      var c = fixes.length ? (en ? 'fixed ' : 'fixes ')
-        + fixes.map(function(x){ return jobChip(x[0]); }).join('') : '';
-      var f = flex.map(function(x){
-        return '1 flex (' + x.map(jobChip).join(en ? ' or ' : ' ou ') + ')'; }).join(' + ');
-      bouts.push(c && f ? (c + ' + ' + f) : (c || f));
-    }
+    /* La compo sortait d'ici en UNE phrase : « 6 joueurs · fixes MNK BRD COR
+       GEO RDM + 1 flex ( PLD ou DNC ) ». C'est un tableau déguisé en texte —
+       le lead y cherche un job, pas une lecture. On rend donc les morceaux, et
+       l'en-tête les pose : le nombre d'un côté, les postes tenus alignés, et
+       les places ouvertes à part, derrière leur « + ». */
+    var fixesHtml = fixes.map(function(x){ return jobChip(x[0]); }).join('');
+    var flexHtml = flex.map(function(x){
+      return '<span class="cflex"><i>+1 flex</i>'
+           + x.map(jobChip).join('<i>' + (en ? 'or' : 'ou') + '</i>')
+           + '</span>'; }).join('');
     return {titre: esc(nom || (en ? 'Strategy' : 'Stratégie')),
-            sous: bouts.join(' · ')};
+            taille: n,
+            compo: fixesHtml + flexHtml};
   }
 
   // ---- une ligne d'action ----

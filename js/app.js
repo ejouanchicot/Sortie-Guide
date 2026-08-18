@@ -364,7 +364,8 @@ function buildNav(f){
     // le secteur reste dans l'infobulle : sur la pastille il doublait le
     // numéro sans rien dire de plus, et volait la place du nom du boss
     a.title='Phase '+p.n+' · '+p.boss+(p.sector?' · '+tr("SECTEUR")+' '+p.sector:'');
-    a.innerHTML='<b>Phase '+esc(p.n)+'</b><span class="phwho">'+esc(p.boss)+'</span>';
+    a.innerHTML='<span class="phtxt"><span class="phk">Phase '+esc(p.n)+'</span>'
+              + '<span class="phwho">'+esc(p.boss)+'</span></span>';
     nav.appendChild(a);
   });
 }
@@ -892,7 +893,14 @@ document.documentElement.lang=LANG;
   var nom = (typeof NOM!=="undefined" && NOM) ? NOM : "";
   var e = STRATR.entete(tr(nom), (typeof COMPO!=="undefined")?COMPO:null, LANG);
   var h = document.getElementById("gTitre"); if(h) h.innerHTML = e.titre;
-  var b = document.getElementById("gSous");  if(b) b.innerHTML = e.sous;
+  var b = document.getElementById("gSous");  if(b) b.innerHTML = e.compo;
+  var s = document.getElementById("gSur");
+  if(s) s.textContent = (LANG === "en") ? "Run guide" : "Guide de run";
+  /* L'étiquette porte le nombre de joueurs : c'est le premier chiffre qu'on
+     cherche en ouvrant un guide reçu, et il tenait au milieu d'une phrase. */
+  var cl = document.getElementById("gCompoLbl");
+  if(cl) cl.textContent = (LANG === "en" ? "Composition" : "Composition")
+       + (e.taille ? " · " + e.taille + (LANG === "en" ? " players" : " joueurs") : "");
   // L'onglet nomme d'abord le contenu, l'outil ensuite : un onglet se coupe par
   // la droite, et ce qu'on cherche entre dix onglets ouverts c'est « Sortie ».
   document.title = nom + (LANG==="en" ? " · Run guide" : " · Guide de run")

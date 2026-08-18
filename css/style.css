@@ -161,9 +161,13 @@ a{color:inherit}
    et sa barre du haut EST un <header>. Une largeur maximale posée sur la
    balise nue la repliait sur deux lignes à partir de 1600 px — mesuré 157 px
    de barre à 1920. */
-.topstick header{max-width:var(--wrapw);margin:0 auto;padding:12px var(--sp) 10px;
-  display:flex;align-items:center;gap:18px}
-.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+/* TROIS ZONES, séparées d'un cheveu : qui c'est — avec qui — mes réglages.
+   L'en-tête était un titre à gauche, deux boutons à droite, et entre les deux
+   une phrase où le nombre de joueurs, les postes tenus et la place ouverte se
+   suivaient séparés par des points. On y cherchait son job. */
+.topstick header{max-width:var(--wrapw);margin:0 auto;padding:11px var(--sp) 10px;
+  display:flex;align-items:center;gap:0}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:none;padding-right:22px}
 /* La signature de l'outil, à gauche du titre de la strat. Elle tient la place
    qu'occupait un simple trait dégradé : même largeur d'accroche, mais on sait
    enfin de quoi la page sort — et on peut retourner à l'atelier d'un clic. */
@@ -176,26 +180,62 @@ a{color:inherit}
 .bmark:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media (max-width:430px){ .bmark img{width:32px;height:32px} }
 .btitle{display:flex;flex-direction:column;gap:3px;justify-content:center;min-width:0}
+/* Le sur-titre dit le métier de la page, le titre dit son contenu. C'est
+   l'ordre dans lequel on les lit, pas l'inverse : petit, en capitales
+   espacées, il se laisse survoler. */
+.bsur{font-family:var(--display);font-size:9.5px;font-weight:700;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--dim);line-height:1}
 /* Le dégradé du titre glissait en boucle, neuf secondes, indéfiniment. Un
    nom de donjon n'a pas besoin de bouger pour qu'on le lise — et c'était une
    peinture par image, sur le fil principal, pendant tout un run. */
-.btitle h1{font-family:var(--display);font-size:clamp(20px,4.6vw,27px);font-weight:700;letter-spacing:.15em;text-transform:uppercase;line-height:1;
+.btitle h1{font-family:var(--display);font-size:clamp(21px,4.6vw,28px);font-weight:800;letter-spacing:.11em;text-transform:uppercase;line-height:1;
   background:linear-gradient(95deg,#ffd76a,#ff934a 48%,#f2564d);
   -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px rgba(242,86,77,.22))}
+/* Le titre et sa ligne de compo tenaient au bord de la marque, sans rien qui
+   les rassemble. Le rail les tient : un trait de deux pixels aux couleurs du
+   titre, qui dit « tout ce qui suit appartient à cette strat ». */
+/* En fond et pas en bordure : border-image applique sa largeur aux QUATRE
+   côtés, et le titre s'est retrouvé dans un cadre orange complet. */
+.btitle{padding-left:13px;
+  background:linear-gradient(180deg,#ffd76a,#f2564d) left center/2px 82% no-repeat}
+/* La zone de compo prend la place qui reste, et pousse les réglages au bord.
+   Le cheveu à sa gauche fait tout le travail : sans lui, les jetons de job se
+   lisaient comme la suite du titre. */
+/* Deux rangées, pas trois : l'étiquette au-dessus, puis les jetons à gauche
+   et la clé des couleurs calée à droite. Empilée sous les jetons, la clé
+   allongeait l'en-tête d'une ligne et laissait un vide large à sa droite. */
+.bcompo{display:grid;grid-template-columns:minmax(0,auto) 1fr;gap:5px 18px;
+  align-items:center;min-width:0;flex:1;
+  padding-left:22px;border-left:1px solid var(--line)}
+.bclabel{grid-column:1 / -1}
+.bcompo .legend{justify-self:end}
+.bclabel{font-family:var(--display);font-size:9.5px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);line-height:1}
 .bsub{color:var(--dim);font-size:11.5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+/* Les places ouvertes ne sont pas des postes tenus : elles se rangent derrière
+   leur « + », dans leur propre boîte, et les petits mots de liaison passent en
+   gris — ce qu'on lit, ce sont les jobs. */
+.cflex{display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;border-radius:8px;
+  background:color-mix(in srgb,var(--txt) 5%,transparent);
+  border:1px dashed color-mix(in srgb,var(--line2,#3a4657) 80%,transparent)}
+.cflex i{font-style:normal;font-family:var(--mono);font-size:9px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 /* Cinq jobs encadrés l'un à côté de l'autre faisaient cinq petits boutons
    qu'on cherchait à cliquer. Ce sont des noms, pas des commandes : la couleur
    du rôle suffit à les distinguer, sur un fond à peine teiné de la même. */
 .bsub .jc{display:inline-block;font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.3px;
   padding:2px 6px;border-radius:6px;line-height:1.45;
   background:color-mix(in srgb,currentColor 15%,transparent)}
-.legend{display:none;gap:14px;flex:none;margin-left:auto;align-items:center}
-.legend span{display:flex;align-items:center;font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.3px}
-.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
+.legend{display:none;gap:14px;flex:none;align-items:center}
+.legend span{display:flex;align-items:center;font-size:9.5px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.09em}
+/* Une barre, pas un point : c'est la forme que prend cette couleur dans la
+   strat — le trait qui borde un groupe de rôle. La légende montre donc ce
+   qu'on va retrouver, et pas une autre figure de la même teinte. */
+.legend i{width:3px;height:12px;border-radius:2px;display:inline-block;margin-right:6px}
 /* Thème et langue vont ensemble : deux réglages de confort, une fois pour
    toutes. Groupés dans un même boîtier, ils cessent de flotter comme deux
    boutons perdus au bout de l'en-tête. */
-.topctl{display:flex;gap:2px;flex:none;align-items:center;padding:3px;
+.topctl{display:flex;gap:2px;flex:none;align-items:center;margin-left:22px;padding:3px;
   border:1px solid var(--line);border-radius:15px;
   background:color-mix(in srgb,var(--panel) 78%,transparent)}
 .ctlbtn{width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:15px;
@@ -215,9 +255,16 @@ a{color:inherit}
    doigt. Une barre au-delà de 20-30 % de l'écran coûte plus qu'elle ne rend :
    repliée elle en tient 6 % sur un téléphone, 6 % sur un écran de bureau.
    ========================================================================== */
-.bars{position:sticky;top:0;z-index:30;background:var(--glass);
-  backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+/* La matière de la barre. Un panneau posé sur du contenu ne s'éclaire pas
+   d'un bout à l'autre : il prend la lumière en haut et la perd en bas. D'où
+   le fond en dégradé, et surtout le liséré clair d'un pixel posé À
+   L'INTÉRIEUR de l'arête haute. Ça ne se remarque pas, et c'est précisément
+   ce qui sépare une boîte dessinée d'une boîte qui a l'air d'exister. */
+.bars{position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--glass) 96%,var(--txt)),var(--glass));
+  backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);
   border-bottom:1px solid var(--line);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--txt) 9%,transparent);
   padding:8px var(--sp);display:flex;flex-direction:column;gap:8px;
   transition:gap .3s var(--ease),box-shadow .3s ease}
 /* 0fr et pas display:none : c'est la seule façon d'animer jusqu'à « la
@@ -228,7 +275,8 @@ a{color:inherit}
 .bars.replie .barfold{grid-template-rows:0fr}
 /* décollée du haut, la barre porte une ombre : c'est ce qui la détache de la
    strat qui passe dessous, et ce qui dit qu'il y a du contenu au-dessus */
-.bars.colle{box-shadow:0 16px 36px -24px rgba(0,0,0,.95)}
+.bars.colle{box-shadow:inset 0 1px 0 color-mix(in srgb,var(--txt) 9%,transparent),
+  0 18px 40px -26px rgba(0,0,0,.95)}
 /* une ligne = une question. « Où j'en suis » au-dessus, « ce que je lis »
    en dessous ; à l'intérieur, les groupes sont séparés par un trait, sinon
    « Chapitre » et « Phases » se lisent comme une seule liste de boutons. */
@@ -256,26 +304,52 @@ a{color:inherit}
    toute seule — app.js mesure sa hauteur réelle dans --stickh. */
 .chip{border:1px solid var(--chipbd);background:var(--chip);color:var(--txt);border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none;
   min-height:44px;display:inline-flex;align-items:center;justify-content:center;
-  transition:transform .12s var(--ease),border-color .16s,background .16s,color .16s,box-shadow .16s}
-.chip:hover{border-color:var(--accent)}
-.chip:active{transform:scale(.95)}
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--txt) 6%,transparent);
+  transition:transform .14s var(--ease),border-color .16s,background .16s,color .16s,box-shadow .18s}
+/* Au survol la pastille se SOULÈVE d'un pixel et pose une ombre : c'est ce
+   qui dit qu'elle est prenable. Un simple changement de contour ne le disait
+   à personne — et il fallait le chercher pour le voir. */
+.chip:hover{border-color:color-mix(in srgb,var(--accent) 60%,var(--chipbd));
+  transform:translateY(-1px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--txt) 10%,transparent),
+             0 8px 18px -12px color-mix(in srgb,var(--accent) 80%,transparent)}
+.chip:active{transform:translateY(0) scale(.97)}
+/* Qui navigue au clavier doit voir où il est — partout, pas seulement sur la
+   marque. L'anneau se pose À CÔTÉ de la pastille : dessus, il disparaissait
+   dans le remplissage des états allumés. */
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Une étape se reconnaît à sa couleur bien avant qu'on lise son nom : c'est
    celle de son boss, la même que sur la carte, sur le rail et dans le numéro
-   de l'étape. Le point la rappelle ici — « la verte », c'est Skomora. */
-.nav .chip{padding:6px 13px;gap:8px}
-.nav .chip::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;
-  background:var(--pc,var(--dim));box-shadow:0 0 9px -2px var(--pc,transparent)}
-.nav .chip b{color:var(--txt);font-family:var(--mono);font-weight:800;letter-spacing:.02em}
-.nav .chip .phwho{color:var(--dim);font-weight:600}
-#nav .chip.navactive::before{background:var(--badge-ink,#0b0e12);opacity:.5;box-shadow:none}
+   de l'étape. « La verte », c'est Skomora.
+   Deux étages, parce qu'on ne cherche pas les deux choses en même temps : le
+   rang de l'étape (« on en est à la 3 ») et le nom du boss (« c'est Leshonn »)
+   étaient sur une seule ligne, en 12,5 px tous les deux, et l'œil devait les
+   démêler. Le rang passe au-dessus, petit et en chasse fixe ; le nom prend le
+   corps et le poids. C'est le nom qu'on lit en diagonale entre deux packs. */
+.nav .chip{padding:5px 15px 6px 11px;gap:9px}
+.nav .chip::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;
+  background:var(--pc,var(--dim));box-shadow:0 0 10px -2px var(--pc,transparent)}
+/* Les étapes d'un run se SUIVENT : un trait les relie, comme le rail qui
+   descend la strat. Sans lui, quatre pastilles côte à côte ressemblaient à
+   quatre filtres au choix ; avec, on lit un parcours, dans l'ordre. */
+.nav .chip{position:relative}
+.nav .chip + .chip::after{content:"";position:absolute;left:-8px;top:50%;
+  width:8px;height:1px;background:var(--line2,#3a4657)}
+.phtxt{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.1}
+.nav .chip .phk{font-family:var(--mono);font-weight:800;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim)}
+.nav .chip .phwho{font-size:13.5px;font-weight:700;color:var(--txt);letter-spacing:.01em}
+#nav .chip.navactive::before{background:var(--badge-ink,#0b0e12);opacity:.45;box-shadow:none}
 /* L'étape où l'on est prend la couleur de SON boss, pas celle de l'outil : la
    pastille du haut, le numéro sur le rail et le repère sur la carte
    deviennent alors le même objet. Avec l'accent violet, trois éléments qui
    désignent la même chose avaient trois couleurs. */
-#nav .chip.navactive{background:var(--pc,var(--accent));color:var(--badge-ink,#0b0e12);
-  border-color:transparent;box-shadow:0 4px 15px -6px var(--pc,var(--violet))}
-#nav .chip.navactive b{color:var(--badge-ink,#0b0e12)}
-#nav .chip.navactive .phwho{color:inherit;opacity:.7}
+#nav .chip.navactive{background:linear-gradient(180deg,var(--pc,var(--accent)),color-mix(in srgb,var(--pc,var(--accent)) 84%,#000));
+  color:var(--badge-ink,#0b0e12);border-color:transparent;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 28%,transparent),
+             0 6px 18px -8px var(--pc,var(--violet))}
+#nav .chip.navactive .phk{color:var(--badge-ink,#0b0e12);opacity:.62}
+#nav .chip.navactive .phwho{color:var(--badge-ink,#0b0e12)}
 /* ==== un choix exclusif, un boîtier ====
    Le chapitre et la comp ne sont pas des filtres : on en tient un, jamais
    zéro, jamais deux. Ils vivent donc à deux dans le même cadre, et seul celui
@@ -283,9 +357,12 @@ a{color:inherit}
    Les jobs, eux, restent des pastilles libres : on peut n'en vouloir aucune. */
 .choix{display:inline-flex;align-items:center;gap:2px;flex:none;padding:3px;
   border:1px solid var(--line);border-radius:15px;
-  background:color-mix(in srgb,var(--panel) 78%,transparent)}
-.choix .chip{min-height:38px;border-color:transparent;background:transparent;border-radius:12px}
-.choix .chip:hover{border-color:transparent;background:color-mix(in srgb,var(--txt) 8%,transparent)}
+  background:color-mix(in srgb,var(--bg) 62%,transparent);
+  box-shadow:inset 0 1px 3px color-mix(in srgb,var(--bg) 70%,transparent)}
+.choix .chip{min-height:38px;border-color:transparent;background:transparent;border-radius:12px;
+  box-shadow:none;color:var(--dim)}
+.choix .chip:hover{border-color:transparent;transform:none;color:var(--txt);
+  background:color-mix(in srgb,var(--txt) 7%,transparent);box-shadow:none}
 
 .jobchip{border-color:transparent;background:color-mix(in srgb,var(--jc) 15%,var(--chip))}
 .jobchip[data-j]{color:var(--jc)}
@@ -780,10 +857,17 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 
 /* ==== sélecteur d'étage (Top Floor / Sous-sol) ==== */
 .floorchip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:7px;font-size:11px;letter-spacing:.03em}
-/* Le chapitre choisi et le secteur choisi étaient les deux seuls états actifs
-   restés en blanc dur : sur l'accent du thème sombre, du blanc tient 2,54. */
-.floorchip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
-.floorchip.on b{color:var(--badge-ink,#0b0e12);opacity:.78}
+/* Dans cette barre, la couleur ne sert QU'À dire quelque chose : un job, un
+   rôle, un boss. Le chapitre n'est rien de tout cela — c'est un interrupteur à
+   deux positions. Il portait le bleu-violet de l'outil, qui entrait en
+   concurrence avec les couleurs qui, elles, veulent dire : on comptait cinq
+   familles de couleur sur deux rangées. La place tenue se RELÈVE, comme un
+   bouton pressé qui ressort, et c'est tout ; on lit sans avoir à traduire. */
+.floorchip.on{background:linear-gradient(180deg,color-mix(in srgb,var(--txt) 15%,var(--panel)),color-mix(in srgb,var(--txt) 9%,var(--panel)));
+  color:var(--txt);border-color:transparent;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--txt) 16%,transparent),
+             0 3px 9px -4px rgba(0,0,0,.65)}
+.floorchip.on b{color:var(--accent2);opacity:1}
 .zonechip b{color:var(--dim);font-family:var(--mono);font-weight:800;margin-right:7px;font-size:13px}
 .zonechip.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 16px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
 .zonechip.on b{color:var(--badge-ink,#0b0e12);opacity:.78}
@@ -818,6 +902,12 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
    RESPONSIVE
    ========================================================================== */
 @media (min-width:560px){
+  /* De quoi laisser la pastille se soulever au survol : la rangée coupe ce
+     qui dépasse en hauteur (c'est elle qui glisse de côté), et le pixel de
+     levée comme l'ombre passaient sous le couteau. Deux pixels suffisent, et
+     ils ne coûtent rien là où il y a une souris — au doigt, il n'y a pas de
+     survol, donc pas de place à réserver. */
+  .navrow,.jobrow{padding:2px 0}
   .ovhead{flex-wrap:nowrap}
 }
 @media (min-width:900px){
@@ -877,6 +967,16 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
      d'en-tête sur un 320. Elle glisse désormais comme les rangées de
      boutons, et le flex tiré au sort reste de toute façon à deux doigts
      dessous, dans « Comp · flex ». */
+  /* Trois zones ne tiennent pas sur 390 px : la compo passe à la ligne, et
+     l'étiquette rentre dans le rang au lieu de coûter une ligne de plus. */
+  .topstick header{flex-wrap:wrap;row-gap:8px}
+  /* L'ordre à l'écran n'est plus celui du balisage : les deux réglages
+     remontent à côté du titre, sinon la compo prenant toute la largeur les
+     renvoyait sur une troisième ligne — 155 px d'en-tête au lieu de 90. */
+  .topctl{order:1;margin-left:auto}
+  .bcompo{order:2;flex:1 0 100%;display:flex;align-items:center;gap:9px;
+    padding-left:0;border-left:0}
+  .bclabel{flex:none}
   .bsub{flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .bsub::-webkit-scrollbar{display:none}
   .barline{display:contents}

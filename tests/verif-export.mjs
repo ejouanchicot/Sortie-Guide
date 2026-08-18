@@ -115,6 +115,9 @@ await g.waitForFunction(() => [...document.images].every(i => i.complete),
 
 const vue = await g.evaluate(() => ({
   titre:document.getElementById('gTitre')?.textContent,
+  // la compo n'est plus une phrase : une etiquette qui compte les joueurs,
+  // et des jetons de job a cote
+  compte:document.getElementById('gCompoLbl')?.textContent,
   sous:document.getElementById('gSous')?.textContent,
   cartes:document.querySelectorAll('.card').length,
   phases:document.querySelectorAll('#nav a').length,
@@ -129,7 +132,10 @@ const vue = await g.evaluate(() => ({
 }));
 dit('le guide s\'affiche', vue.cartes > 0 && vue.phases > 0, JSON.stringify(vue));
 dit('le titre vient de la strat', vue.titre === 'Sortie · Nightfallens', String(vue.titre));
-dit('la composition est annoncee', /6 joueurs/.test(vue.sous || ''), String(vue.sous));
+dit('la composition est annoncee',
+    /6 joueurs/.test(vue.compte || '') && /MNK/.test(vue.sous || '')
+    && /flex/i.test(vue.sous || ''),
+    String(vue.compte) + ' | ' + String(vue.sous));
 dit('les chapitres et les jobs sont la', vue.chapitres >= 2 && vue.jobs > 3, JSON.stringify(vue));
 dit('toutes les images ont charge', vue.imgs > 0 && vue.imgsKO === 0, `${vue.imgsKO}/${vue.imgs} cassees`);
 dit('la carte est dessinee', vue.carteSVG > 0, vue.carteSVG + ' svg');

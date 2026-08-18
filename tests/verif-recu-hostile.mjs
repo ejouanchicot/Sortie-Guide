@@ -78,7 +78,7 @@ Object.entries(ecrit).forEach(([nom, r]) => {
 });
 
 /* ---------- 2. ce qui part dans le HTML du guide ---------- */
-console.log('\n— ni dans le sous-titre, qui s\'affiche sans un clic —');
+console.log('\n— ni dans la composition, qui s\'affiche sans un clic —');
 
 const entete = await p.evaluate(() => {
   const R = window.STRATR;
@@ -88,15 +88,21 @@ const entete = await p.evaluate(() => {
   // on l'injecte pour de vrai : c'est ce que fait app.js
   const d = document.createElement('div');
   delete window.PWN2;
-  d.innerHTML = e.sous;
+  d.innerHTML = e.compo;
   document.body.appendChild(d);
   const vu = {balise: !!d.querySelector('img'), execute: window.PWN2 === 1,
-              sous: e.sous.slice(0, 70)};
+              compo: e.compo.slice(0, 70), taille: e.taille,
+              nombre: typeof e.taille === 'number'};
   d.remove(); delete window.PWN2;
   return vu;
 });
-dit('une taille piégée ne devient pas une balise', !entete.balise, entete.sous);
+dit('une taille piégée ne devient pas une balise', !entete.balise, entete.compo);
 dit('  et rien ne s\'exécute à l\'affichage', !entete.execute);
+/* Le nombre de joueurs a quitté la phrase pour l'étiquette de la compo. Il n'y
+   part plus en innerHTML, mais on ne s'en remet pas à ça : ce qui le rend
+   inoffensif, c'est qu'il sorte d'ici en NOMBRE. Une chaine, et le jour où
+   quelqu'un le remettra dans du balisage, le piège repartira avec. */
+dit('  et la taille reçue reste un nombre', entete.nombre, String(entete.taille));
 
 /* Deux champs partaient nus dans un attribut class et dans le libellé d'un
    bouton — donc dans du HTML, à l'ouverture du fichier et sans un clic. Le
@@ -169,11 +175,14 @@ const g = await b.newPage();
 await g.goto(GUIDE, {waitUntil:'networkidle0'});
 await g.waitForFunction(() => document.querySelectorAll('.card').length > 0, {timeout:15000});
 const vrai = await g.evaluate(() => ({
+  compte: (document.getElementById('gCompoLbl') || {}).textContent || '',
   sous: (document.getElementById('gSous') || {}).textContent || '',
   cartes: document.querySelectorAll('.card').length,
   lignes: document.querySelectorAll('.line').length
 }));
-dit('le sous-titre annonce toujours la compo', /joueur/.test(vrai.sous), vrai.sous.slice(0, 50));
+dit('l\'en-tête annonce toujours la compo',
+    /joueur/.test(vrai.compte) && /MNK/.test(vrai.sous),
+    vrai.compte + ' | ' + vrai.sous.slice(0, 50));
 dit('et la strat s\'affiche entière', vrai.cartes > 0 && vrai.lignes > 0,
     vrai.cartes + ' cartes · ' + vrai.lignes + ' lignes');
 await g.close();
