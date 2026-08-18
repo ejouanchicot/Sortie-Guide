@@ -126,6 +126,43 @@ for(const w of [1400, 1100, 900, 768, 600]){
   await a.close();
 }
 
+/* ---------- ce qui n'est pas regardé ne tourne pas ----------
+   Les pulsations des marqueurs et des pastilles animent une OMBRE PORTÉE : le
+   navigateur repeint à chaque image, sur le fil principal. Mesuré page
+   immobile, CPU bridé ×4 : 63 % d'un cœur pendant qu'on LIT la strat, avec 29
+   animations en marche — un téléphone posé à côté du clavier chauffe pendant
+   tout le run, pour des lueurs situées hors de l'écran.
+   On ne touche pas à leur allure : elles se mettent en pause quand ce qu'elles
+   animent sort du champ, et reprennent où elles en étaient. Après : 38 % et 7
+   animations.
+   On compte les animations plutôt que le CPU — le compte est le fait, le CPU
+   dépend de la machine et rougirait au hasard sur un test parallèle. */
+console.log('\n— ce qui sort de l\'écran cesse de tourner —');
+const veille = await b.newPage();
+await veille.setViewport({width:390, height:844, isMobile:true, hasTouch:true});
+await veille.goto(GUIDE, {waitUntil:'networkidle0'});
+await veille.waitForSelector('.card', {timeout:15000});
+const compte = () => veille.evaluate(() =>
+  document.documentElement.getAnimations({subtree:true})
+    .filter(a => a.playState === 'running').length);
+await new Promise(r => setTimeout(r, 900));
+const enHaut = await compte();
+await veille.evaluate(() => window.scrollTo({top:2500, behavior:'instant'}));
+await new Promise(r => setTimeout(r, 900));
+const enLisant = await compte();
+// et en revenant : la pause ne doit pas être définitive
+await veille.evaluate(() => window.scrollTo({top:0, behavior:'instant'}));
+await new Promise(r => setTimeout(r, 900));
+const revenu = await compte();
+await veille.close();
+dit('en haut, les repères de la carte pulsent', enHaut > 5, enHaut + ' animation(s)');
+dit('  et beaucoup se taisent quand on lit plus bas', enLisant < enHaut / 2,
+    enLisant + ' contre ' + enHaut + ' en haut');
+/* Le témoin : une pause définitive ferait passer la ligne du dessus tout en
+   cassant l'écran d'accueil. */
+dit('  elles repartent quand on remonte', revenu >= enHaut - 2,
+    revenu + ' au retour, ' + enHaut + ' au départ);'.replace(');', ''));
+
 /* ---------- couper les animations les coupe vraiment ---------- */
 console.log('\n— quand le système demande de couper les animations —');
 const p = await b.newPage();

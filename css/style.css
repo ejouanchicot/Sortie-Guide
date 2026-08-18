@@ -790,6 +790,11 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
    seconde, et le halo tournant d'une carte de boss. Un lead qui coupe les
    animations dans son système les gardait donc toutes les deux — sur un
    téléphone posé à côté du clavier pendant tout un run, c'est la batterie. */
+/* Hors de vue : on ne coupe pas l animation, on la met en PAUSE — elle
+   reprend exactement ou elle en etait quand le repere revient a l ecran, et
+   rien ne saute. C est du style, pas du script : aucune image n est calculee. */
+.fige,.fige *,.fige *::before,.fige *::after{animation-play-state:paused!important}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }

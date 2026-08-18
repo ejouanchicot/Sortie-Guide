@@ -90,6 +90,7 @@ try{var _ms=(typeof MOBSCALE!=='undefined'&&MOBSCALE)?MOBSCALE:1, _lm=(typeof LB
 let curFloor=null;      // descripteur d'étage courant
 let curBossN={};        // boss par n° pour l'étage courant
 let spy=null;           // IntersectionObserver de la nav
+let veille=null;        // met les pulsations en pause quand elles sortent de l ecran
 let curZone=-1;         // zone courante du sous-sol (-1 = Tous, 0-3 = E/F/G/H)
 
 function introHtml(f){ return LANG==='en'?f.introEn:f.introFr; }
@@ -446,6 +447,21 @@ function renderFloor(f){
   if('IntersectionObserver' in window && navLinks.length){
     spy=new IntersectionObserver((ents)=>{ents.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navLinks.forEach(a=>a.classList.toggle('navactive',a.getAttribute('href')==='#'+id));}});},{rootMargin:'-45% 0px -50% 0px'});
     document.querySelectorAll('.phase').forEach(s=>spy.observe(s));
+  }
+  /* Les pulsations des marqueurs et des pastilles animent une OMBRE PORTÉE :
+     le navigateur repeint à chaque image, sur le fil principal. Mesuré page
+     immobile, CPU ×4 : 64 % d'un cœur, dont 94 % pour ces quatre animations —
+     un téléphone posé à côté du clavier chauffe pendant tout le run.
+     On ne touche pas à leur allure : on les met en pause quand ce qu'elles
+     animent est HORS DE VUE. Un lead qui lit sa strat a la carte au-dessus de
+     l'écran et les étapes suivantes en dessous ; il ne regarde qu'une chose à
+     la fois, et le reste n'a aucune raison de tourner. */
+  if(veille) veille.disconnect();
+  if('IntersectionObserver' in window){
+    veille=new IntersectionObserver((ents)=>{
+      ents.forEach(e=>e.target.classList.toggle('fige', !e.isIntersecting));
+    },{rootMargin:'150px 0px'});
+    document.querySelectorAll('.phase, .overview').forEach(s=>veille.observe(s));
   }
   if(typeof curJob!=='undefined' && curJob) applyMatch(curJob);
   applyFilter();
