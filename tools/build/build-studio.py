@@ -17,6 +17,11 @@ def corps(p):
 MS = corps('map-studio.html')
 SS = corps('strat-studio.html')
 
+# L'atelier est SOMBRE, et il n'a pas de theme clair : ses trois feuilles
+# (studio.css, map-studio.confine.css, strat-studio.css) ecrivent leurs fonds
+# en dur. Il ne suit donc pas le theme choisi dans le guide, et c'est voulu —
+# lui en dessiner un est un chantier, pas une correction. Question posee et
+# tranchee le 18 aout 2026 : on garde le plan de travail sombre.
 HTML = u'''<!DOCTYPE html>
 <html lang="fr" data-theme="dark">
 <head>

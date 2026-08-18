@@ -122,6 +122,12 @@ Pas de modules ES côté navigateur : le site s'ouvre aussi depuis un `file://`.
 `og.jpg` · `manifest.webmanifest` · `sw.js`. Les bouger casse les liens Discord
 déjà partagés et l'app installée chez les leads.
 
+Le `start_url` vise l'ATELIER, pas le guide, et c'est voulu : on installe
+XI STUDIO pour écrire une strat, on lit le guide par un lien. L'atelier met
+11 s à s'ouvrir à froid sur un téléphone contre 3 pour le guide — c'est le prix
+de Konva, et il ne se paie pas sur un poste de travail (300 ms). Question
+posée et tranchée le 18 août 2026.
+
 ## Agents
 
 `.claude/agents/` — un par métier du projet : `carte`, `strat`, `donnees`,
