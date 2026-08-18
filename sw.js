@@ -36,7 +36,7 @@
    ⚠ Monter VERSION à chaque livraison : c'est ce qui purge
      l'ancien cache chez tout le monde.
    ============================================================ */
-const VERSION = 'strat-studio-v35';
+const VERSION = 'strat-studio-v36';
 // Le préfixe sert à la purge : caches.keys() est à l'échelle de l'ORIGINE,
 // pas du dossier. Sur ejouanchicot.github.io, tous les dépôts publiés en
 // Pages la partagent — sans ce filtre, monter VERSION effaçait le cache des

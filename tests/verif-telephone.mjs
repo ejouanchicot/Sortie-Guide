@@ -75,11 +75,17 @@ for(const [quoi, w, h, part] of ECRANS){
     const colle = (cs.position === 'sticky' && cs.display !== 'contents') ? st : ba;
     window.scrollTo({top: 1200, behavior: 'instant'});
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    return {top: colle.getBoundingClientRect().top, y: window.scrollY};
+    /* Où elle DOIT s'arrêter, c'est son propre « top » : bord à bord sur
+       téléphone, et à partir d'une tablette le bandeau se pose 10 px plus bas,
+       posé sur la strat plutôt que soudé au bord. Ce qu'on vérifie est qu'elle
+       reste accrochée, pas qu'elle touche le bord. */
+    const cible = parseFloat(getComputedStyle(colle).top) || 0;
+    return {top: colle.getBoundingClientRect().top, y: window.scrollY, cible: cible};
   });
-  dit('  elle reste en haut quand on descend', suit.y > 200 && suit.top <= 1,
+  dit('  elle reste en haut quand on descend',
+      suit.y > 200 && Math.abs(suit.top - suit.cible) <= 1,
       'à ' + Math.round(suit.y) + ' px de défilement, elle est à '
-      + Math.round(suit.top) + ' px du haut');
+      + Math.round(suit.top) + ' px du haut au lieu de ' + Math.round(suit.cible));
   dit('  rien ne casse', bruit.length === 0, bruit.slice(0, 2).join('\n       '));
   await p.close();
 }

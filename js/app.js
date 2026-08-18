@@ -344,15 +344,42 @@ function buildTimeline(f){
   });
 }
 
+/* Le sommaire du chapitre : une pastille par étape, du premier boss au
+   dernier. Il les liste TOUTES, même quand la carte est filtrée sur un seul
+   secteur — c'est par là qu'on saute d'un boss à l'autre en plein run, sans
+   remonter chercher l'onglet du secteur. Il reçoit donc le chapitre entier,
+   pas la vue filtrée.
+   Le numéro passe devant : « Phase 3 » est ce qu'on s'annonce entre deux
+   packs, et c'est aussi ce qu'affiche l'étiquette de l'étape plus bas. */
 function buildNav(f){
   const nav=document.getElementById("nav");
   [...nav.querySelectorAll('.chip')].forEach(c=>c.remove());
   const idpfx=(f.id==='top'?'phase':'bphase');
+  const bossParN={}; (f.bosses||[]).forEach(b=>bossParN[b.n]=b);
   f.phases.forEach(p=>{
     const a=document.createElement("a");a.href="#"+idpfx+p.n;a.className="chip"+(p.soon?" soonchip":"");
-    a.innerHTML='<b>'+esc(p.sector||p.n)+'</b>'+esc(p.boss);
+    a.dataset.n=p.n;
+    const bz=bossParN[p.n];
+    a.style.setProperty('--pc', window.SORTIE.couleurSure(bz?ELC[bz.el]:'var(--dim)','var(--dim)'));
+    // le secteur reste dans l'infobulle : sur la pastille il doublait le
+    // numéro sans rien dire de plus, et volait la place du nom du boss
+    a.title='Phase '+p.n+' · '+p.boss+(p.sector?' · '+tr("SECTEUR")+' '+p.sector:'');
+    a.innerHTML='<b>Phase '+esc(p.n)+'</b><span class="phwho">'+esc(p.boss)+'</span>';
     nav.appendChild(a);
   });
+}
+
+/* Sur téléphone le sommaire glisse sous le pouce : arrivé à la quatrième
+   étape, la pastille allumée était hors champ, à droite, et le lead ne voyait
+   plus où il en était. On la ramène au centre de SA rangée — en poussant le
+   défilement de la rangée, jamais avec scrollIntoView, qui emporterait la page
+   entiere sous le doigt pendant qu'il lit. */
+function suitEtape(chip){
+  const rangee=chip.parentElement;
+  if(!rangee || rangee.scrollWidth<=rangee.clientWidth+1) return;   // rien ne glisse
+  const r=chip.getBoundingClientRect(), rr=rangee.getBoundingClientRect();
+  const vise=rangee.scrollLeft+(r.left-rr.left)-(rr.width-r.width)/2;
+  rangee.scrollTo({left:Math.max(0,vise),behavior:'smooth'});
 }
 
 function placeNodes(){
@@ -429,8 +456,11 @@ function effectiveFloor(f){
     bosses:boss?[boss]:[], packs:(f.packs||[]).filter(function(pk){return pk.ph===z.n;}), mids:mid?[mid]:[], phases:phase?[phase]:[]};
 }
 function buildZoneSwitcher(f){
-  const hasZones=!!(f.zones&&f.zones.length);
-  const nav=document.getElementById('nav'); if(nav) nav.style.display=hasZones?'none':'';
+  /* La rangée des phases reste affichée quoi qu'il arrive. Elle disparaissait
+     dès qu'un chapitre avait des secteurs — c'est-à-dire toujours, les deux en
+     ont : le guide n'a jamais montré son sommaire à personne. Les onglets posés
+     sur la carte disent OÙ on est ; ils ne remplacent pas de quoi aller
+     ailleurs. */
   const zbar=document.getElementById('zone'); if(zbar) zbar.style.display='none'; // remplacé par les tabs sur la carte
 }
 function renderFloor(f){
@@ -439,13 +469,21 @@ function renderFloor(f){
   app.innerHTML=buildOverview(ef, f);
   placePOIs(ef);
   buildTimeline(ef);
-  buildNav(ef);
+  buildNav(f);
   buildZoneSwitcher(f);
+  // la rangée des phases change la hauteur de ce qui reste collé, et les
+  // ancres se calent dessus : on remesure une fois les pastilles posées
+  if(window.mesureColle) window.mesureColle();
   // nav spy
   if(spy) spy.disconnect();
   const navLinks=[...document.querySelectorAll('#nav .chip')];
   if('IntersectionObserver' in window && navLinks.length){
-    spy=new IntersectionObserver((ents)=>{ents.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navLinks.forEach(a=>a.classList.toggle('navactive',a.getAttribute('href')==='#'+id));}});},{rootMargin:'-45% 0px -50% 0px'});
+    spy=new IntersectionObserver((ents)=>{ents.forEach(e=>{if(e.isIntersecting){const id=e.target.id;
+      navLinks.forEach(a=>{ const ici=a.getAttribute('href')==='#'+id;
+        a.classList.toggle('navactive',ici);
+        // « c'est ici que tu es » ne peut pas tenir qu'à une couleur
+        if(ici){ a.setAttribute('aria-current','true'); suitEtape(a); }
+        else a.removeAttribute('aria-current'); });}});},{rootMargin:'-45% 0px -50% 0px'});
     document.querySelectorAll('.phase').forEach(s=>spy.observe(s));
   }
   /* Les pulsations des marqueurs et des pastilles animent une OMBRE PORTÉE :
@@ -482,7 +520,9 @@ window.SORTIE.compoJobs(COMPO).forEach(j=>{
   b.style.setProperty("--jc",jcol(j));
   jobsEl.appendChild(b);
 });
-const soloBtn=document.createElement("button");soloBtn.className="chip";soloBtn.id="soloToggle";soloBtn.textContent="Solo";soloBtn.title=tr("N'afficher que mon rôle");
+/* « Solo » n'est pas un septième job : c'est un interrupteur. Il se tient
+   donc à l'écart, au bout de la rangée, et porte un témoin allumé/éteint. */
+const soloBtn=document.createElement("button");soloBtn.className="chip solotoggle";soloBtn.id="soloToggle";soloBtn.textContent="Solo";soloBtn.title=tr("N'afficher que mon rôle");
 jobsEl.appendChild(soloBtn);
 let curJob=null;
 // Masquée par la VARIANTE de comp : soit elle est réservée à une autre, soit
@@ -598,13 +638,16 @@ const compEl=document.getElementById("comp");
 const VARIANTES=window.SORTIE.compoVariantes(COMPO);
 function buildCompSwitcher(){
   if(VARIANTES.length<2){ compEl.style.display="none"; return; }
+  // un choix exclusif se dessine groupé : deux places pour un seul siège
+  const seg=document.createElement("div"); seg.className="choix";
   VARIANTES.forEach(v=>{
     const b=document.createElement("button");
     b.className="chip compchip"; b.dataset.c=v.nom; b.textContent=v.nom;
     // un job qui donne son nom à la variante lui prête sa couleur de rôle
     b.style.setProperty("--jc", jcol(v.nom));
-    compEl.appendChild(b);
+    seg.appendChild(b);
   });
+  compEl.appendChild(seg);
 }
 function setComp(c){
   document.body.setAttribute("data-comp",c);
@@ -630,12 +673,15 @@ const floorEl=document.getElementById("floor");
 function floorLabel(f){ return esc(LANG==='en'?f.en:f.fr); }
 function buildFloorSwitcher(){
   if(!floorEl) return;
+  // même boîtier que la comp : on lit « l'un OU l'autre », pas « deux boutons »
+  const seg=document.createElement("div"); seg.className="choix";
   FLOORS.forEach(f=>{
     const b=document.createElement("button");
     b.className="chip floorchip"; b.dataset.f=f.id;
     b.innerHTML='<b>'+esc(f.sub)+'</b>'+floorLabel(f);
-    floorEl.appendChild(b);
+    seg.appendChild(b);
   });
+  floorEl.appendChild(seg);
 }
 function setFloor(id){
   const f=FLOOR_MAP[id]||FLOORS[0];
@@ -651,6 +697,52 @@ const zoneEl=document.getElementById("zone");
 function setZone(i){ curZone=i; try{localStorage.setItem("sortie_zone",i);}catch(e){} renderFloor(curFloor); window.scrollTo({top:0,behavior:'auto'}); }
 if(zoneEl) zoneEl.addEventListener("click",e=>{const b=e.target.closest(".zonechip"); if(b) setZone(+b.dataset.z);});
 app.addEventListener("click",e=>{const zt=e.target.closest(".zonetab"); if(zt){ e.stopPropagation(); setZone(+zt.dataset.z); }});
+
+// ---- le sommaire : aller à une étape ----
+// En vue par secteur, une seule étape est à l'écran : « Phase 3 » pointerait
+// sur une ancre absente et le clic ne ferait rien. On ramène donc d'abord le
+// secteur qui la contient. Si l'étape n'a pas de secteur à elle (Aminon
+// partage le E), on rouvre le chapitre entier et on descend jusqu'à elle.
+const navEl=document.getElementById("nav");
+if(navEl) navEl.addEventListener("click",e=>{
+  const a=e.target.closest(".chip"); if(!a) return;
+  /* Le lien nu ne suffit jamais, même quand l'étape est déjà dans la page : le
+     navigateur vise l'ancre au moment du clic, et la strat grandit pendant le
+     vol — vignettes, rail, pastilles. Mesuré sur un saut jusqu'à l'étape 4 :
+     l'étape arrivait 25 px AU-DESSUS du bord haut, cachée sous la barre. On
+     passe donc tous les sauts par versEtape(), qui se recale tant que la page
+     bouge. */
+  e.preventDefault();
+  const id=(a.getAttribute("href")||"").slice(1);
+  // l'adresse suit, pour qu'un lien copié rouvre sur la bonne étape. Un guide
+  // ouvert depuis un fichier n'a pas le droit d'écrire son adresse : on essaie.
+  try{ history.replaceState(null,'','#'+id); }catch(err){}
+  if(document.getElementById(id)){ versEtape(id); return; }
+  const n=+a.dataset.n;
+  const zones=(curFloor&&curFloor.zones)||[];
+  let i=-1; zones.forEach((z,k)=>{ if(z.n===n) i=k; });
+  setZone(i);
+  // en vue par secteur la page EST l'étape, et setZone l'a remise en haut :
+  // on ne descend que si le chapitre entier est revenu
+  if(i<0) versEtape(id);
+});
+/* Sauter à une étape après avoir refait la page : les vignettes et le rail se
+   posent APRÈS, et la page grandit sous le point où on vient d'arriver —
+   mesuré 361 px de plus dans la seconde qui suit, l'étape visée passait sous
+   l'écran. On se recale donc tant qu'elle bouge, et on lâche dès que le lead
+   reprend la main. « instant » et pas « auto » : « auto » suit le défilement
+   doux de la feuille de style, et le saut durait des secondes. */
+function versEtape(id){
+  const cible=document.getElementById(id); if(!cible) return;
+  window.__saut=Date.now();   // ce défilement-là n'est pas le sien : la barre ne bouge pas
+  let pose=-1, essais=0;
+  (function cale(){
+    if(pose>=0 && Math.abs(window.scrollY-pose)>4) return;
+    cible.scrollIntoView({behavior:'instant',block:'start'});
+    pose=window.scrollY;
+    if(++essais<6) setTimeout(cale,140);
+  })();
+}
 
 // ---- lightbox pour agrandir les cartes ----
 const lb=document.createElement("div");lb.className="lightbox hide";lb.innerHTML='<div class="lbstage"></div>';
@@ -739,8 +831,59 @@ document.documentElement.lang=LANG;
     if(colle) document.documentElement.style.setProperty("--stickh",colle.offsetHeight+"px");
   }
   measure(); window.addEventListener("resize",measure);
+  window.mesureColle=measure;   // le sommaire des phases se remplit après coup
   if(document.fonts&&document.fonts.ready){document.fonts.ready.then(measure);}
 })();
+/* ============================================================
+   La barre se replie quand on lit
+   ------------------------------------------------------------
+   Ce qu'un lead touche entre deux packs, c'est le sommaire des étapes. La
+   comp et le job, il les a choisis en arrivant. Ils restent donc en haut de
+   page, et s'effacent dès qu'on descend : la barre passe de quatre rangées
+   à deux sur téléphone, de deux à une sur un écran de bureau.
+   Elle revient au PREMIER geste vers le haut — remonter, c'est venir
+   chercher un bouton. Trois précautions, et chacune répare un défaut connu
+   de ce motif :
+     · 8 px de seuil, sinon le moindre tremblement de doigt la fait clignoter ;
+     · les 60 premiers pixels de la page la gardent entière, on y arrive pour
+       régler son affichage ;
+     · un saut déclenché par un bouton n'est pas un geste : la barre ne juge
+       pas pendant qu'elle nous emmène, sinon elle change de hauteur en plein
+       vol et l'étape visée arrive de travers.
+   ============================================================ */
+(function(){
+  const bars=document.querySelector('.bars'); if(!bars) return;
+  let dernier=window.scrollY, replie=false, prevu=false, muet=0;
+  /* Le temps mort n'est pas un confort, il empêche un aller-retour sans fin.
+     La barre vit dans le flux : en se rouvrant elle pousse la strat de 52 px
+     vers le bas, et le navigateur rattrape aussitôt le défilement pour que le
+     lead garde sa ligne sous les yeux — ce rattrapage ressemble trait pour
+     trait à un geste vers le bas, la barre se refermait, la strat remontait,
+     et ça repartait. Mesuré : elle clignotait à chaque remontée. */
+  function pose(v){ replie=v; bars.classList.toggle('replie',v); muet=Date.now()+420; }
+  function juge(){
+    prevu=false;
+    const y=window.scrollY;
+    bars.classList.toggle('colle', y>4);
+    if(Date.now()<muet || Date.now()-(window.__saut||0)<900){ dernier=y; return; }
+    const d=y-dernier;
+    if(Math.abs(d)<8) return;
+    dernier=y;
+    const veut=(y>60 && d>0);
+    if(veut!==replie) pose(veut);
+  }
+  window.addEventListener('scroll',function(){
+    if(!prevu){ prevu=true; requestAnimationFrame(juge); }
+  },{passive:true});
+  // Au clavier il n'y a pas de molette : la rangée repliée reprend sa place
+  // dès qu'un de ses boutons prend le focus, sinon on ne l'atteint jamais.
+  bars.addEventListener('focusin',function(){ if(replie) pose(false); });
+  // ce qui colle vient de changer de hauteur, et les ancres se calent dessus
+  bars.addEventListener('transitionend',function(e){
+    if(e.propertyName==='grid-template-rows' && window.mesureColle) window.mesureColle();
+  });
+})();
+
 // ---- l'en-tete : titre et sous-titre viennent de la strat ----
 // Ils etaient ecrits en dur dans index.html, et une seconde fois en
 // anglais ici meme. Un guide d'un autre contenu annoncait donc la

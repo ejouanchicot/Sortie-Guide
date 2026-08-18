@@ -70,25 +70,46 @@
     <div class="btitle">
       <h1 id="gTitre">…</h1>
       <span class="bsub" id="gSous"></span>
-      <div class="legend">
-        <span><i style="background:var(--r-dd)"></i>DD</span>
-        <span><i style="background:var(--r-tank)"></i>Tank</span>
-        <span><i style="background:var(--r-buff)"></i>Buff</span>
-        <span><i style="background:var(--r-heal)"></i>Heal</span>
-      </div>
     </div>
+  </div>
+  <!-- La légende des couleurs n'appartient pas au titre : c'est une règle de
+       lecture, comme la légende d'une carte. Elle se range donc à droite, avec
+       les commandes, au lieu de rallonger le bloc du titre d'une troisième
+       ligne. Elle disparaît sous 900 px, où la place manque. -->
+  <div class="legend">
+    <span><i style="background:var(--r-dd)"></i>DD</span>
+    <span><i style="background:var(--r-tank)"></i>Tank</span>
+    <span><i style="background:var(--r-buff)"></i>Buff</span>
+    <span><i style="background:var(--r-heal)"></i>Heal</span>
   </div>
   <div class="topctl" id="topctl"></div>
 </header>
 
+<!-- Deux lignes, et l'ordre est celui des questions qu'on se pose en run :
+     d'abord OÙ j'en suis (le chapitre, puis ses étapes), ensuite CE QUE je
+     lis (la comp tirée au sort, le job que je tiens). Les cinq rangées
+     coulaient auparavant à la file : « Chapitre » et « Phases » finissaient
+     sur la même ligne que la comp, séparés par rien. -->
 <div class="bars">
-  <div class="jobrow floorrow" id="floor"><span class="rlabel">Chapitre</span></div>
-  <div class="jobrow zonerow" id="zone" style="display:none"><span class="rlabel">Zone</span></div>
-  <div class="navrow nav" id="nav"><span class="rlabel">Phases</span></div>
-  <!-- les variantes sont declarees dans data.js (COMPO.variantes) : app.js
-       construit les boutons, la rangee disparait s'il n'y en a qu'une -->
-  <div class="jobrow" id="comp"><span class="rlabel">Comp · flex</span></div>
-  <div class="jobrow" id="jobs"><span class="rlabel">Mon rôle</span></div>
+  <!-- CE QUI RESTE quand on lit : où j'en suis, et où je peux aller. -->
+  <div class="barline">
+    <div class="jobrow floorrow" id="floor"><span class="rlabel">Chapitre</span></div>
+    <div class="jobrow zonerow" id="zone" style="display:none"><span class="rlabel">Zone</span></div>
+    <!-- pas de libellé : chaque pastille dit déjà « Phase 3 » -->
+    <nav class="navrow nav" id="nav" aria-label="Étapes du run"></nav>
+  </div>
+  <!-- CE QUI SE REPLIE : la comp et le job se choisissent en arrivant, on n'y
+       revient pas toutes les trois minutes. La rangée s'efface dès qu'on
+       descend et revient au premier geste vers le haut — un lead qui remonte
+       cherche justement un bouton. -->
+  <div class="barfold">
+    <div class="barline">
+      <!-- les variantes sont declarees dans data.js (COMPO.variantes) : app.js
+           construit les boutons, la rangee disparait s'il n'y en a qu'une -->
+      <div class="jobrow" id="comp"><span class="rlabel">Comp · flex</span></div>
+      <div class="jobrow" id="jobs"><span class="rlabel">Mon rôle</span></div>
+    </div>
+  </div>
 </div>
 </div>
 
