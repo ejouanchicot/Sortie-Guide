@@ -590,6 +590,37 @@
     if(!jobDiscrimine(c, job)) return false;
     return jobsDeLaVariante(c, nom).indexOf(job) < 0;
   }
+  /* Une LIGNE, pas un job. Deux écritures se ressemblent et ne disent pas du
+     tout la même chose :
+        ln(["PLD","DNC"], …)   la place 6, quel que soit celui qui la tient
+        ln(["PLD","COR"], …)   le PLD ET le COR, ensemble, sur le même SC
+     Le guide gardait la ligne dès qu'un seul de ses jobs était là : en DNC,
+     le SC des Acuex s'affichait « PLD > COR » avec un PLD qui n'est pas du
+     run. L'atelier faisait l'inverse — masquer dès qu'un job manque — et
+     perdait la première écriture dans les DEUX variantes. Aucun des deux ne
+     pouvait avoir raison : la question ne se pose pas job par job.
+     On regarde donc PLACE PAR PLACE. Pour chaque créneau que la ligne
+     convoque, il faut qu'au moins un des jobs cités POUR CE CRÉNEAU soit tenu
+     dans la variante. Un job seul sur sa place est toujours là ; un job hors
+     compo (« avec un WAR… ») ne convoque personne. */
+  function ligneExclue(c, nom, jobs){
+    if(!nom || !variante(c, nom)) return false;
+    var tenus = jobsDeLaVariante(c, nom);
+    var crs = compoCreneaux(c);
+    var parPlace = {};
+    (jobs || []).forEach(function(j){
+      if(!j || j === 'ALL') return;
+      crs.forEach(function(cr, i){
+        if(cr.length > 1 && cr.indexOf(j) >= 0){
+          if(!parPlace[i]) parPlace[i] = [];
+          parPlace[i].push(j);
+        }
+      });
+    });
+    return Object.keys(parPlace).some(function(i){
+      return !parPlace[i].some(function(j){ return tenus.indexOf(j) >= 0; });
+    });
+  }
   function compoConst(nm, c){
     // taille s'écrit NU, comme n et niv dans strat-core : même parade
     return 'const '+nm+'={taille:'+nombreSur((c&&c.taille), 6)+',creneaux:[\n'
@@ -761,7 +792,7 @@
     chapitresConst:chapitresConst, ROLES_OK:ROLES_OK, roleDuJob:roleDuJob, roleConst:roleConst,
     TAILLES:TAILLES, compoCreneaux:compoCreneaux, compoJobs:compoJobs, compoConst:compoConst,
     compoVariantes:compoVariantes, variante:variante,
-    jobExclu:jobExclu,
+    jobExclu:jobExclu, ligneExclue:ligneExclue,
     EL_KEYS:EL_KEYS, EL_HEX:EL_HEX, EL_VAR:EL_VAR, EL_ZC2:EL_ZC2,
     elHex:elHex,
     POI_SIZE:POI_SIZE, poiSize:poiSize, labelGap:labelGap,

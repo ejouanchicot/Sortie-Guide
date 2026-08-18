@@ -540,14 +540,12 @@ function compHidden(el){
   if(!comp) return false;
   const dc=el.dataset.comp;
   if(dc && dc!==comp) return true;
-  /* « every » et pas « some » : une ligne est masquée quand AUCUN de ses jobs
-     n'est là, pas dès que l'un d'eux manque. Écrire « PLD,DNC : … » — la
-     place 6, quel que soit celui qui la tient — donnait une ligne invisible
-     dans les DEUX variantes, donc nulle part. Le lead l'écrivait, la voyait
-     dans l'aperçu, publiait, et personne ne la lisait. Mesuré : 0 état
-     visible sur 16. */
+  /* La règle vit dans le socle, et elle regarde les PLACES, pas les jobs :
+     « PLD,DNC » est une place tenue par l'un ou l'autre, « PLD,COR » sont
+     deux places qu'il faut toutes les deux. Un « aucun de ses jobs n'est
+     là » gardait le SC des Acuex en DNC, avec un PLD absent du run. */
   const jobs=(el.dataset.r||"").split(" ").filter(Boolean);
-  return jobs.length>0 && jobs.every(j=>window.SORTIE.jobExclu(COMPO,comp,j));
+  return jobs.length>0 && window.SORTIE.ligneExclue(COMPO,comp,jobs);
 }
 function lineHidden(el){
   if(compHidden(el)) return true;

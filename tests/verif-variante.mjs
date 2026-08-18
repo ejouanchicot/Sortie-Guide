@@ -121,10 +121,16 @@ const docFlex = await p.evaluate(async (marque) => {
   const s = window.BIBLIO.depuisGlobaux(
     {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Essai', window.__MS.reglages());
   const flex = window.SORTIE.compoCreneaux(s.compo).filter(c => c.length > 1)[0];
+  const fixe = window.SORTIE.compoCreneaux(s.compo).filter(c => c.length === 1)[0][0];
   const g = s.chapitres[0].phases[0].cards[0].groups[0];
   g.lines.unshift({r: flex.slice(), t: marque});
   // et un témoin : un seul des deux jobs, qui lui DOIT se masquer ailleurs
   g.lines.unshift({r: [flex[1]], t: marque + ' — seulement ' + flex[1]});
+  /* Le cas qui a été vu en run : DEUX PLACES sur la même ligne, la sixième et
+     une fixe — « PLD > COR », le SC des Acuex. Elle ne vaut que si les deux
+     sont là, et le PLD n'est pas du run quand c'est le DNC qui tient la
+     place. */
+  g.lines.unshift({r: [flex[0], fixe], t: marque + ' — avec ' + fixe});
   return await window.EXPORTHTML.fabrique(s, {base:'../'});
 }, PLACE);
 
@@ -142,9 +148,11 @@ const vues = await (async () => {
       const l = [...document.querySelectorAll('.line')];
       const laPlace = l.find(e => e.textContent.trim().endsWith(m));
       const leSeul  = l.find(e => e.textContent.indexOf(m + ' — seulement') >= 0);
+      const leDuo   = l.find(e => e.textContent.indexOf(m + ' — avec ') >= 0);
       return {variante:v,
               place: !!laPlace && laPlace.offsetParent !== null,
-              seul:  !!leSeul  && leSeul.offsetParent !== null};
+              seul:  !!leSeul  && leSeul.offsetParent !== null,
+              duo:   !!leDuo   && leDuo.offsetParent !== null};
     }, PLACE, c));
   }
   await g.close();
@@ -158,6 +166,11 @@ vues.forEach(v => dit('variante ' + v.variante + ' : la ligne de la place s\'aff
    l'assertion du dessus tout en cassant le tri par variante. */
 dit('  et une ligne d\'un seul job reste masquée là où il n\'est pas',
     vues.some(v => !v.seul), JSON.stringify(vues));
+/* Deux places sur une ligne : elle ne sort QUE dans la variante où les deux
+   sont tenues. Le guide la gardait partout — il suffisait qu'un seul de ses
+   jobs soit là — et un run en DNC lisait « PLD > COR » sur le SC des Acuex. */
+dit('  une ligne qui convoque deux places ne sort que si les deux sont tenues',
+    vues.filter(v => v.duo).length === 1, JSON.stringify(vues));
 
 /* ---------- le bouton « @ » propose une variante de CETTE compo ----------
    Il écrivait « @DNC » en dur — un nom de job du contenu, dans le moteur

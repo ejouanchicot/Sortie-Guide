@@ -880,7 +880,9 @@
       var cache = false;
       if(vueComp){
         if(dc && dc !== vueComp) cache = true;
-        jobs.forEach(function(j){ if(S.jobExclu(CP, vueComp, j)) cache = true; });
+        // la même règle que le guide, et pour de bon cette fois : masquer dès
+        // qu'un job manque perdait « PLD,DNC » dans les deux variantes
+        if(S.ligneExclue(CP, vueComp, jobs.filter(Boolean))) cache = true;
       }
       el.style.display = cache ? 'none' : '';
     });
