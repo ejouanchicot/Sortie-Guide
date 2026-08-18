@@ -260,8 +260,18 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
    commandes descendent au complet. On y perd de la hauteur de carte, jamais
    un bouton. */
 @media (max-width:1100px){
-  .st-top{gap:8px;padding:8px 12px;flex-wrap:wrap;row-gap:8px}
+  .st-top{gap:8px;padding:8px 12px}
   .st-tab{padding:8px 11px}
+}
+/* L'espaceur devient la coupure : les commandes passent a la ligne au complet.
+   Sans ca, mesure bouton par bouton a 390 px, « Enregistrer » se pose a
+   x 754 pour un ecran de 390 — 484 px hors champ, et body est en
+   overflow:hidden, donc rien ne permet d'aller le chercher.
+   (Un premier essai avait restreint cette regle a 561-1100 px, sur une mesure
+   prise AVANT que la coque ait fini de deplacer les boutons dans la barre :
+   elle disait « atteignable » alors qu'ils n'y etaient pas encore.) */
+@media (max-width:1100px){
+  .st-top{flex-wrap:wrap;row-gap:8px}
   .st-spacer{flex:0 0 100%;height:0}
 }
 @media (max-width:720px){

@@ -99,7 +99,15 @@ for(const w of [1400, 1100, 900, 768, 600]){
   a.on('pageerror', e => err.push(String(e).slice(0, 110)));
   await a.setViewport({width:w, height:800});
   await a.goto(STUDIO, {waitUntil:'networkidle0'});
-  await a.waitForFunction(() => window.__MS && window.__MS.pret, {timeout:12000});
+  /* On attend que la coque ait VRAIMENT deplace les commandes dans la barre.
+     Attendre le rendu de la carte ne le prouve pas : c'est un signal qui
+     PRECEDE le deplacement, et le test lisait alors les boutons a leur place
+     d'origine — il disait « atteignable » pour un bouton pose 484 px hors
+     ecran. Le fait qu'on mesure, c'est que le bouton soit dans la barre. */
+  await a.waitForFunction(() => {
+    const s = document.getElementById('stSave'), t = document.querySelector('.st-top');
+    return s && t && t.contains(s);
+  }, {timeout:12000});
   await a.evaluate(() => window.__MS.pret());
   const vu = await a.evaluate(() => {
     const cible = {'Enregistrer':'stSave', 'Partager':'stExport', 'Recharger':'stReload',
