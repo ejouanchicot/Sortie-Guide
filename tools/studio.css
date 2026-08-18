@@ -279,3 +279,20 @@ body{margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font-family:
   .st-tab{padding:9px 12px}
   .st-file{display:none}
 }
+
+/* ═══════════ Téléphone : une barre qui ressemble à une barre ═══════════
+   Enroulée telle quelle, elle donnait quatre rangées collées à gauche, avec
+   des trous entre elles — « à l'ouest », et on ne savait plus ce qui allait
+   avec quoi. La marque part (les deux onglets disent déjà où l'on est), et
+   les commandes s'étalent sur toute la largeur : c'est une rangée d'actions,
+   elle doit en avoir l'air. */
+@media (max-width:560px){
+  .st-brand,.st-div{display:none}
+  .st-top{padding:8px 10px;gap:7px;row-gap:7px}
+  .st-lib{max-width:none;flex:1}
+  .st-lib select{max-width:none;width:100%}
+  #stChap{flex:1 0 100%}
+  #stChap button{flex:1}
+  #stInstall,#stExport,#stReload{flex:1}
+  #stSave{flex:2}
+}

@@ -134,6 +134,78 @@ for(const w of [1400, 1100, 900, 768, 600]){
   await a.close();
 }
 
+/* ---------- l'atelier SUR UN TELEPHONE ----------
+   Il n'en avait aucune mise en page. Les trois panneaux — le run, l'etape, ce
+   que verra le groupe — sont une grille de trois colonnes qui tenait encore a
+   390 px : la colonne du milieu coupee au bord de l'ecran, 65 commandes hors
+   champ, et des libelles qui se chevauchaient (« CIBLETITRE / DE DE /
+   L'ETAPEETAPE »). On ne pouvait rien y faire.
+
+   Sous 700 px les panneaux se posent l'un sous l'autre et c'est le corps qui
+   defile. On verifie donc deux choses, et les deux ensemble : qu'ils sont bien
+   EMPILES (sinon on a juste retreci les colonnes), et qu'aucune commande n'est
+   coupee.
+
+   « Coupee » ne veut pas dire « hors de l'ecran » : le rail d'outils de la
+   carte glisse sous le pouce, et ce qui en depasse reste atteignable. On ne
+   compte donc perdu que ce qu'AUCUN parent ne peut ramener. */
+console.log('\n— l\'atelier sur un téléphone —');
+const PERDUS = () => {
+  const perdus = [];
+  document.querySelectorAll('button, select, textarea, input, a[href]').forEach(e => {
+    const r = e.getBoundingClientRect();
+    if(r.width < 2 || r.height < 2) return;                 // masqué volontairement
+    if(r.right <= innerWidth + 1 && r.left >= -1) return;   // à l'écran
+    for(let n = e.parentElement; n; n = n.parentElement){
+      const o = getComputedStyle(n).overflowX;
+      if((o === 'auto' || o === 'scroll') && n.scrollWidth > n.clientWidth + 1) return;
+    }
+    perdus.push(((e.id || e.className || e.tagName) + '').trim().slice(0, 24));
+  });
+  return [...new Set(perdus)];
+};
+for(const w of [390, 320]){
+  const t = await b.newPage();
+  const errT = [];
+  t.on('pageerror', e => errT.push(String(e).slice(0, 110)));
+  await t.setViewport({width:w, height:844, isMobile:true, hasTouch:true});
+  await t.goto(STUDIO, {waitUntil:'networkidle0'});
+  await t.waitForFunction(() => {
+    const s = document.getElementById('stSave'), b2 = document.querySelector('.st-top');
+    return s && b2 && b2.contains(s) && window.__SS && window.__MS;
+  }, {timeout:15000});
+  await t.evaluate(() => window.__MS.pret());
+
+  console.log('\n  · ' + w + ' px, atelier Carte');
+  dit('  aucune commande n\'est coupée', (await t.evaluate(PERDUS)).length === 0,
+      JSON.stringify(await t.evaluate(PERDUS)));
+
+  await t.evaluate(() => document.getElementById('stTabStrat').click());
+  await new Promise(r => setTimeout(r, 700));
+  await t.evaluate(() => document.querySelector('#ssTree .ss-step')?.click());
+  await new Promise(r => setTimeout(r, 800));
+  console.log('  · ' + w + ' px, atelier Stratégie');
+  dit('  aucune commande n\'est coupée', (await t.evaluate(PERDUS)).length === 0,
+      JSON.stringify(await t.evaluate(PERDUS)));
+
+  const pose = await t.evaluate(() => {
+    const y = s => { const e = document.querySelector(s);
+      return e ? Math.round(e.getBoundingClientRect().top) : null; };
+    const l = s => { const e = document.querySelector(s);
+      return e ? Math.round(e.getBoundingClientRect().width) : 0; };
+    return {tree:y('.ss-tree'), edit:y('.ss-edit'), side:y('.ss-side'),
+            largeurs:[l('.ss-tree'), l('.ss-edit'), l('.ss-side')], ecran:innerWidth};
+  });
+  dit('  les trois panneaux sont empilés, pas côte à côte',
+      pose.tree < pose.edit && pose.edit < pose.side,
+      'hauts : ' + JSON.stringify([pose.tree, pose.edit, pose.side]));
+  dit('  et chacun prend toute la largeur',
+      pose.largeurs.every(x => x > pose.ecran * 0.9),
+      JSON.stringify(pose.largeurs) + ' pour ' + pose.ecran + ' px');
+  dit('  rien ne casse', errT.length === 0, errT.slice(0, 2).join('\n       '));
+  await t.close();
+}
+
 /* ---------- ce qui n'est pas regardé ne tourne pas ----------
    Les pulsations des marqueurs et des pastilles animent une OMBRE PORTÉE : le
    navigateur repeint à chaque image, sur le fil principal. Mesuré page

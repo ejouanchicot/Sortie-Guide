@@ -569,3 +569,45 @@ button.ss-job.hors:hover{opacity:1}
   .ss-body{grid-template-columns:230px minmax(0,1fr)}
   .ss-side{grid-column:1/-1;border-left:none;border-top:1px solid var(--line)}
 }
+
+/* ═══════════ Téléphone : une colonne qu'on fait défiler ═══════════
+   Les trois panneaux — le run, l'étape, ce que verra le groupe — sont une
+   GRILLE de trois colonnes. Sous 700 px elle tenait quand même : 230 px pour
+   le premier et le reste pour le second, le troisième renvoyé dessous. Mesuré
+   sur un 390 : la colonne du milieu coupée au bord de l'écran, 65 commandes
+   hors champ, et des libellés qui se chevauchaient — « CIBLLERE / DEDE /
+   L'ÉTEIAPÉPARATION ». On ne pouvait rien y faire.
+
+   Sous 700 px, ils deviennent donc trois blocs l'un sous l'autre, et c'est
+   TOUT LE CORPS qui défile — pas chaque panneau dans son coin, ce qui donnait
+   trois ascenseurs imbriqués sur un écran qui n'en supporte pas un.
+   Chaque bloc garde son numéro : 1, 2, 3 disent déjà l'ordre de lecture. */
+@media (max-width:700px){
+  /* Les trois champs d'en-tete d'etape — cible, titre, preparation — sont une
+     rangee souple ou le dernier reclame 300 px fixes. A 390 px il les prenait
+     tous, les deux autres tombaient a 40 px de large et leurs libelles se
+     chevauchaient : « CIBLETITRE / DE DE / L'ETAPEETAPE ». Un par ligne. */
+  /* La barre d'une rubrique reserve 56 px a son libelle (« qui », « marques »)
+     avant meme le premier bouton. A 390 px les deux derniers signes tombaient
+     dehors — pas au-dela du document, qui ne defile pas, mais COUPES par le
+     panneau : invisibles et inatteignables. Le libelle prend sa largeur. */
+  .ss-tbl{width:auto;text-align:left;margin-right:2px}
+  /* Et les signes sont groupes : le groupe, lui, ne se coupait pas. La rangee
+     passait bien a la ligne, mais jamais AU MILIEU d'un groupe — les deux
+     derniers signes finissaient a x423 pour un ecran de 390, coupes par le
+     panneau. Invisibles, et donc impossibles a poser. */
+  .ss-tbg .ss-grp{flex-wrap:wrap}
+  .ss-hdr{display:block}
+  .ss-hdr>.ss-f,.ss-hdr>.ss-wide{flex:none;width:auto}
+  .ss-body{display:block;overflow:auto;-webkit-overflow-scrolling:touch}
+  .ss-tree,.ss-edit,.ss-side{overflow:visible;padding:12px 13px}
+  .ss-tree{border-right:none;border-bottom:1px solid var(--line)}
+  .ss-side{border-left:none;border-top:1px solid var(--line)}
+  /* le titre de chaque bloc reste sous les yeux pendant qu'on parcourt le sien */
+  .ss-ttl{position:sticky;top:-12px;z-index:2;margin:-12px -13px 11px;
+    padding:12px 13px 8px;background:var(--bg);
+    border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+  /* les rangées de commandes glissent sous le pouce au lieu de se couper */
+  .ss-vseg,.ss-seg{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .ss-vseg::-webkit-scrollbar,.ss-seg::-webkit-scrollbar{display:none}
+}
