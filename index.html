@@ -45,7 +45,13 @@
      deux packs.
      Si la carte d'ouverture change de nom, cette ligne suit — sinon elle ne
      coûte qu'un 404 silencieux, jamais un affichage de travers. -->
-<link rel="preload" href="img/cartes/map.webp" as="image" fetchpriority="high">
+<!-- « low » et pas « high » : la balise <img> de la carte n'existe qu'une fois
+     app.js exécuté, donc la carte ne PEUT PAS être peinte plus tôt. La priorité
+     haute ne faisait que voler la bande passante à app.js, qui lui est sur le
+     chemin critique. Mesuré en 3G rapide, CPU ×4 : la strat lisible à 2 986 ms
+     au lieu de 3 281, et la carte peinte à 3 027 au lieu de 3 315 — les deux y
+     gagnent. Le préchargement, lui, reste : sans lui, 5 150 et 6 690 ms. -->
+<link rel="preload" href="img/cartes/map.webp" as="image" fetchpriority="low">
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
