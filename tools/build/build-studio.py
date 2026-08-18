@@ -66,7 +66,7 @@ HTML = u'''<!DOCTYPE html>
 
     <!-- les deux ateliers -->
     <div class="st-tabs" id="stTabs" role="tablist">
-      <button type="button" class="st-tab" id="stTabMap" role="tab" data-pane="map" aria-selected="false" title="Placer les mobs, les tr\u00e9s et les annotations sur la carte">
+      <button type="button" class="st-tab" id="stTabMap" role="tab" data-pane="map" aria-selected="false" title="Placer les mobs, les trac\u00e9s et les annotations sur la carte">
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 5.2 7.5 3l5 2.2 5-2.2v11.6l-5 2.2-5-2.2-5 2.2z"/><path d="M7.5 3v11.6M12.5 5.2v11.6"/></svg>
         <span>Carte</span><i></i></button>
       <button type="button" class="st-tab" id="stTabStrat" role="tab" data-pane="strat" aria-selected="false" title="\u00c9crire ce que chaque job fait, \u00e9tape par \u00e9tape">

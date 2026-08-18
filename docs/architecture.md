@@ -207,7 +207,7 @@ Deux familles d'outils, et elles ne voient pas la même chose.
 
 | | Quoi | Combien de temps |
 |---|---|---|
-| `node tests/lancer.mjs` | **l'écran** — 41 tests, chacun dans son navigateur | ~2 min, quatre à la fois |
+| `node tests/lancer.mjs` | **l'écran** — un test par fichier `tests/verif-*.mjs`, chacun dans son navigateur | ~2 min, quatre à la fois |
 | `node tests/lancer.mjs <mot>` | un seul test | 8 s |
 | `node tools/audit/coherence.mjs` | **le texte** — marques croisées, un mot deux couleurs, couleurs vs base GearSwap, moves écrits deux fois, raccourcis | instantané |
 | `node tools/audit/traductions.mjs` | le français resté sans anglais | instantané |

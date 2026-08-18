@@ -17,8 +17,21 @@
 (function(){
   "use strict";
   var S = window.SORTIE, SC = window.STRATCORE, R = window.STRATR;
-  if(!S || !SC || !R){ document.body.innerHTML = '<p style="padding:30px;font:14px sans-serif;color:#f88">'
-    + 'Socle manquant — ouvre le projet via un serveur local, pas en double-cliquant le fichier.</p>'; return; }
+  /* Ce message EFFAÇAIT tout l'atelier — la coque, l'autre onglet, la barre —
+     pour annoncer « Socle manquant » et envoyer monter un serveur local. Deux
+     fois faux : le projet est fait pour s'ouvrir aussi d'un double-clic, et la
+     cause est presque toujours un fichier qui n'a pas chargé. Le lead partait
+     donc installer un serveur pour un problème qui n'en était pas un.
+     On écrit DANS l'atelier Stratégie, on ne détruit pas la page, et on dit la
+     suite à donner — comme le fait déjà le guide. */
+  if(!S || !SC || !R){
+    var ou = document.getElementById('ssPreview') || document.body;
+    ou.innerHTML = '<div style="padding:30px;line-height:1.6;font:14px sans-serif;color:#f88">'
+      + '<p style="font-weight:700;margin:0 0 8px">L’atelier Stratégie n’a pas pu se charger.</p>'
+      + '<p style="opacity:.8;margin:0">Recharge la page (Ctrl+F5). Si ça revient, c’est qu’un '
+      + 'fichier du projet manque ou a été déplacé — reprends une copie complète du dossier.</p></div>';
+    return;
+  }
 
   // l'aperçu n'a pas à traduire : on écrit en français, la colonne de droite gère l'anglais.
   // base '../' : les chemins de data.js partent de la racine, cette page est dans tools/.
@@ -1235,7 +1248,9 @@
                propre(); toast('Strat sauvegardée — le guide est à jour.','ok'); return; }
       }
       propre(); toast('Strat sauvegardée. La version anglaise n’a pas été enregistrée.','ok');
-    }catch(e){ if(e.name!=='AbortError') toast('Échec de la sauvegarde : '+e.message,'err'); }
+    }catch(e){ if(e.name!=='AbortError') { if(window.console) console.error(e);
+      toast('La sauvegarde n’a pas abouti — ton travail est toujours dans l’atelier. '
+          + 'Réessaie ; si ça recommence, ferme les autres onglets de l’atelier.','err'); } }
   }
   async function recharger(){
     if(dirty && !(await demande('Tes changements en cours ne sont <b>pas sauvegardés</b>. Recharger va les <b>perdre</b>.',

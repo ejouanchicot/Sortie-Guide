@@ -817,7 +817,7 @@
       const ctx=cv._canvas.getContext('2d',{willReadFrequently:true});
       const d=ctx.getImageData(Math.round(p.x*pr),Math.round(p.y*pr),1,1).data;
       hex='#'+[d[0],d[1],d[2]].map(v=>('0'+v.toString(16)).slice(-2)).join('');
-    }catch(e){toast('Couleur illisible : '+e.message,'err');return;}
+    }catch(e){toast('Cette couleur n’a pas pu être relevée — réessaie sur une zone pleine.','err');return;}
     pipetteHex=hex;
     const m=selNode&&selNode._meta;
     if(m&&m.kind==='shape'&&m.o.k!=='img'){m.o.c=hex;refreshShape(m.o);commit();toast('Forme colorée en '+hex+'.','ok');}
@@ -1553,7 +1553,7 @@
       +'<option value="__renom__">✎ Renommer cette carte</option>'
       +(noms.length>1?'<option value="__suppr__">✕ Supprimer cette carte</option>':'')
       +'</select>'
-      +(n>1?'<span class="cartepart" title="Cette carte sert a plusieurs chapitres">partagee par '+n+' chapitres</span>':'');
+      +(n>1?'<span class="cartepart" title="Cette carte sert a plusieurs chapitres">partagée par '+n+' chapitres</span>':'');
     document.getElementById('carteSel').addEventListener('change',e=>{
       const v=e.target.value;
       if(v==='__neuve__'){nouvelleCarte();return;}
@@ -1575,14 +1575,14 @@
     if(!dir){
       const a=await II.acces();                 // le clic sur « Supprimer » est le geste
       if(a.ou!=='ok'){
-        toast('L\u2019image '+nomF+' n\u2019a pas pu etre effacee : dossier img inaccessible.','err');
+        toast('L\u2019image '+nomF+' n\u2019a pas pu être effacée : dossier img inaccessible.','err');
         return;}
       dir=a.dossier;
     }
     try{ await window.DATAFILE.supprimeFichier(dir,nomF);
-         toast('Image '+nomF+' effacee du dossier img.','ok'); }
-    catch(e){ await erreur('L\u2019image n\u2019a pas pu etre effacee',
-      'La carte, elle, est bien supprimee. Le fichier <b>'+esc(nomF)+'</b> est reste dans img.',
+         toast('Image '+nomF+' effacée du dossier img.','ok'); }
+    catch(e){ await erreur('L\u2019image n\u2019a pas pu être effacée',
+      'La carte, elle, est bien supprimée. Le fichier <b>'+esc(nomF)+'</b> est resté dans img.',
       e&&(e.name+' \u2014 '+e.message)); }
   }
 
@@ -1630,7 +1630,7 @@
     FL.forEach(x=>{if(x.carte===nom)x.carte=suite;});
     S.resoudreCartes(FL,REG);
     setDirty(true);await renderFloor(curIdx);resetHistory();majSelCarte();
-    toast('\u00ab '+nom+' \u00bb supprimee'+(n?' \u2014 '+n+' chapitre(s) sur \u00ab '+suite+' \u00bb':'')+'.','ok');
+    toast('\u00ab '+nom+' \u00bb supprim\u00e9e'+(n?' \u2014 '+n+' chapitre(s) sur \u00ab '+suite+' \u00bb':'')+'.','ok');
     if(effacable&&r&&r.coche)await supprimeImage(fond);
   }
 
@@ -1673,14 +1673,14 @@
     const a=await II.acces();                     // le clic ci-dessus est le geste
     if(a.ou==='annule')return;
     if(a.ou==='refuse'){
-      await erreur('Le dossier img n’a pas pu etre ouvert',
-        'Le navigateur a refuse l’acces au dossier. Si le message ci-dessous parle '
+      await erreur('Le dossier img n’a pas pu être ouvert',
+        'Le navigateur a refusé l’accès au dossier. Si le message ci-dessous parle '
         + 'd’un <b>geste de l’utilisateur</b>, re-essaie : il faut cliquer sur le bouton '
         + 'de la boite, pas ailleurs.', a.pourquoi);
       return;}
 
-    const suite=await askConfirm('Dossier <b>img</b> autorise.<br><br>'
-      +'Choisis maintenant l’image de fond — elle sera redimensionnee, convertie et rangee.',
+    const suite=await askConfirm('Dossier <b>img</b> autorisé.<br><br>'
+      +'Choisis maintenant l’image de fond — elle sera redimensionnée, convertie et rangée.',
       {title:'C’est bon',ok:'Choisir l’image',danger:false});
     if(!suite)return;
     ouvreFichier(a.dossier);                      // et celui-la est le second geste
@@ -1700,8 +1700,8 @@
 
     let prete;
     try{ prete=await II.prepare(fichier); }
-    catch(e){ await erreur('Cette image n’a pas pu etre lue',
-      'Le navigateur n’a pas su la decoder. Essaie un PNG, un JPEG ou un WebP.',
+    catch(e){ await erreur('Cette image n’a pas pu être lue',
+      'Le navigateur n’a pas su la décoder. Essaie un PNG, un JPEG ou un WebP.',
       e && (e.name + ' — ' + e.message)); return; }
 
     if(!dossier){
@@ -1717,8 +1717,8 @@
           {title:'Remplacer l’image ?',ok:'Remplacer'})});
       if(r.ou==='annule')return;
       if(r.ou==='refuse'){
-        await erreur('L’image n’a pas pu etre ecrite',
-          'Le dossier a peut-etre ete deplace ou renomme. Il est oublie : au prochain '
+        await erreur('L’image n’a pas pu être écrite',
+          'Le dossier a peut-être été déplacé ou renommé. Il est oublié : au prochain '
           + 'essai, on te le redemandera.', r.pourquoi);
         return;
       }
@@ -1730,7 +1730,7 @@
     setDirty(true);await renderFloor(curIdx);fit();majSelCarte();
     const gain=prete.avant.poids>prete.apres.poids
       ? ' · '+II.ko(prete.avant.poids)+' → '+II.ko(prete.apres.poids) : '';
-    toast('Fond pose en '+prete.w+'×'+prete.h+gain+'.','ok');
+    toast('Fond posé en '+prete.w+'×'+prete.h+gain+'.','ok');
   }
   // Aller à un chapitre : le segment d'en haut et la scène disent la même chose.
   function allerEtage(i){
@@ -1792,14 +1792,14 @@
   }
   async function nouvelleCarte(){
     majSelCarte();                   // le select reprend sa valeur le temps de la saisie
-    const nom=(await askText('Ce nom sert a la retrouver et a la reutiliser dans une autre strat.',
-      {title:'Nouvelle carte',valeur:'Nouvelle carte',ok:'Creer'})||'').trim();
+    const nom=(await askText('Ce nom sert à la retrouver et à la réutiliser dans une autre strat.',
+      {title:'Nouvelle carte',valeur:'Nouvelle carte',ok:'Créer'})||'').trim();
     if(!nom)return;
-    if(REG[nom]!==undefined){toast('Une carte porte deja ce nom.','err');return;}
+    if(REG[nom]!==undefined){toast('Une carte porte déjà ce nom.','err');return;}
     REG[nom]=CARTE_VIDE();
     const f=FL[curIdx];if(f){f.carte=nom;S.resoudreCartes(FL,REG);}
     setDirty(true);await renderFloor(curIdx);resetHistory();majSelCarte();
-    toast('Carte « '+nom+' » creee. Choisis son image de fond.','ok');
+    toast('Carte « '+nom+' » créée. Choisis son image de fond.','ok');
     // On enchaine sur l'image : c'est le geste suivant de toute facon, et une
     // carte vide sans rien a poser dessus ne dit pas quoi faire.
     choisirFond();
@@ -1810,7 +1810,7 @@
     const nom=(await askText('Les chapitres qui utilisent cette carte suivront.',
       {title:'Renommer la carte',valeur:ancien,ok:'Renommer'})||'').trim();
     if(!nom||nom===ancien)return;
-    if(REG[nom]!==undefined){toast('Une carte porte deja ce nom.','err');return;}
+    if(REG[nom]!==undefined){toast('Une carte porte déjà ce nom.','err');return;}
     // on reconstruit le dictionnaire pour garder l'ORDRE : sinon la carte
     // renommee sauterait en fin de fichier a chaque enregistrement
     const neuf={};Object.keys(REG).forEach(k=>{neuf[k===ancien?nom:k]=REG[k];});
@@ -1818,7 +1818,7 @@
     Object.keys(neuf).forEach(k=>{REG[k]=neuf[k];});
     FL.forEach(x=>{if(x.carte===ancien)x.carte=nom;});
     setDirty(true);majSelCarte();
-    toast('Renommee — '+chapitresAvec(nom)+' chapitre(s) concerne(s).','ok');
+    toast('Renommée — '+chapitresAvec(nom)+' chapitre(s) concerné(s).','ok');
   }
   // ⚠ on sérialise TOUS les étages, pas seulement celui affiché : sinon les modifications
   // faites sur l'autre étage avant de changer d'onglet étaient perdues sans le moindre avertissement.
@@ -1865,7 +1865,7 @@
     if(gEdit&&editVis!=null)gEdit.visible(editVis);
     if(shTr&&trVis!=null)shTr.visible(trVis);
     updateZoom();stage.draw();
-    if(err||!cv){toast('Export impossible : '+(err?err.message:'rendu vide'),'err');return;}
+    if(err||!cv){toast('La carte n’a pas pu être mise en image. Recharge la page et réessaie.','err');return;}
     // Blob plutôt que data-URL : en 4096 px la chaîne base64 dépasse les 25 Mo et
     // certains navigateurs refusent de la télécharger.
     cv.toBlob(blob=>{
@@ -1878,7 +1878,7 @@
   // Blocs data.js : le même texte que celui écrit par Enregistrer, mais téléchargeable
   // ou copiable — utile hors Chrome, ou pour transmettre la carte sans donner le fichier.
   function texteBlocs(){
-    return '/* Blocs générés par Map Studio — à coller dans js/data.js en remplacement\n'
+    return '/* Cette carte vient de l’atelier XI STUDIO — à coller dans js/data.js en remplacement\n'
       +'   des blocs de même nom. Le reste du fichier ne doit pas être touché. */\n\n'
       // `txt`, pas `text` : c'est le nom que blocksToSave donne à ses blocs, et
       // celui que data-file.js relit. Avec `text`, l'export sortait vide — neuf
@@ -1889,11 +1889,11 @@
     if(copier){
       (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt)
         :Promise.reject(new Error('presse-papier indisponible')))
-        .then(()=>toast('Blocs data.js copiés — colle-les dans js/data.js.','ok'))
-        .catch(e=>toast('Copie impossible : '+e.message,'err'));
+        .then(()=>toast('Carte copiée — le lead qui la reçoit la colle dans son projet.','ok'))
+        .catch(function(){ toast('Le presse-papier a été refusé — clique dans la page, puis réessaie.','err'); });
       return;}
     telecharger(URL.createObjectURL(new Blob([txt],{type:'text/javascript'})),'data-blocs.js');
-    toast('data-blocs.js téléchargé.','ok');}
+    toast('Carte téléchargée — donne ce fichier au lead qui la reprend.','ok');}
   function openExport(){
     const seg=(id,vals,cur)=>'<div class="mpseg wide" id="'+id+'">'+vals.map(v=>
       '<button type="button" data-v="'+v[0]+'"'+(String(cur)===String(v[0])?' class="on"':'')+'>'+v[1]+'</button>').join('')+'</div>';
@@ -1902,10 +1902,10 @@
     h+='<div class="mprow"><span class="mplbl">Taille</span>'+seg('ex_e',[[1,'1024'],[2,'2048'],[4,'4096']],expEch)+'</div>';
     h+='<div class="mprow" id="ex_qrow"><span class="mplbl">Qualité</span><input class="mprange" id="ex_q" type="range" min="50" max="100" value="'+Math.round(expQual*100)+'"><span class="mpval" id="ex_qv">'+Math.round(expQual*100)+' %</span></div>';
     h+='<div class="mpacts"><button class="mpbtn primary" id="ex_img">Télécharger l’image</button></div>';
-    h+='<div class="mprow" style="margin-top:12px;border-top:1px solid var(--hair);padding-top:11px"><span class="mplbl">data.js</span></div>';
-    h+='<div class="mpacts"><button class="mpbtn primary" id="ex_dl">Télécharger les blocs</button>'
+    h+='<div class="mprow" style="margin-top:12px;border-top:1px solid var(--hair);padding-top:11px"><span class="mplbl">Donner la carte</span></div>';
+    h+='<div class="mpacts"><button class="mpbtn primary" id="ex_dl">Télécharger</button>'
       +'<button class="mpbtn" id="ex_cp">Copier</button></div>';
-    h+='<div class="mpnote">L’image est rendue à l’échelle de la carte, sans les poignées d’édition. Les blocs sont ceux qu’écrit <b>Enregistrer</b> : à coller dans <code>js/data.js</code> en remplacement de ceux du même nom.</div>';
+    h+='<div class="mpnote">L’image est rendue à l’échelle de la carte, sans les poignées d’édition. En dessous, c’est la carte elle-même — exactement ce qu’écrit <b>Enregistrer</b> — pour la donner à un autre lead qui la reprendra dans son projet.</div>';
     openMapPanel({},()=>({x:MAP/2,y:MAP*0.42}),h,()=>{
       const majQ=()=>{const r=document.getElementById('ex_qrow');if(r)r.style.display=(expFmt==='png')?'none':'';};
       document.querySelectorAll('#ex_f button[data-v]').forEach(b=>b.addEventListener('click',()=>{
@@ -1929,13 +1929,24 @@
       const r=DF.remplace(await DF.lis(h),blocksToSave());
       if(r.absents.length){
         // aucun bloc n'est ajouté d'office : un bloc manquant veut dire mauvais fichier
-        if(!await askConfirm('Bloc <b>'+esc(r.absents[0])+'</b> introuvable dans « '+esc(h.name)+' ». Est-ce le bon data.js ?',{title:'Fichier inattendu',ok:'Re-sélectionner',danger:false}))return;
+        /* L'ancien message accusait TOUJOURS le fichier — « Est-ce le bon
+           data.js ? » — et le lead rechoisissait en boucle celui qui était le
+           bon. Un bloc absent veut dire deux choses, et la seconde est bien
+           plus fréquente : le fichier ne connaît pas encore ce chapitre. La
+           coque le dit déjà comme ça ; l'atelier Carte était resté en arrière. */
+        if(!await askConfirm(
+             'Ta carte a un chapitre que « '+esc(h.name)+' » ne connaît pas encore.'
+           + '<br><br>Rien n’a été enregistré. Si c’est bien le projet où doit vivre '
+           + 'cette strat, publie-la d’abord depuis l’atelier Stratégie ; sinon, '
+           + 'choisis le fichier du projet d’où elle vient.',
+             {title:'Ce projet est en retard d’un chapitre',ok:'Choisir un autre fichier',danger:false}))return;
         await DF.oublie('data');
         return save();}
       await DF.ecris(h,r.texte);
       setDirty(false);
       toast('Enregistré dans data.js (les deux étages) — le guide se met à jour.','ok');
-    }catch(e){if(e.name!=='AbortError')toast('Erreur : '+e.message,'err');}
+    }catch(e){if(e.name!=='AbortError'){ if(window.console) console.error(e);
+        toast('L’enregistrement n’a pas abouti — rien n’a été perdu, ton travail est toujours là. Réessaie.','err'); }}
   }
   // relecture : DF.connue et pas DF.poignee — faire surgir un sélecteur de
   // fichier sur un simple « recharger » serait incompréhensible.
@@ -1951,7 +1962,8 @@
         if(fresh.C){Object.keys(REG).forEach(k=>delete REG[k]);Object.keys(fresh.C).forEach(k=>REG[k]=fresh.C[k]);}
         S.resoudreCartes(FL,REG);
         mobScale=fresh.M||1;paintGlobals();renderFloor(curIdx);resetHistory();setDirty(false);if(!silent)toast('Rechargé depuis le disque.','ok');}
-    }catch(e){if(!silent)toast('Lecture échouée : '+e.message,'err');}}
+    }catch(e){if(!silent){ if(window.console) console.error(e);
+        toast('Le fichier n’a pas pu être relu — vérifie qu’il n’a pas été déplacé, puis réessaie.','err'); }}}
 
   /* ============================================================
      11 · BARRE / RACCOURCIS / TOAST / BOOT

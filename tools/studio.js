@@ -752,9 +752,13 @@
         var quoi = r.absents.join(', ');
         var quEtapes = r.absents.every(function(n){ return /^PHASES/.test(n); });
         if(quEtapes){
-          toast('Ta strat a un chapitre que js/data.js ne connaît pas encore (' + quoi + '). '
-              + 'Rien n\'a été enregistré : ajoute « const ' + r.absents[0] + '=[]; » au fichier, '
-              + 'ou publie cette strat dans le projet d\'où elle vient.', 'err');
+          /* La moitié de l'ancien remède demandait au lead d'ouvrir un éditeur
+             de code et d'écrire du JavaScript — « ajoute const PHASES_C=[]; au
+             fichier ». La seule action qui lui appartient est la seconde :
+             choisir le bon projet. L'autre n'a rien à faire dans un message. */
+          toast('Ta strat a un chapitre que ce projet ne connaît pas encore (' + quoi + '). '
+              + 'Rien n\'a été enregistré. Enregistre-la dans le projet d\'où elle vient, '
+              + 'ou repars d\'une strat de ce projet-ci.', 'err');
           return;
         }
         await DF.oublie('data');
