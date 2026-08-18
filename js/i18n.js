@@ -23,7 +23,7 @@ const TR={
  "SECTEUR":"SECTOR",
  "à venir":"coming soon",
  "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
- "Étage":"Floor",
+ "Chapitre":"Chapter",
  "Buffs de départ":"Start buffs",
  "Buffs de trajet":"Route buffs",
  "Buffs avant le dernier boss":"Buffs before the last boss",

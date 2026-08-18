@@ -914,7 +914,7 @@
     var manque = SC.manquantes(phases(), TRAD, JEUX);
     $('ssTrCount').textContent = manque.length;
     var host = $('ssTr');
-    if(!manque.length){ host.innerHTML='<p class="ss-trok">Tout est traduit pour cet étage.</p>'; return; }
+    if(!manque.length){ host.innerHTML='<p class="ss-trok">Tout est traduit pour ce chapitre.</p>'; return; }
     host.innerHTML = manque.slice(0,40).map(function(fr,i){
       return '<div class="ss-trrow"><div class="ss-trfr">'+esc(fr)+'</div>'
         + '<input type="text" data-i="'+i+'" placeholder="traduction anglaise…"></div>'; }).join('')

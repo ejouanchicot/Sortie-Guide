@@ -229,7 +229,7 @@
     "SECTEUR":"SECTOR",
     "à venir":"coming soon",
     "Pas encore fait — on le prépare plus tard.":"Not done yet — coming later.",
-    "Étage":"Floor"
+    "Chapitre":"Chapter"
   };
 
   /* ---------------- créer, dupliquer ---------------- */

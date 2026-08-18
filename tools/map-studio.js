@@ -1779,7 +1779,7 @@
     if(i>=0){ majSelCarte(); allerEtage(i); return; }
 
     const ok=await askConfirm(
-      '<b>'+esc(nom)+'</b> n’est utilisée par aucun chapitre — il n’y a pas d’étage '
+      '<b>'+esc(nom)+'</b> n’est utilisée par aucun chapitre — il n’y a pas de chapitre '
       +'où aller la voir.<br><br>Le chapitre <b>'+esc(f.fr||f.id)+'</b> passerait de '
       +'<b>'+esc(f.carte)+'</b> à celle-ci : ses marqueurs, ses tracés et les portraits '
       +'de sa strat viendraient de cette carte-là.',
@@ -1944,7 +1944,7 @@
         return save();}
       await DF.ecris(h,r.texte);
       setDirty(false);
-      toast('Enregistré dans data.js (les deux étages) — le guide se met à jour.','ok');
+      toast('Enregistré dans data.js (tous les chapitres) — le guide se met à jour.','ok');
     }catch(e){if(e.name!=='AbortError'){ if(window.console) console.error(e);
         toast('L’enregistrement n’a pas abouti — rien n’a été perdu, ton travail est toujours là. Réessaie.','err'); }}
   }

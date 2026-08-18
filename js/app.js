@@ -759,7 +759,7 @@ if(LANG==='en'){
   document.querySelectorAll(".rlabel").forEach(function(el){
     var t=el.textContent.trim();
     if(t==="Mon rôle") el.textContent="My role";
-    else if(t==="Étage") el.textContent="Floor";
+    else if(t==="Chapitre") el.textContent="Chapter";
   });
   var foot=document.querySelector(".foot");
   if(foot) foot.textContent="Run strategy · interactive layout · click your job to highlight your actions.";

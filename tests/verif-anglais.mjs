@@ -48,7 +48,14 @@ const vu = await p.evaluate(() => ({
   cartes: document.querySelectorAll('.card').length,
   etapes: document.querySelectorAll('.phase').length,
   lignes: document.querySelectorAll('.line').length,
-  lang: document.documentElement.getAttribute('lang')
+  lang: document.documentElement.getAttribute('lang'),
+  /* Les LIBELLES de rangee, lus un par un. Les chercher dans le texte de la
+     page ne prouvait rien : ils sont peints en capitales (text-transform), donc
+     innerText rend « CHAPTER » et jamais « Chapter » — l'ancienne assertion sur
+     « Floor » passait parce que le mot vit AUSSI dans le contenu (« Top
+     Floor »), pas parce que le libelle etait traduit. Elle serait restee verte
+     avec un libelle jamais touche. */
+  labels: [...document.querySelectorAll('.rlabel')].map(function(e){ return e.textContent.trim(); })
 }));
 
 dit('la page se remplit', vu.etapes > 0 && vu.cartes > 0 && vu.lignes > 0,
@@ -57,13 +64,19 @@ dit('rien ne casse', bruit.length === 0, bruit.join(' | '));
 dit('la page se déclare en anglais', vu.lang === 'en', 'lang=' + vu.lang);
 
 // Des libellés d'interface qui DOIVENT être passés en anglais.
-const ATTENDUS = ['Run overview', 'All', 'Floor'];
+const ATTENDUS = ['Run overview', 'All'];
 ATTENDUS.forEach(function(mot){
   dit('« ' + mot +' » est traduit', vu.texte.indexOf(mot) >= 0);
 });
+// et les libelles de rangee, sur l element lui-meme
+[['Chapter','Chapitre'], ['My role','Mon rôle']].forEach(function(pr){
+  dit('le libelle « ' + pr[0] + ' » est traduit',
+      vu.labels.indexOf(pr[0]) >= 0 && vu.labels.indexOf(pr[1]) < 0,
+      'libelles vus : ' + JSON.stringify(vu.labels));
+});
 
 // Et leur version française qui ne doit PLUS être là.
-const INTERDITS = ["Vue d'ensemble du run", "N'afficher que mon rôle", 'Étage'];
+const INTERDITS = ["Vue d'ensemble du run", "N'afficher que mon rôle", 'Chapitre'];
 INTERDITS.forEach(function(mot){
   dit('« ' + mot + ' » a bien disparu', vu.texte.indexOf(mot) < 0,
       'resté en français dans la page anglaise');
