@@ -227,12 +227,6 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .ovintro p:last-child{margin-bottom:0}
 .ovintro b{color:var(--txt);font-weight:700}
 .ovintro .ovi-tip{color:var(--dim);font-size:13px}
-.ovsteps{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
-.ovsteps li{display:flex;align-items:center;gap:12px;padding:10px 13px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--zc);border-radius:var(--r-md)}
-.ovsteps .osnum{flex:none;width:27px;height:27px;border-radius:50%;background:var(--zc);color:#0d1218;font:800 12px var(--mono);display:flex;align-items:center;justify-content:center;box-shadow:0 0 9px -2px var(--zc)}
-.ovsteps .ostxt{display:flex;flex-direction:column;min-width:0}
-.ovsteps .ostxt b{font-family:var(--display);font-size:13.5px;font-weight:700}
-.ovsteps .ostxt span{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ovmapwrap{min-width:0}
 .ovmap{position:relative;width:100%;aspect-ratio:1;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line);cursor:zoom-in;box-shadow:var(--shadow)}
 .ovmap > img{width:100%;height:100%;object-fit:cover;display:block}
@@ -298,7 +292,6 @@ header{padding:10px var(--sp) 9px;display:flex;align-items:center;gap:12px}
 .phroute .rk{color:var(--accent2);font-weight:700}
 .pgrid{display:block;padding:16px}
 .pleft{min-width:0}
-.pright{margin-top:16px}
 
 /* ---------- BUFFS TRAJET ---------- */
 .buffs{display:flex;flex-direction:column;gap:12px;background:color-mix(in srgb,var(--r-buff) 9%,var(--panel2));border:1px solid color-mix(in srgb,var(--r-buff) 26%,var(--line));border-radius:var(--r-md);padding:13px 15px;margin:0 0 16px;font-size:12.8px}
