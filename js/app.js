@@ -291,7 +291,18 @@ function buildTimeline(f){
     sec.className="phase"+(p.soon?" soon":""); sec.id=idpfx+p.n;
     // secteur et numéro viennent de la strat reçue, et finissent dans du balisage
     const ptag = p.sector ? tr("SECTEUR")+' '+esc(p.sector) : 'PHASE '+esc(p.n);
-    if(p.soon){
+    /* « À venir » est une ÉTIQUETTE, pas un masque. Elle court-circuitait le
+       rendu : quoi qu'on ait écrit dans l'étape, le guide n'affichait que
+       « Pas encore fait — on le prépare plus tard. ». L'atelier, lui, laissait
+       tout écrire et l'aperçu le montrait ; l'enregistrement gravait fidèlement
+       le contenu ET la marque dans data.js. Le lead écrivait son boss final,
+       publiait, et le linkshell ne lisait rien. Et il ne pouvait pas en sortir :
+       « soon » se lit à trois endroits et ne s'écrit nulle part — aucun bouton
+       ne le pose ni ne le retire, il fallait ouvrir data.js à la main.
+       Le message ne remplace donc plus l'étape que si elle est VRAIMENT vide.
+       Sinon, elle s'affiche entière et garde son badge : on annonce que ce
+       n'est pas définitif, on ne cache rien. */
+    if(p.soon && !(p.cards||[]).length && !p.buffs){
       sec.innerHTML='<div class="tlnode soon">'+esc(p.n)+'</div>'
         +'<div class="phcard sooncard">'
         +'<div class="phhead"><div class="phtop"><span class="phtag">'+ptag+'</span><span class="soonbadge">'+tr("à venir")+'</span></div>'
@@ -316,7 +327,10 @@ function buildTimeline(f){
     sec.innerHTML='<div class="tlnode" style="--pc:'+window.SORTIE.couleurSure(pc,'var(--r-buff)')+';--pc2:'+window.SORTIE.couleurSure(pc2,'var(--r-buff)')+'">'+esc(p.n)+'</div>'
       +'<div class="phcard">'
       +'<div class="phhead">'
-      +'<div class="phtop"><span class="phtag">'+ptag+'</span>'+segHtml+'</div>'
+      +'<div class="phtop"><span class="phtag">'+ptag+'</span>'+segHtml
+      // une étape en cours d'écriture garde son badge : le lecteur sait que ce
+      // qu'il lit n'est pas définitif, et il le lit quand même
+      +(p.soon?'<span class="soonbadge">'+tr("à venir")+'</span>':'')+'</div>'
       +'<h2 class="phtitle">'+esc(tr(p.title))+'</h2>'
       +(p.route?'<div class="phroute"><span class="rk">'+tr("Déplacement :")+'</span> '+esc(tr(p.route))+'</div>':'')
       +'</div>'

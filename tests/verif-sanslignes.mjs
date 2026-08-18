@@ -165,6 +165,68 @@ dit('  mais une carte qui n\'a rien à dire reste masquée',
     fermes.muette !== 'vue', fermes.muette);
 dit('  rien ne casse à l\'ouverture', errF.length === 0, errF.slice(0, 2).join('\n       '));
 
+/* ---------- « à venir » est une étiquette, pas un masque ----------
+   La marque court-circuitait le rendu de l'étape : quoi qu'on ait écrit
+   dedans, le guide n'affichait que « Pas encore fait — on le prépare plus
+   tard ». L'atelier laissait tout écrire, l'aperçu le montrait, et
+   l'enregistrement gravait fidèlement le contenu ET la marque dans data.js.
+   Le lead écrivait son boss final, publiait, et le linkshell ne lisait rien.
+   Pire : « soon » se lit à trois endroits et ne s'écrit nulle part — aucun
+   bouton ne le pose ni ne le retire. Il fallait ouvrir data.js à la main pour
+   en sortir.
+   Le message ne remplace plus l'étape que si elle est VRAIMENT vide. */
+console.log('\n— une étape « à venir » ne cache plus ce qu\'on y a écrit —');
+const d2 = fs.mkdtempSync(path.join(os.tmpdir(), 'soon-'));
+const s2 = await b.newPage();
+await s2.goto(STUDIO, {waitUntil:'networkidle0'});
+await s2.waitForFunction(() => window.BIBLIO && window.EXPORTHTML, {timeout:9000});
+const docSoon = await s2.evaluate(async () => {
+  const st = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Essai', window.__MS.reglages());
+  const ch = st.chapitres[0];
+  ch.phases.push({n:97, sector:'Z', title:'Etape vide', soon:true, cards:[]});
+  ch.phases.push({n:98, sector:'Z', title:'Etape ecrite', soon:true,
+    cards:[{kind:'pack', name:'PACK A VENIR', tag:'',
+            groups:[{label:'Rubrique', cls:'', lines:[{r:['ALL'], t:'CE QUE J AI ECRIT'}]}]}]});
+  return await window.EXPORTHTML.fabrique(st, {base:'../'});
+});
+await s2.close();
+const f2 = path.join(d2, 'soon.html');
+fs.writeFileSync(f2, docSoon, 'utf8');
+const g3 = await b.newPage();
+const err3 = [];
+g3.on('pageerror', e => err3.push(String(e).slice(0, 110)));
+await g3.goto('file:///' + f2.replace(/\\/g, '/'), {waitUntil:'networkidle0'});
+await g3.waitForFunction(() => document.querySelectorAll('.card').length > 0, {timeout:15000});
+const soon = await g3.evaluate(() => {
+  const et = n => document.querySelector('[id$="phase' + n + '"]');
+  const vis = e => !!e && e.offsetParent !== null;
+  return {
+    /* On lit DANS l ETAPE, pas dans la page : le bloc de sauvegarde du fichier
+       partage contient la strat entiere en JSON, et une lecture sur
+       document.body y retrouvait le texte meme quand le guide ne l affichait
+       pas — l assertion est restee verte pendant que le defaut etait remis.
+       Et textContent plutot que innerText : .phcard porte content-visibility,
+       donc innerText ne rend pas ce qui est hors ecran. */
+    lisible: !!et(98) && et(98).textContent.indexOf('CE QUE J AI ECRIT') >= 0,
+    badgeEcrite: !!et(98) && !!et(98).querySelector('.soonbadge'),
+    opaciteEcrite: et(98) ? getComputedStyle(et(98)).opacity : '?',
+    annonceVide: (et(97) ? et(97).textContent : '').indexOf('Pas encore fait') >= 0,
+    lesDeux: vis(et(97)) && vis(et(98))
+  };
+});
+await g3.close();
+fs.rmSync(d2, {recursive:true, force:true});
+dit('ce qu\'on a écrit dans l\'étape se lit', soon.lisible);
+dit('  et elle garde son badge « à venir »', soon.badgeEcrite);
+/* Elle ne doit pas non plus être atténuée : la strat se lit en run, sur un
+   téléphone. L'atténuation ne vaut que pour l'annonce d'une étape vide. */
+dit('  sans être éteinte pour autant', soon.opaciteEcrite === '1', soon.opaciteEcrite);
+// Le témoin : sans lui, supprimer purement la marque passerait aussi
+dit('  tandis qu\'une étape vraiment vide annonce toujours', soon.annonceVide);
+dit('  les deux sont affichées', soon.lesDeux);
+dit('  rien ne casse', err3.length === 0, err3.slice(0, 2).join('\n       '));
+
 dit('rien ne casse', bruit.length === 0, bruit.slice(0, 3).join('\n       '));
 await b.close();
 const ko = bilan();

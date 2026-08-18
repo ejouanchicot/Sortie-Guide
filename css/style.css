@@ -704,7 +704,10 @@ body.jobsel .line.match .role{box-shadow:0 0 0 2px color-mix(in srgb,var(--jc) 4
 .zonetab.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:var(--badge-ink,#0b0e12);border-color:transparent;box-shadow:0 4px 14px -4px color-mix(in srgb,var(--violet) 60%,transparent)}
 
 /* ==== cartes / sections "à venir" (Aminon, etc.) ==== */
-.phase.soon{opacity:.72}
+/* L'atténuation ne vaut que pour l'ANNONCE d'une étape vide. Posée sur
+   l'étape entière, elle éteignait aussi la strat qu'on y a écrite — et une
+   strat se lit en run, sur un téléphone : on ne la met pas à 72 %. */
+.phase.soon .sooncard{opacity:.72}
 .tlnode.soon{background:var(--line2,#3a4657);color:var(--dim);text-shadow:none;border-color:color-mix(in srgb,#f6ead0 45%,transparent);
   box-shadow:0 0 0 1.6px rgba(13,18,24,.6),0 0 0 5.6px var(--bg);animation:none}
 .phcard.sooncard{border-style:dashed;background:color-mix(in srgb,var(--panel) 70%,transparent)}
