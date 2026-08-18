@@ -172,6 +172,37 @@ console.log('\n— dupliquer, puis supprimer —');
   dit('elle disparait et une autre prend la main', e.combien===2 && !!e.ouverte, JSON.stringify(e));
 }
 
+/* ---------- la base doit rester EFFACABLE ----------
+   Chaque lecture et chaque ecriture ouvrait sa connexion sans la refermer :
+   elles s'empilaient, ouvertes pour toute la duree de l'onglet. Mesure apres
+   UNE seule ecriture, indexedDB.deleteDatabase reste bloque indefiniment.
+   Rien de visible aujourd'hui — mais c'est ce qui bloquera la premiere
+   migration de format, et « effacer les donnees du site » depuis le navigateur
+   reste en attente lui aussi.
+   On mesure le geste qui reveille le probleme, pas le nombre de connexions :
+   c'est l'effacement qui doit aboutir, et lui seul se constate. */
+console.log('\n— la base reste effacable apres usage —');
+const efface = await p.evaluate(async () => {
+  const s = window.BIBLIO.depuisGlobaux(
+    {COMPO, ROLE, BUFFS, CARTES, MOB, TR, FLOORS}, 'Essai fermeture',
+    window.__MS ? window.__MS.reglages() : null);
+  s.id = window.BIBLIO.id();
+  await window.BIBLIO.ecris(s);
+  await window.BIBLIO.lis(s.id);
+  await window.BIBLIO.liste();
+  await window.BIBLIO.supprime(s.id);
+  return await new Promise(res => {
+    const r = indexedDB.deleteDatabase('strat-studio');
+    let bloque = false;
+    r.onblocked = () => { bloque = true; };
+    r.onsuccess = () => res({fini:true, bloque});
+    r.onerror   = () => res({fini:false, bloque});
+    setTimeout(() => res({fini:false, bloque, delai:true}), 4000);
+  });
+});
+dit('la base s\'efface sans rester bloquee', efface.fini && !efface.bloque,
+    JSON.stringify(efface));
+
 console.log('\n— la console —');
 const vrai = bruit.filter(t => !/favicon|manifest|sw\.js|ServiceWorker/i.test(t));
 dit('rien ne casse en fond', vrai.length===0, vrai.slice(0,4).join('\n       '));

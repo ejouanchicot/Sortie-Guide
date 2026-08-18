@@ -24,6 +24,12 @@
   var BASE = 'strat-studio', MAGASIN = 'strats', CLE_COURANTE = 'studio_strat_courante';
 
   /* ---------------- le magasin ---------------- */
+  /* Chaque lecture, chaque ecriture ouvre sa connexion — et la REFERME. Sans
+     ca elles s'empilaient, ouvertes pour toute la duree de l'onglet : mesure
+     apres UNE seule ecriture, indexedDB.deleteDatabase reste bloque
+     indefiniment (onblocked, jamais fini). Ce n'est pas visible aujourd'hui,
+     mais c'est ce qui bloquera la premiere migration de format — et « effacer
+     les donnees du site » depuis le navigateur reste en attente lui aussi. */
   function idb(fn){
     return new Promise(function(res, rej){
       var r = indexedDB.open(BASE, 1);
@@ -32,7 +38,14 @@
         if(!db.objectStoreNames.contains(MAGASIN)) db.createObjectStore(MAGASIN, {keyPath:'id'});
       };
       r.onerror = function(){ rej(r.error); };
-      r.onsuccess = function(){ try{ fn(r.result, res, rej); }catch(e){ rej(e); } };
+      r.onsuccess = function(){
+        var db = r.result;
+        // on ferme APRES que la promesse soit tranchee : fermer plus tot
+        // annulerait la transaction en cours
+        var fini = function(v){ try{ db.close(); }catch(e){} res(v); };
+        var rate = function(e){ try{ db.close(); }catch(e2){} rej(e); };
+        try{ fn(db, fini, rate); }catch(e){ rate(e); }
+      };
     });
   }
   function tout(){ return idb(function(db, res, rej){
